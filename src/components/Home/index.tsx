@@ -8,9 +8,8 @@ const Home: NextPage = () => {
         <title>Create Next App</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-
       <main className="flex w-full flex-1 flex-col items-center justify-center px-20 text-center">
-    
+        <p>Bay Mangata Auto-Compounder</p>
       </main>
     </div>
   )
