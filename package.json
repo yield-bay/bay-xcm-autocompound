@@ -12,15 +12,19 @@
   "dependencies": {
     "@headlessui/react": "^1.7.10",
     "@heroicons/react": "^2.0.15",
+    "@polkadot/extension-dapp": "^0.44.8",
+    "@talismn/connect-wallets": "^1.2.3",
     "axios": "^1.3.3",
     "dotenv": "^16.0.3",
     "jotai": "^2.0.1",
+    "lodash": "^4.17.21",
     "next": "latest",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "sharp": "^0.31.3"
   },
   "devDependencies": {
+    "@types/lodash": "^4.14.191",
     "@types/node": "18.11.3",
     "@types/react": "18.0.21",
     "@types/react-dom": "18.0.6",
