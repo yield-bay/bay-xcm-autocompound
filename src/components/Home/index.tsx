@@ -35,11 +35,12 @@ const Home: NextPage = () => {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center py-2">
       <Head>
-        <title>Create Next App</title>
+        <title>Mangata App</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="flex w-full flex-1 flex-col items-center justify-center px-10 text-center max-w-fit">
-        {hasPolkadotjsExt && !selectedAccount && (
+        {/* Has polkadot extenstion and have no accounts fetched */}
+        {hasPolkadotjsExt && allAccounts.length === 0 ? (
           <button
             className="w-full flex rounded-full border items-center p-8 transform hover:scale-102"
             onClick={handleOnClickConnectPolkadotExtension}
@@ -51,12 +52,25 @@ const Home: NextPage = () => {
                 height="45"
                 alt="walletIcon"
               />
-              <p className='font-medium text-lg'>Connect to the Polkadot wallet</p>
+              <p className="font-medium text-lg">
+                Connect to the Polkadot wallet
+              </p>
             </div>
           </button>
+        ) : (
+          !hasPolkadotjsExt && (
+            <div>
+              <p>
+                Please install either PolkadotJS or Talisman wallet extension
+              </p>
+            </div>
+          )
         )}
-        {allAccounts.length > 0 && !selectedAccount ? (
+        {/* There are more than 1 account but none is selected */}
+        {allAccounts.length > 0 && !selectedAccount && (
           <div className="flex flex-col mt-5 gap-5 max-w-xl">
+            <p>No account selected</p>
+            <p>Select one of the accounts:</p>
             {allAccounts.map((account) => {
               return (
                 <button
@@ -75,29 +89,24 @@ const Home: NextPage = () => {
               );
             })}
           </div>
-        ) : null}
-        <div className="mt-10">
-          {selectedAccount ? (
-            <>
-              <button
-                className="text-left border w-full border-black px-10 py-6
-          rounded-lg hover:scale-[1.02] transition duration-200 hover:shadow-lg"
-              >
-                <p>Name: {selectedAccount.meta.name}</p>
-                <p>
-                  Address: {selectedAccount.address.slice(0, 5)}...
-                  {selectedAccount.address.slice(-5)}
-                </p>
-                <p>Wallet: {selectedAccount.meta.source}</p>
-              </button>
-            </>
-          ) : allAccounts.length > 1 ? (
-            <>
-              <p>no selected wallet</p>
-              <p>please select one of them</p>
-            </>
-          ) : null}
-        </div>
+        )}
+        {/* Have a account selected */}
+        {selectedAccount && (
+          <div>
+            <p className="text-left">Selected Account:</p>
+            <button
+              className="text-left border w-full border-black px-10 py-6
+                          rounded-lg hover:scale-[1.02] transition duration-200 hover:shadow-lg"
+            >
+              <p>Name: {selectedAccount.meta.name}</p>
+              <p>
+                Address: {selectedAccount.address.slice(0, 5)}...
+                {selectedAccount.address.slice(-5)}
+              </p>
+              <p>Wallet: {selectedAccount.meta.source}</p>
+            </button>
+          </div>
+        )}
       </main>
     </div>
   );
