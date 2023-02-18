@@ -8,12 +8,25 @@ import {
   type WalletAccount,
   type Wallet,
 } from '@talismn/connect-wallets';
+// Mangata SDK
+import { Mangata } from "@mangata-finance/sdk";
+import { MG_MAINNET_1, MG_MAINNET_2 } from "@utils/constants";
 
 const WalletFlow = () => {
   const [wallets, setWallets] = useState<Wallet[]>([]); // list of required & installed wallets
   const [wallet, setWallet] = useAtom(walletAtom); // selected wallet
   const [walletAccounts, setWalletAccounts] = useAtom(walletAccountsAtom); // connected accounts in selected wallet
   const [account, setAccount] = useAtom(accountAtom); // selected account
+
+  // Mangata
+  useEffect(() => {
+    (async () => {
+      const mangata = Mangata.getInstance([MG_MAINNET_1, MG_MAINNET_2]);
+      console.log("fetching pools...");
+      const liquidity_pools = await mangata.getPools();
+      console.log("liquidity pools\n", liquidity_pools);
+    })();
+  }, []);
 
   useEffect(() => {
     let unmounted = false;
@@ -98,7 +111,7 @@ const WalletFlow = () => {
       )}
 
       {account && (
-        <div className="m-10">
+        <div className="flex flex-col gap-y-10 m-10">
           <button
             className="p-3 border border-red-500 hover:bg-red-50 text-red-500 font-semibold rounded"
             onClick={() => {
@@ -108,7 +121,6 @@ const WalletFlow = () => {
             }}
           >
             Disconnect
-          </button>
         </div>
       )}
     </div>
