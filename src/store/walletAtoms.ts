@@ -7,13 +7,18 @@ const walletNameAtom = atomWithStorage<string | null>(
   null // intial value
 );
 
-const originalWalletAtom = atom<Wallet | null>(null)
-originalWalletAtom.debugLabel = 'wallet'
+const originalWalletAtom = atom<Wallet | null>(null);
+originalWalletAtom.debugLabel = 'wallet';
 
 export const walletAtom = atom(
   (get) => get(originalWalletAtom),
   (get, set, update: Wallet | null) => {
-    set(originalWalletAtom, update)
-    set(walletNameAtom, update !== null ? update.extensionName : null)
+    set(originalWalletAtom, update);
+    set(walletNameAtom, update !== null ? update.extensionName : null);
   }
-)
+);
+
+export const connected = atomWithStorage<boolean>(
+  'jotai:connected', // key
+  false // initial value
+);
