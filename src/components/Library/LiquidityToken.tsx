@@ -20,9 +20,9 @@ function LiquidityToken({ firstTokenSymbol, secondTokenSymbol }: LiquidityTokenP
     switch (symbol) {
       case 'TUR':
         return imageTur;
-      case 'KSM':
+      case 'ROC':
         return imageKsm;
-      case 'MGX':
+      case 'MGR':
       default:
         return imageMgx;
     }

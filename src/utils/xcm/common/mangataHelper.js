@@ -20,13 +20,13 @@ class MangataHelper {
         this.keyring = new Keyring({ type: 'sr25519', ss58Format: this.config.ss58 });
 
         await this.updateAssets();
-    /**
-    [
-      {"id":"0","chainId":0,"decimals":18,"name":"Mangata","symbol":"MGR","address":""},
-      {"id":"4","chainId":0,"decimals":12,"name":"Rococo  Native","symbol":"ROC","address":""},
-      {"id":"7","chainId":0,"decimals":10,"name":"Turing native token","symbol":"TUR","address":""}
-    ]
-     */
+        /**
+        [
+          {"id":"0","chainId":0,"decimals":18,"name":"Mangata","symbol":"MGR","address":""},
+          {"id":"4","chainId":0,"decimals":12,"name":"Rococo  Native","symbol":"ROC","address":""},
+          {"id":"7","chainId":0,"decimals":10,"name":"Turing native token","symbol":"TUR","address":""}
+        ]
+         */
     };
 
     updateAssets = async () => {
@@ -42,7 +42,9 @@ class MangataHelper {
     };
 
     getTokenIdBySymbol(symbol) {
+        console.log("getTokenIdBySymbol.symbol", symbol, this.assets);
         const token = _.find(this.assets, { symbol });
+        console.log("getTokenIdBySymbol.token", token);
         return token.id;
     }
 
@@ -84,7 +86,7 @@ class MangataHelper {
         };
         console.log("currencyId", currencyId, "amount", amount);
 
-        const amt=4000000000;
+        const amt = 4000000000;
         const extrinsic = this.api.tx.xTokens.transfer(currencyId, amount, dest, null);
         return extrinsic;
         // await sendExtrinsic(this.api, extrinsic, keyring);

@@ -78,11 +78,11 @@ const Home = () => {
             <option value="MGR-TUR">
               <LiquidityToken firstTokenSymbol="MGR" secondTokenSymbol="TUR" />
             </option>
-            <option value="TUR-KSM">
-              <LiquidityToken firstTokenSymbol="TUR" secondTokenSymbol="KSM" />
+            <option value="ROC-TUR">
+              <LiquidityToken firstTokenSymbol="ROC" secondTokenSymbol="TUR" />
             </option>
-            <option value="MGR-KSM">
-              <LiquidityToken firstTokenSymbol="MGR" secondTokenSymbol="KSM" />
+            <option value="ROC-MGR">
+              <LiquidityToken firstTokenSymbol="ROC" secondTokenSymbol="MGR" />
             </option>
           </select>
           <label htmlFor="amount">Enter a token amount</label>
@@ -169,18 +169,12 @@ const Home = () => {
             console.log('mangataAddress', mangataAddress);
             console.log('turingAddress', turingAddress);
 
-            const mgxToken = account1.getAssetByChainAndSymbol(
-              mangataChainName,
-              mangataNativeToken.symbol
-            );
-            const turToken = account1.getAssetByChainAndSymbol(
-              mangataChainName,
-              turingNativeToken.symbol
-            );
             // const poolName = `${mgxToken.symbol}-${turToken.symbol}`;
             const poolName = selectedToken;
 
             console.log('poolname', poolName);
+            const token0 = poolName.split('-')[0]
+            const token1 = poolName.split('-')[1]
 
             console.log(
               '\n2. Add a proxy on Mangata for paraId 2114, or skip this step if that exists ...'
@@ -233,10 +227,8 @@ const Home = () => {
             console.log('pools', pools);
 
             const pool = _.find(pools, {
-              firstTokenId: mangataHelper.getTokenIdBySymbol(mgxToken.symbol),
-              secondTokenId: mangataHelper.getTokenIdBySymbol(
-                turToken.symbol
-              ),
+              firstTokenId: mangataHelper.getTokenIdBySymbol(token0),
+              secondTokenId: mangataHelper.getTokenIdBySymbol(token1),
             });
             console.log(`Found a pool of ${poolName}`, pool);
 
@@ -310,20 +302,20 @@ const Home = () => {
             const secondsInHour = 3600;
             const millisecondsInHour = 3600 * 1000;
             const currentTimestamp = moment().valueOf();
-            const executionTime = (currentTimestamp - (currentTimestamp % millisecondsInHour)) / 1000 + secondsInHour*24;
+            const executionTime = (currentTimestamp - (currentTimestamp % millisecondsInHour)) / 1000 + secondsInHour * 24;
             const providedId = `xcmp_automation_test_${(Math.random() + 1).toString(36).substring(7)}`;
 
             // frequency
 
             const xcmpCall = await turingHelper.api.tx.automationTime.scheduleXcmpTask(
               providedId,
-              { Recurring: { frequency: secondsInHour*24*frequency, nextExecutionTime: executionTime } },
+              { Recurring: { frequency: secondsInHour * 24 * frequency, nextExecutionTime: executionTime } },
               // { Fixed: { executionTimes: [0] } },
               mangataHelper.config.paraId,
               0,
               encodedMangataProxyCall,
               parseInt(mangataProxyCallFees.weight.refTime, 10),
-          );
+            );
             // await (xcmpCall).signAndSend(account1.address, {signer:signer});
             console.log('xcmpCall: ', xcmpCall);
 
