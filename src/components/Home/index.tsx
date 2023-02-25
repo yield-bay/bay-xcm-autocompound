@@ -34,7 +34,7 @@ import {
 
 
 const Home = () => {
-  const [selectedToken, setSelectedToken] = useState('MGX-TUR');
+  const [selectedToken, setSelectedToken] = useState('MGR-TUR');
   const [tokenAmount, setTokenAmount] = useState(0);
   const [frequency, setFrequency] = useState(0);
 
@@ -75,14 +75,14 @@ const Home = () => {
             placeholder="Select a Liquidity Pool"
             required
           >
-            <option value="MGX-TUR">
-              <LiquidityToken firstTokenSymbol="MGX" secondTokenSymbol="TUR" />
+            <option value="MGR-TUR">
+              <LiquidityToken firstTokenSymbol="MGR" secondTokenSymbol="TUR" />
             </option>
             <option value="TUR-KSM">
               <LiquidityToken firstTokenSymbol="TUR" secondTokenSymbol="KSM" />
             </option>
-            <option value="MGX-KSM">
-              <LiquidityToken firstTokenSymbol="MGX" secondTokenSymbol="KSM" />
+            <option value="MGR-KSM">
+              <LiquidityToken firstTokenSymbol="MGR" secondTokenSymbol="KSM" />
             </option>
           </select>
           <label htmlFor="amount">Enter a token amount</label>
@@ -152,9 +152,9 @@ const Home = () => {
             console.log('1. Reading token and balance of account ...');
 
             const account1 = new Account({
-              address: '5DkJNsxKSPtgeXHpEZVuDpTLDuHpNwemQHuUUsQpoSUDLv1z',
+              address: account?.address,
               meta: {
-                name: 'abc',
+                name: account?.name,
               },
             });
             await account1.init([turingHelper, mangataHelper]);
@@ -177,7 +177,8 @@ const Home = () => {
               mangataChainName,
               turingNativeToken.symbol
             );
-            const poolName = `${mgxToken.symbol}-${turToken.symbol}`;
+            // const poolName = `${mgxToken.symbol}-${turToken.symbol}`;
+            const poolName = selectedToken;
 
             console.log('poolname', poolName);
 
@@ -289,23 +290,40 @@ const Home = () => {
 
             // Create Turing scheduleXcmpTask extrinsic
             console.log('\na) Create the call for scheduleXcmpTask ');
-            const providedId = `xcmp_automation_test_${(Math.random() + 1).toString(36).substring(7)}`;
+            // const providedId = `xcmp_automation_test_${(Math.random() + 1).toString(36).substring(7)}`;
 
-            const secPerHour = 3600;
-            const msPerHour = 3600 * 1000;
-            const currentTimestamp = moment().valueOf();
-            const timestampNextHour = (currentTimestamp - (currentTimestamp % msPerHour)) / 1000 + secPerHour;
-            const timestampTwoHoursLater = (currentTimestamp - (currentTimestamp % msPerHour)) / 1000 + (secPerHour * 2);
+            // const secPerHour = 3600;
+            // const msPerHour = 3600 * 1000;
+            // const currentTimestamp = moment().valueOf();
+            // const timestampNextHour = (currentTimestamp - (currentTimestamp % msPerHour)) / 1000 + secPerHour;
+            // const timestampTwoHoursLater = (currentTimestamp - (currentTimestamp % msPerHour)) / 1000 + (secPerHour * 2);
 
             // call from proxy
+            // const xcmpCall = await turingHelper.api.tx.automationTime.scheduleXcmpTask(
+            //   providedId,
+            //   { Fixed: { executionTimes: [timestampNextHour, timestampTwoHoursLater] } },
+            //   mangataHelper.config.paraId,
+            //   0,
+            //   encodedMangataProxyCall,
+            //   parseInt(mangataProxyCallFees.weight.refTime, 10),
+            // );
+            const secondsInHour = 3600;
+            const millisecondsInHour = 3600 * 1000;
+            const currentTimestamp = moment().valueOf();
+            const executionTime = (currentTimestamp - (currentTimestamp % millisecondsInHour)) / 1000 + secondsInHour*24;
+            const providedId = `xcmp_automation_test_${(Math.random() + 1).toString(36).substring(7)}`;
+
+            // frequency
+
             const xcmpCall = await turingHelper.api.tx.automationTime.scheduleXcmpTask(
               providedId,
-              { Fixed: { executionTimes: [timestampNextHour, timestampTwoHoursLater] } },
+              { Recurring: { frequency: secondsInHour*24*frequency, nextExecutionTime: executionTime } },
+              // { Fixed: { executionTimes: [0] } },
               mangataHelper.config.paraId,
               0,
               encodedMangataProxyCall,
               parseInt(mangataProxyCallFees.weight.refTime, 10),
-            );
+          );
             // await (xcmpCall).signAndSend(account1.address, {signer:signer});
             console.log('xcmpCall: ', xcmpCall);
 
