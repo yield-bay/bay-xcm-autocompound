@@ -60,6 +60,36 @@ class MangataHelper {
     // addProxy = async (proxyAccount, keyPair) => this.api.tx.proxy.addProxy(proxyAccount, 'Any', 0).signAndSend(keyPair);
     addProxyTx = async (proxyAccount, proxyType) => this.api.tx.proxy.addProxy(proxyAccount, proxyType, 0);
 
+    transferTur = async (amount, address) => {
+        const publicKey = new Keyring().decodeAddress(address);
+        const publicKeyHex = `0x${Buffer.from(publicKey).toString('hex')}`;
+
+        const currencyId = this.getTokenIdBySymbol('TUR');
+
+        const dest = {
+            V1: {
+                parents: 1,
+                interior: {
+                    X2: [
+                        { Parachain: 2114 },
+                        {
+                            AccountId32: {
+                                network: 'Any',
+                                id: publicKeyHex,
+                            },
+                        },
+                    ],
+                },
+            },
+        };
+        console.log("currencyId", currencyId, "amount", amount);
+
+        const amt=4000000000;
+        const extrinsic = this.api.tx.xTokens.transfer(currencyId, amount, dest, null);
+        return extrinsic;
+        // await sendExtrinsic(this.api, extrinsic, keyring);
+    };
+
     createProxyCall = async (address, proxyType, extrinsic) => this.api.tx.proxy.proxy(address, proxyType, extrinsic);
 
     initIssuance = async (keyPair) => {
@@ -234,32 +264,32 @@ class MangataHelper {
         return formatted;
     };
 
-    transferTur = async (amount, address, paraId, keyPair) => {
-        const publicKey = this.keyring.decodeAddress(address);
-        const publicKeyHex = `0x${Buffer.from(publicKey).toString('hex')}`;
+    // transferTur = async (amount, address, paraId, keyPair) => {
+    //     const publicKey = this.keyring.decodeAddress(address);
+    //     const publicKeyHex = `0x${Buffer.from(publicKey).toString('hex')}`;
 
-        const currencyId = this.getTokenIdBySymbol('TUR');
+    //     const currencyId = this.getTokenIdBySymbol('TUR');
 
-        const dest = {
-            V1: {
-                parents: 1,
-                interior: {
-                    X2: [
-                        { Parachain: paraId },
-                        {
-                            AccountId32: {
-                                network: 'Any',
-                                id: publicKeyHex,
-                            },
-                        },
-                    ],
-                },
-            },
-        };
+    //     const dest = {
+    //         V1: {
+    //             parents: 1,
+    //             interior: {
+    //                 X2: [
+    //                     { Parachain: paraId },
+    //                     {
+    //                         AccountId32: {
+    //                             network: 'Any',
+    //                             id: publicKeyHex,
+    //                         },
+    //                     },
+    //                 ],
+    //             },
+    //         },
+    //     };
 
-        const extrinsic = this.api.tx.xTokens.transfer(currencyId, amount, dest, 6000000000);
-        await sendExtrinsic(this.api, extrinsic, keyPair);
-    };
+    //     const extrinsic = this.api.tx.xTokens.transfer(currencyId, amount, dest, 6000000000);
+    //     await sendExtrinsic(this.api, extrinsic, keyPair);
+    // };
 
     calculateRewardsAmount = async (address, tokenId) => {
         // console.log('calculateRewardsAmount: address', address, 'liquidityTokenId', _.toString(tokenId));

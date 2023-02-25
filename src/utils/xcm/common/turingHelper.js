@@ -52,6 +52,10 @@ class TuringHelper {
         return fees;
     };
 
+    queryFeeDetails = async(xcmpCall) => {
+        return await this.api.rpc.automationTime.queryFeeDetails(xcmpCall);
+    }
+
     sendXcmExtrinsic = async (xcmpCall, keyPair, signer, taskId) => new Promise((resolve) => {
         const send = async () => {
             const unsub = await xcmpCall.signAndSend(keyPair, { signer: signer, nonce: -1 }, async ({ status }) => {
