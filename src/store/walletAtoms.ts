@@ -1,4 +1,4 @@
-import type { Wallet } from '@talismn/connect-wallets';
+import type { Wallet, WalletAccount } from '@talismn/connect-wallets';
 import { atom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
 
@@ -9,6 +9,8 @@ const walletNameAtom = atomWithStorage<string | null>(
 
 const originalWalletAtom = atom<Wallet | null>(null);
 originalWalletAtom.debugLabel = 'wallet';
+
+export const walletsAtom = atom<Wallet[]>([]);
 
 export const walletAtom = atom(
   (get) => get(originalWalletAtom),

@@ -1,17 +1,15 @@
-import type { NextPage } from 'next';
-import Head from 'next/head';
-import Link from 'next/link';
+import { useAtom } from 'jotai';
+import { accountAtom, walletAccountsAtom } from '@store/accountAtoms';
+import { walletAtom, walletsAtom } from '@store/walletAtoms';
+import { useEffect, useState } from 'react';
+import _ from 'lodash';
+import { getWallets } from '@talismn/connect-wallets';
+import Header from '@components/Header';
 
-const Home: NextPage = () => {
+const Home = () => {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center py-2">
-      <Head>
-        <title>Mangata App</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-      <main className="flex w-full flex-1 flex-col items-center justify-center px-10 text-center max-w-fit">
-        <Link href="/wallet"><p className='underline'>Go to wallet</p></Link>
-      </main>
+    <div className="min-h-screen w-full">
+      <Header />
     </div>
   );
 };
