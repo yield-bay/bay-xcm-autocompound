@@ -21,3 +21,13 @@ export const filterMGXFarms = (farms: FarmType[]): FarmType[] => {
   });
   return filteredFarms;
 };
+
+// Replace KSM with ROC in farm name
+export const replaceKSMWithMGX = (farmName: string): string => {
+  return farmName.replace('KSM', 'ROC');
+}
+
+// Replace MGX with MGR in farm name
+export const replaceMGXWithMGR = (farmName: string): string => {
+  return farmName.replace('MGX', 'MGR');
+}
