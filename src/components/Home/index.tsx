@@ -1,24 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import _ from 'lodash';
 import Header from '@components/Header';
 import LiquidityToken from '@components/Library/LiquidityToken';
 import { useAtom } from 'jotai';
-
-import { accountAtom, walletAccountsAtom } from '@store/accountAtoms';
-import { walletAtom } from '@store/walletAtoms';
-import { APP_NAME } from '@utils/constants';
 import moment from 'moment';
 import BN from 'bn.js';
-import {
-  getWallets,
-  type WalletAccount,
-  type Wallet,
-} from '@talismn/connect-wallets';
-// import { Modal, useLocalStorage } from '@talismn/connect-ui';
-// Mangata SDK
-import { Mangata } from '@mangata-finance/sdk';
-import { MG_MAINNET_1, MG_MAINNET_2 } from '@utils/constants';
-
 import {
   delay, listenEvents, getDecimalBN, calculateTimeout, sendExtrinsic,
 } from '@utils/xcm/common/utils';
@@ -31,12 +17,16 @@ import {
   TuringDev, Turing, TuringStaging,
   Shibuya, Rocstar, Shiden
 } from '@utils/xcm/config';
-
+import { accountAtom } from '@store/accountAtoms';
+import { fetchFarms } from '@utils/api';
+import { filterMGXFarms } from '@utils/farmMethods';
+import { FarmType } from '@utils/types';
 
 const Home = () => {
   const [selectedToken, setSelectedToken] = useState('MGR-TUR');
   const [tokenAmount, setTokenAmount] = useState(0);
   const [frequency, setFrequency] = useState(0);
+  const [farms, setFarms] = useState<FarmType[]>([]);
 
   // Atoms
   const [account] = useAtom(accountAtom);
@@ -55,6 +45,19 @@ const Home = () => {
     const freq = value.target.value;
     setFrequency(freq);
   };
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const { farms } = await fetchFarms();
+        const filteredFarms = filterMGXFarms(farms);
+        // console.log('farms', filteredFarms);
+        setFarms(filteredFarms);
+      } catch (error) {
+        console.error(error);
+      }
+    })();
+  }, []);
 
   return (
     <div className="min-h-screen w-full">
@@ -195,12 +198,12 @@ const Home = () => {
 
             if (proxyMatch) {
               console.log(
-                `Found proxy of ${account.address} on Mangata, and will skip the addition ... `,
+                `Found proxy of ${account?.address} on Mangata, and will skip the addition ... `,
                 proxyMatch
               );
             } else {
               if (_.isEmpty(proxies)) {
-                console.log(`Proxy array of ${account.address} is empty ...`);
+                console.log(`Proxy array of ${account?.address} is empty ...`);
               } else {
                 console.log(
                   'Proxy not found. Expected',
@@ -266,7 +269,7 @@ const Home = () => {
             );
 
             console.log(
-              `Before auto-compound, ${account.name
+              `Before auto-compound, ${account?.name
               } reserved "${poolName}": ${numReserved.toString()} ...`
             );
 
@@ -351,7 +354,7 @@ const Home = () => {
 
             // Send extrinsic
             console.log('\nc) Sign and send scheduleXcmpTask call ...');
-            await turingHelper.sendXcmExtrinsic(xcmpCall, account.address, signer, taskId);
+            await turingHelper.sendXcmExtrinsic(xcmpCall, account?.address, signer, taskId);
 
             // Listen XCM events on Mangata side
             console.log(`\n5. Keep Listening XCM events on ${mangataChainName} until ${moment(timestampNextHour * 1000).format('YYYY-MM-DD HH:mm:ss')}(${timestampNextHour}) to verify that the task(taskId: ${taskId}, providerId: ${providedId}) will be successfully executed ...`);
@@ -495,7 +498,7 @@ const Home = () => {
             );
 
             console.log(
-              `${account.name} has compounded ${newLiquidityBalance.reserved
+              `${account?.name} has compounded ${newLiquidityBalance.reserved
                 .sub(liquidityBalance.reserved)
                 .toString()} planck more ${poolName} ...`
             );
