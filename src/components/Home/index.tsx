@@ -6,28 +6,42 @@ import { useAtom } from 'jotai';
 import moment from 'moment';
 import BN from 'bn.js';
 import {
-  delay, listenEvents, getDecimalBN, calculateTimeout, sendExtrinsic,
+  delay,
+  listenEvents,
+  getDecimalBN,
+  calculateTimeout,
+  sendExtrinsic,
 } from '@utils/xcm/common/utils';
 import Account from '@utils/xcm/common/account';
 import MangataHelper from '@utils/xcm/common/mangataHelper';
 import TuringHelper from '@utils/xcm/common/turingHelper';
 import {
-  Rococo, RococoDev,
-  MangataDev, MangataRococo,
-  TuringDev, Turing, TuringStaging,
-  Shibuya, Rocstar, Shiden
+  Rococo,
+  RococoDev,
+  MangataDev,
+  MangataRococo,
+  TuringDev,
+  Turing,
+  TuringStaging,
+  Shibuya,
+  Rocstar,
+  Shiden,
 } from '@utils/xcm/config';
 import { accountAtom } from '@store/accountAtoms';
 import { fetchFarms } from '@utils/api';
-import { filterMGXFarms } from '@utils/farmMethods';
+import {
+  filterMGXFarms,
+  formatTokenSymbols,
+  replaceTokenSymbols,
+} from '@utils/farmMethods';
 import { FarmType } from '@utils/types';
+import { walletsAtom } from '@store/walletAtoms';
 
 const Home = () => {
   const [selectedToken, setSelectedToken] = useState('MGR-TUR');
   const [tokenAmount, setTokenAmount] = useState(0);
   const [frequency, setFrequency] = useState(0);
   const [farms, setFarms] = useState<FarmType[]>([]);
-
   // Atoms
   const [account] = useAtom(accountAtom);
 
@@ -51,7 +65,6 @@ const Home = () => {
       try {
         const { farms } = await fetchFarms();
         const filteredFarms = filterMGXFarms(farms);
-        // console.log('farms', filteredFarms);
         setFarms(filteredFarms);
       } catch (error) {
         console.error(error);
@@ -64,29 +77,31 @@ const Home = () => {
       <Header />
       <main>
         <div className="max-w-sm m-10">
-          <label
-            htmlFor="pool"
-            className="block text-sm font-medium text-gray-700"
-          >
+          <label htmlFor="pool" className="block text-sm font-medium">
             Select a Liquidity Pool
           </label>
           <select
             id="pool"
             name="pool"
-            className="mt-1 block w-full rounded-md border border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+            className="mt-1 block w-full rounded-md border border-gray-300 text-black py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
             onChange={onTokenSelectChange}
             placeholder="Select a Liquidity Pool"
             required
           >
-            <option value="MGR-TUR">
-              <LiquidityToken firstTokenSymbol="MGR" secondTokenSymbol="TUR" />
-            </option>
-            <option value="ROC-TUR">
-              <LiquidityToken firstTokenSymbol="ROC" secondTokenSymbol="TUR" />
-            </option>
-            <option value="ROC-MGR">
-              <LiquidityToken firstTokenSymbol="ROC" secondTokenSymbol="MGR" />
-            </option>
+            {farms.map((farm) => {
+              const tokenName = formatTokenSymbols(
+                replaceTokenSymbols(farm?.asset.symbol)
+              );
+              const tokenSymbol = `${tokenName[0]}-${tokenName[1]}`;
+              return (
+                <option value={tokenSymbol}>
+                  <LiquidityToken
+                    firstTokenSymbol={tokenName[0]}
+                    secondTokenSymbol={tokenName[1]}
+                  />
+                </option>
+              );
+            })}
           </select>
           <label htmlFor="amount">Enter a token amount</label>
           <input
@@ -94,7 +109,7 @@ const Home = () => {
             onChange={handleTokenAmount}
             name="amount"
             id="amount"
-            className="block w-full rounded-md border py-2 px-4 border-gray-300 pr-10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="block w-full rounded-md border py-2 px-4 text-black border-gray-300 pr-10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             placeholder="0"
             required
           />
@@ -104,7 +119,7 @@ const Home = () => {
             onChange={handleFrequency}
             name="frequency"
             id="frequency"
-            className="block w-full rounded-md border py-2 px-4 border-gray-300 pr-10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="block w-full rounded-md border py-2 px-4 text-black border-gray-300 pr-10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             placeholder="0"
             required
           />
@@ -161,7 +176,7 @@ const Home = () => {
               },
             });
             await account1.init([turingHelper, mangataHelper]);
-            // account1.print();
+            // account1.print()
 
             console.log('account1', account1);
 
@@ -172,12 +187,12 @@ const Home = () => {
             console.log('mangataAddress', mangataAddress);
             console.log('turingAddress', turingAddress);
 
-            // const poolName = `${mgxToken.symbol}-${turToken.symbol}`;
+            // const poolName = `${mgxToken.symbol}-${turToken.symbol}`
             const poolName = selectedToken;
 
             console.log('poolname', poolName);
-            const token0 = poolName.split('-')[0]
-            const token1 = poolName.split('-')[1]
+            const token0 = poolName.split('-')[0];
+            const token1 = poolName.split('-')[1];
 
             console.log(
               '\n2. Add a proxy on Mangata for paraId 2114, or skip this step if that exists ...'
@@ -187,8 +202,9 @@ const Home = () => {
               mangataAddress,
               turingHelper.config.paraId
             );
-            const proxiesResponse =
-              await mangataHelper.api.query.proxy.proxies(mangataAddress);
+            const proxiesResponse = await mangataHelper.api.query.proxy.proxies(
+              mangataAddress
+            );
             const proxies = _.first(proxiesResponse.toJSON());
 
             const proxyType = 'AutoCompound';
@@ -269,29 +285,45 @@ const Home = () => {
             );
 
             console.log(
-              `Before auto-compound, ${account?.name
+              `Before auto-compound, ${
+                account?.name
               } reserved "${poolName}": ${numReserved.toString()} ...`
             );
 
             // autocompound
-            console.log('\n4. Start to schedule an auto-compound call via XCM ...');
-            const proxyExtrinsic = mangataHelper.api.tx.xyk.compoundRewards(liquidityTokenId, 10);
-            const mangataProxyCall = await mangataHelper.createProxyCall(mangataAddress, proxyType, proxyExtrinsic);
-            const encodedMangataProxyCall = mangataProxyCall.method.toHex(mangataProxyCall);
-            const mangataProxyCallFees = await mangataProxyCall.paymentInfo(mangataAddress);
+            console.log(
+              '\n4. Start to schedule an auto-compound call via XCM ...'
+            );
+            const proxyExtrinsic = mangataHelper.api.tx.xyk.compoundRewards(
+              liquidityTokenId,
+              10
+            );
+            const mangataProxyCall = await mangataHelper.createProxyCall(
+              mangataAddress,
+              proxyType,
+              proxyExtrinsic
+            );
+            const encodedMangataProxyCall =
+              mangataProxyCall.method.toHex(mangataProxyCall);
+            const mangataProxyCallFees = await mangataProxyCall.paymentInfo(
+              mangataAddress
+            );
 
             console.log('encodedMangataProxyCall: ', encodedMangataProxyCall);
-            console.log('mangataProxyCallFees: ', mangataProxyCallFees.toHuman());
+            console.log(
+              'mangataProxyCallFees: ',
+              mangataProxyCallFees.toHuman()
+            );
 
             // Create Turing scheduleXcmpTask extrinsic
             console.log('\na) Create the call for scheduleXcmpTask ');
-            // const providedId = `xcmp_automation_test_${(Math.random() + 1).toString(36).substring(7)}`;
+            // const providedId = `xcmp_automation_test_${(Math.random() + 1).toString(36).substring(7)}`
 
-            // const secPerHour = 3600;
-            // const msPerHour = 3600 * 1000;
-            // const currentTimestamp = moment().valueOf();
-            // const timestampNextHour = (currentTimestamp - (currentTimestamp % msPerHour)) / 1000 + secPerHour;
-            // const timestampTwoHoursLater = (currentTimestamp - (currentTimestamp % msPerHour)) / 1000 + (secPerHour * 2);
+            // const secPerHour = 3600
+            // const msPerHour = 3600 * 1000
+            // const currentTimestamp = moment().valueOf()
+            // const timestampNextHour = (currentTimestamp - (currentTimestamp % msPerHour)) / 1000 + secPerHour
+            // const timestampTwoHoursLater = (currentTimestamp - (currentTimestamp % msPerHour)) / 1000 + (secPerHour * 2)
 
             // call from proxy
             // const xcmpCall = await turingHelper.api.tx.automationTime.scheduleXcmpTask(
@@ -301,67 +333,109 @@ const Home = () => {
             //   0,
             //   encodedMangataProxyCall,
             //   parseInt(mangataProxyCallFees.weight.refTime, 10),
-            // );
+            // )
             const secondsInHour = 3600;
             const millisecondsInHour = 3600 * 1000;
             const currentTimestamp = moment().valueOf();
-            const executionTime = (currentTimestamp - (currentTimestamp % millisecondsInHour)) / 1000 + secondsInHour * 24;
-            const providedId = `xcmp_automation_test_${(Math.random() + 1).toString(36).substring(7)}`;
+            const executionTime =
+              (currentTimestamp - (currentTimestamp % millisecondsInHour)) /
+                1000 +
+              secondsInHour * 24;
+            const providedId = `xcmp_automation_test_${(Math.random() + 1)
+              .toString(36)
+              .substring(7)}`;
 
             // frequency
 
-            const xcmpCall = await turingHelper.api.tx.automationTime.scheduleXcmpTask(
-              providedId,
-              { Recurring: { frequency: secondsInHour * 24 * frequency, nextExecutionTime: executionTime } },
-              // { Fixed: { executionTimes: [0] } },
-              mangataHelper.config.paraId,
-              0,
-              encodedMangataProxyCall,
-              parseInt(mangataProxyCallFees.weight.refTime, 10),
-            );
-            // await (xcmpCall).signAndSend(account1.address, {signer:signer});
+            const xcmpCall =
+              await turingHelper.api.tx.automationTime.scheduleXcmpTask(
+                providedId,
+                {
+                  Recurring: {
+                    frequency: secondsInHour * 24 * frequency,
+                    nextExecutionTime: executionTime,
+                  },
+                },
+                // { Fixed: { executionTimes: [0] } },
+                mangataHelper.config.paraId,
+                0,
+                encodedMangataProxyCall,
+                parseInt(mangataProxyCallFees.weight.refTime, 10)
+              );
+            // await (xcmpCall).signAndSend(account1.address, {signer:signer})
             console.log('xcmpCall: ', xcmpCall);
 
             // Query automationTime fee
             console.log('\nb) Query automationTime fee details ');
-            const { executionFee, xcmpFee } = await turingHelper.api.rpc.automationTime.queryFeeDetails(xcmpCall);
-            // const { executionFee, xcmpFee } = await turingHelper.queryFeeDetails(xcmpCall);
-            console.log("executionFee", executionFee, "xcmpFee", xcmpFee);
+            const { executionFee, xcmpFee } =
+              await turingHelper.api.rpc.automationTime.queryFeeDetails(
+                xcmpCall
+              );
+            // const { executionFee, xcmpFee } = await turingHelper.queryFeeDetails(xcmpCall)
+            console.log('executionFee', executionFee, 'xcmpFee', xcmpFee);
 
             const totalFees = executionFee.toNumber() + xcmpFee.toNumber();
-            console.log("totalFees", totalFees);
+            console.log('totalFees', totalFees);
 
-
-            console.log('automationFeeDetails: ', { executionFee: executionFee.toHuman(), xcmpFee: xcmpFee.toHuman() });
-            console.log("turingAddress", turingAddress);
+            console.log('automationFeeDetails: ', {
+              executionFee: executionFee.toHuman(),
+              xcmpFee: xcmpFee.toHuman(),
+            });
+            console.log('turingAddress', turingAddress);
 
             const turbal = await turingHelper.getBalance(turingAddress);
-            const turfreebal = turbal?.toHuman()?.free
-            console.log("turbal", turfreebal);
+            const turfreebal = turbal?.toHuman()?.free;
+            console.log('turbal', turfreebal);
 
             if (turfreebal < totalFees) {
               const diff = totalFees - turfreebal;
-              console.log("diff", diff);
+              console.log('diff', diff);
               // return
-              const transferTurTx = mangataHelper.transferTur(totalFees, turingAddress);
-              await (await transferTurTx).signAndSend(account1.address, { signer: signer });
+              const transferTurTx = mangataHelper.transferTur(
+                totalFees,
+                turingAddress
+              );
+              await (
+                await transferTurTx
+              ).signAndSend(account1.address, { signer: signer });
             }
-            // return;
+            // return
 
             // Get a TaskId from Turing rpc
-            const taskId = await turingHelper.api.rpc.automationTime.generateTaskId(turingAddress, providedId);
+            const taskId =
+              await turingHelper.api.rpc.automationTime.generateTaskId(
+                turingAddress,
+                providedId
+              );
             console.log('TaskId:', taskId.toHuman());
 
             // Send extrinsic
             console.log('\nc) Sign and send scheduleXcmpTask call ...');
-            await turingHelper.sendXcmExtrinsic(xcmpCall, account?.address, signer, taskId);
+            await turingHelper.sendXcmExtrinsic(
+              xcmpCall,
+              account?.address,
+              signer,
+              taskId
+            );
 
             // Listen XCM events on Mangata side
-            console.log(`\n5. Keep Listening XCM events on ${mangataChainName} until ${moment(timestampNextHour * 1000).format('YYYY-MM-DD HH:mm:ss')}(${timestampNextHour}) to verify that the task(taskId: ${taskId}, providerId: ${providedId}) will be successfully executed ...`);
+            console.log(
+              `\n5. Keep Listening XCM events on ${mangataChainName} until ${moment(
+                timestampNextHour * 1000
+              ).format(
+                'YYYY-MM-DD HH:mm:ss'
+              )}(${timestampNextHour}) to verify that the task(taskId: ${taskId}, providerId: ${providedId}) will be successfully executed ...`
+            );
             await listenEvents(mangataHelper.api, 'proxy', 'ProxyExecuted');
 
-            const nextHourExecutionTimeout = calculateTimeout(timestampNextHour);
-            const isTaskExecuted = await listenEvents(mangataHelper.api, 'proxy', 'ProxyExecuted', nextHourExecutionTimeout);
+            const nextHourExecutionTimeout =
+              calculateTimeout(timestampNextHour);
+            const isTaskExecuted = await listenEvents(
+              mangataHelper.api,
+              'proxy',
+              'ProxyExecuted',
+              nextHourExecutionTimeout
+            );
             if (!isTaskExecuted) {
               console.log('Timeout! Task was not executed.');
               return;
@@ -371,43 +445,43 @@ const Home = () => {
             // // autocompound
             // console.log(
             //   '\n4. Start to schedule an auto-compound call via XCM ...'
-            // );
+            // )
             // const proxyExtrinsic = mangataHelper.api.tx.xyk.compoundRewards(
             //   liquidityTokenId,
             //   100
-            // );
+            // )
             // const mangataProxyCall = await mangataHelper.createProxyCall(
             //   mangataAddress,
             //   proxyType,
             //   proxyExtrinsic
-            // );
+            // )
             // const encodedMangataProxyCall =
-            //   mangataProxyCall.method.toHex(mangataProxyCall);
+            //   mangataProxyCall.method.toHex(mangataProxyCall)
             // const mangataProxyCallFees = await mangataProxyCall.paymentInfo(
             //   mangataAddress
-            // );
+            // )
 
-            // console.log('encodedMangataProxyCall: ', encodedMangataProxyCall);
+            // console.log('encodedMangataProxyCall: ', encodedMangataProxyCall)
             // console.log(
             //   'mangataProxyCallFees: ',
             //   mangataProxyCallFees.toHuman()
-            // );
+            // )
 
             // // Create Turing scheduleXcmpTask extrinsic
-            // console.log('\na) Create the call for scheduleXcmpTask ');
+            // console.log('\na) Create the call for scheduleXcmpTask ')
             // const providedId = `xcmp_automation_test_${(Math.random() + 1)
             //   .toString(36)
-            //   .substring(7)}`;
+            //   .substring(7)}`
 
-            // const secPerHour = 3600;
-            // const msPerHour = 3600 * 1000;
-            // const currentTimestamp = moment().valueOf();
+            // const secPerHour = 3600
+            // const msPerHour = 3600 * 1000
+            // const currentTimestamp = moment().valueOf()
             // const timestampNextHour =
             //   (currentTimestamp - (currentTimestamp % msPerHour)) / 1000 +
-            //   secPerHour;
+            //   secPerHour
             // const timestampTwoHoursLater =
             //   (currentTimestamp - (currentTimestamp % msPerHour)) / 1000 +
-            //   secPerHour * 2;
+            //   secPerHour * 2
 
             // // call from proxy
             // const xcmpCall =
@@ -425,37 +499,37 @@ const Home = () => {
             //     0,
             //     encodedMangataProxyCall,
             //     parseInt(mangataProxyCallFees.weight.refTime, 10)
-            //   );
-            // // await (xcmpCall).signAndSend(account1.address, {signer:signer});
-            // console.log('xcmpCall: ', xcmpCall);
+            //   )
+            // // await (xcmpCall).signAndSend(account1.address, {signer:signer})
+            // console.log('xcmpCall: ', xcmpCall)
 
             // // Query automationTime fee
-            // console.log('\nb) Query automationTime fee details ');
+            // console.log('\nb) Query automationTime fee details ')
             // const { executionFee, xcmpFee } =
             //   await turingHelper.api.rpc.automationTime.queryFeeDetails(
             //     xcmpCall
-            //   );
+            //   )
             // console.log('automationFeeDetails: ', {
             //   executionFee: executionFee.toHuman(),
             //   xcmpFee: xcmpFee.toHuman(),
-            // });
+            // })
 
             // // Get a TaskId from Turing rpc
             // const taskId =
             //   await turingHelper.api.rpc.automationTime.generateTaskId(
             //     turingAddress,
             //     providedId
-            //   );
-            // console.log('TaskId:', taskId.toHuman());
+            //   )
+            // console.log('TaskId:', taskId.toHuman())
 
             // // Send extrinsic
-            // console.log('\nc) Sign and send scheduleXcmpTask call ...');
+            // console.log('\nc) Sign and send scheduleXcmpTask call ...')
             // await turingHelper.sendXcmExtrinsic(
             //   xcmpCall,
             //   account.address,
             //   signer,
             //   taskId
-            // );
+            // )
 
             // // Listen XCM events on Mangata side
             // console.log(
@@ -464,23 +538,23 @@ const Home = () => {
             //   ).format(
             //     'YYYY-MM-DD HH:mm:ss'
             //   )}(${timestampNextHour}) to verify that the task(taskId: ${taskId}, providerId: ${providedId}) will be successfully executed ...`
-            // );
-            // await listenEvents(mangataHelper.api, 'proxy', 'ProxyExecuted');
+            // )
+            // await listenEvents(mangataHelper.api, 'proxy', 'ProxyExecuted')
 
             // const nextHourExecutionTimeout =
-            //   calculateTimeout(timestampNextHour);
+            //   calculateTimeout(timestampNextHour)
             // const isTaskExecuted = await listenEvents(
             //   mangataHelper.api,
             //   'proxy',
             //   'ProxyExecuted',
             //   nextHourExecutionTimeout
-            // );
+            // )
             // if (!isTaskExecuted) {
-            //   console.log('Timeout! Task was not executed.');
-            //   return;
+            //   console.log('Timeout! Task was not executed.')
+            //   return
             // }
 
-            // console.log('Task has been executed!');
+            // console.log('Task has been executed!')
 
             console.log(
               '\nWaiting 20 seconds before reading new chain states ...'
@@ -507,13 +581,13 @@ const Home = () => {
             //   type: 'payload',
             //   data: 'This is a test call.',
             //   address: account?.address,
-            // });
+            // })
 
             // const addProxyTx = mangataHelper.addProxy()
 
-            // console.log("signature", signature);
+            // console.log("signature", signature)
           }}
-          className="border border-gray-200 bg-blue-300 rounded-md px-4 py-2 ml-10"
+          className="bg-blue-500 hover:bg-blue-600 rounded-md px-4 py-2 ml-10"
         >
           submit
         </button>

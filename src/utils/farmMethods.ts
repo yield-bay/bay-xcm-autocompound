@@ -1,5 +1,6 @@
 import { FarmType } from './types';
 
+// Format farm name to get token symbols
 export function formatTokenSymbols(farmName: string): string[] {
   let tokenSymbols = farmName;
   if (farmName.includes('LP')) {
@@ -22,12 +23,9 @@ export const filterMGXFarms = (farms: FarmType[]): FarmType[] => {
   return filteredFarms;
 };
 
-// Replace KSM with ROC in farm name
-export const replaceKSMWithMGX = (farmName: string): string => {
-  return farmName.replace('KSM', 'ROC');
-}
-
-// Replace MGX with MGR in farm name
-export const replaceMGXWithMGR = (farmName: string): string => {
-  return farmName.replace('MGX', 'MGR');
+// Replace KSM with ROC and MGX with MGR
+export const replaceTokenSymbols = (farmName: string) => {
+  let temp = farmName.replace('KSM', 'ROC');
+  temp = temp.replace('MGX', 'MGR');
+  return temp;
 }
