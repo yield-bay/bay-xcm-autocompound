@@ -2,9 +2,9 @@ import { walletsAtom } from '@store/walletAtoms';
 import { getWallets } from '@talismn/connect-wallets';
 import { useAtom } from 'jotai';
 import { ReactNode, useEffect } from 'react';
-import ClientOnly from './Library/ClientOnly';
 
 const Providers = ({ children }: { children: ReactNode }) => {
+  // Wallet Setup on mount
   const [, setWallets] = useAtom(walletsAtom);
   useEffect(() => {
     let unmounted = false;
@@ -20,7 +20,8 @@ const Providers = ({ children }: { children: ReactNode }) => {
       unmounted = true;
     };
   }, []);
-  return <ClientOnly>{children}</ClientOnly>;
+
+  return <div>{children}</div>;
 };
 
 export default Providers;

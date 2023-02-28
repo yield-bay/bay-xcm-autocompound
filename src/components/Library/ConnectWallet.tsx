@@ -1,4 +1,4 @@
-import { FC, useEffect } from 'react';
+import type { FC } from 'react';
 import { useAtom } from 'jotai';
 import { accountAtom, walletAccountsAtom } from '@store/accountAtoms';
 import { walletsAtom } from '@store/walletAtoms';
@@ -55,16 +55,15 @@ const ConnectWallet: FC<ConnectWalletProps> = () => {
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="border font-inter border-[#314584] w-full max-w-fit text-base font-bold leading-5 transform overflow-hidden rounded-2xl px-12 py-8 sm:p-[40px] text-left align-middle shadow-xl transition-all">
+              <Dialog.Panel className="border font-inter w-full max-w-fit bg-black text-white text-base font-bold leading-5 transform overflow-hidden rounded-2xl px-3 py-6 sm:p-[40px] text-left align-middle shadow-xl transition-all">
                 <Dialog.Title as="h3">Select Wallet</Dialog.Title>
-
                 <div className="mt-8 flex flex-col gap-y-4">
                   <div className="flex flex-col gap-y-5">
                     {!connected ? (
                       <div className="m-10 flex flex-col gap-y-5">
                         {wallets.map((wallet: Wallet) => (
                           <button
-                            className="border border-black max-w-fit hover:border-gray-600 rounded p-4 text-gray-900 font-semibold bg-gray-50 active:bg-gray-100 transition duration-200"
+                            className="border border-black max-w-fit border-gray-600 rounded p-4 font-semibold transition duration-200"
                             key={wallet.extensionName}
                             onClick={async () => {
                               try {
@@ -96,7 +95,7 @@ const ConnectWallet: FC<ConnectWalletProps> = () => {
                         </p>
                         {walletAccounts.map((account: WalletAccount) => (
                           <button
-                            className="border border-black max-w-fit hover:border-gray-600 rounded p-4 text-gray-900 font-semibold bg-gray-50 active:bg-gray-100 transition duration-200"
+                            className="border max-w-fit border-gray-600 rounded p-4 font-semibold transition duration-200"
                             key={account.name}
                             onClick={async () => {
                               setAccount(account);

@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import ClientOnly from './ClientOnly';
 
 interface LiquidityTokenProps {
   firstTokenSymbol: string;
@@ -29,15 +30,13 @@ function LiquidityToken({ firstTokenSymbol, secondTokenSymbol }: LiquidityTokenP
   };
 
   return (
-    <div>
-      {getImageBySymbol(firstTokenSymbol)}
-      {getImageBySymbol(secondTokenSymbol)}
+    <ClientOnly>     
+      {/* {getImageBySymbol(firstTokenSymbol)}
+      {getImageBySymbol(secondTokenSymbol)} */}
       <div className="inline-block margin-left-12">
-        {firstTokenSymbol}
-        &nbsp;/&nbsp;
-        {secondTokenSymbol}
+        {firstTokenSymbol}-{secondTokenSymbol}
       </div>
-    </div>
+    </ClientOnly>
   );
 }
 
