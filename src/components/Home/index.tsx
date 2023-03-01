@@ -36,6 +36,7 @@ import {
 } from '@utils/farmMethods';
 import { FarmType } from '@utils/types';
 import { walletsAtom } from '@store/walletAtoms';
+import Button from '@components/Library/Button';
 
 const Home = () => {
   const [selectedToken, setSelectedToken] = useState('MGR-TUR');
@@ -75,9 +76,9 @@ const Home = () => {
   return (
     <div className="min-h-screen w-full">
       <Header />
-      <main>
-        <div className="max-w-sm m-10">
-          <label htmlFor="pool" className="block text-sm font-medium">
+      <main className='flex flex-col gap-y-5 p-10'>
+        <div className="max-w-sm">
+          <label htmlFor="pool" className="block text-xl font-bold">
             Select a Liquidity Pool
           </label>
           <select
@@ -94,7 +95,7 @@ const Home = () => {
               );
               const tokenSymbol = `${tokenName[0]}-${tokenName[1]}`;
               return (
-                <option value={tokenSymbol}>
+                <option value={tokenSymbol} key={farm.id}>
                   <LiquidityToken
                     firstTokenSymbol={tokenName[0]}
                     secondTokenSymbol={tokenName[1]}
@@ -109,6 +110,7 @@ const Home = () => {
             onChange={handleTokenAmount}
             name="amount"
             id="amount"
+            min={0}
             className="block w-full rounded-md border py-2 px-4 text-black border-gray-300 pr-10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             placeholder="0"
             required
@@ -124,8 +126,9 @@ const Home = () => {
             required
           />
         </div>
-        <button
-          onClick={async () => {
+        <Button
+          size="base"
+          onButtonClick={async () => {
             console.log('selectedToken', selectedToken);
             console.log('tokenAmount', tokenAmount);
             console.log('frequency', frequency);
@@ -587,10 +590,9 @@ const Home = () => {
 
             // console.log("signature", signature)
           }}
-          className="bg-blue-500 hover:bg-blue-600 rounded-md px-4 py-2 ml-10"
         >
           submit
-        </button>
+        </Button>
       </main>
     </div>
   );
