@@ -1,15 +1,16 @@
 import '../styles/globals.css';
 import type { AppProps } from 'next/app';
-import Providers from '@components/Providers';
-import Layout from '@components/Layout';
+import Providers from '@components/Common/Providers';
+import { Suspense } from 'react';
+import Loading from '@components/Common/Loading';
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <Providers>
-      <Layout>
+    <Suspense fallback={<Loading />}>
+      <Providers>
         <Component {...pageProps} />;
-      </Layout>
-    </Providers>
+      </Providers>
+    </Suspense>
   );
 }
 

@@ -78,7 +78,7 @@ const Home = () => {
       <Header />
       <main className='flex flex-col gap-y-5 p-10'>
         <div className="max-w-sm">
-          <label htmlFor="pool" className="block text-xl font-bold">
+          <label htmlFor="pool" className="block">
             Select a Liquidity Pool
           </label>
           <select
