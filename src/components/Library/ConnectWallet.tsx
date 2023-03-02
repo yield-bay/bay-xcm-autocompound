@@ -2,8 +2,7 @@ import type { FC } from 'react';
 import { useAtom } from 'jotai';
 import { accountAtom, walletAccountsAtom } from '@store/accountAtoms';
 import { walletsAtom } from '@store/walletAtoms';
-import { useState, Fragment } from 'react';
-import { Transition, Dialog } from '@headlessui/react';
+import { useState } from 'react';
 import { Wallet, WalletAccount } from '@talismn/connect-wallets';
 import { walletAtom } from '@store/walletAtoms';
 import { APP_NAME } from '@utils/constants';
@@ -104,7 +103,7 @@ const ConnectWallet: FC<ConnectWalletProps> = () => {
     <div className="flex flex-row">
       <button
         onClick={() => setIsOpen(true)}
-        className="flex flex-row h-fit items-center justify-center ring-1 text-base ring-[#314584] hover:ring-[#455b9c] font-semibold rounded-xl leading-5 transition duration-200 py-[10.5px] px-4 sm:py-[12px] sm:px-[33px]"
+        className="flex flex-row h-fit items-center justify-center text-base leading-[22px] bg-white text-black py-[25px] px-9 rounded-lg hover:bg-offWhite transition duration-200"
       >
         {account == null ? 'Connect Wallet' : `${account.name}`}
       </button>

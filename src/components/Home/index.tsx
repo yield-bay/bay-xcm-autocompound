@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import _ from 'lodash';
-import Header from '@components/Header';
+import Header from '@components/Common/Header';
 import LiquidityToken from '@components/Library/LiquidityToken';
 import { useAtom } from 'jotai';
 import moment from 'moment';

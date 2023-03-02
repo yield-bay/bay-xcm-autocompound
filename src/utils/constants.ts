@@ -11,6 +11,7 @@ export const DESCRIPTION = "";
 export const DOMAIN = "";
 export const IMAGE = "";
 export const USERNAME = "yield_bay";
+export const YIELDBAY_LANDING = "https://yieldbay.io";
 
 
 // MANGATA
