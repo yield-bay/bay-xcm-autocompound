@@ -2,7 +2,7 @@ import { walletsAtom } from '@store/walletAtoms';
 import { getWallets } from '@talismn/connect-wallets';
 import { useAtom } from 'jotai';
 import { FC, ReactNode, useEffect } from 'react';
-import localFont from '@next/font/local';
+import localFont from 'next/font/local';
 import Layout from './Layout';
 
 // Fonts

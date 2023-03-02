@@ -11,10 +11,10 @@
   },
   "dependencies": {
     "@headlessui/react": "^1.7.12",
+    "@heroicons/react": "^2.0.16",
     "@inquirer/confirm": "^0.0.19-alpha.0",
     "@inquirer/select": "^0.0.18-alpha.0",
     "@mangata-finance/sdk": "^1.14.2",
-    "@next/font": "^13.2.3",
     "@oak-network/api-augment": "^1.8.0-rc.4",
     "@oak-network/types": "^1.8.0-rc.4",
     "@polkadot/api": "^9.3.3",

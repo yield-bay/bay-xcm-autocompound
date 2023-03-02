@@ -8,7 +8,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   return (
     <Suspense fallback={<Loading />}>
       <Providers>
-        <Component {...pageProps} />;
+        <Component {...pageProps} />
       </Providers>
     </Suspense>
   );
