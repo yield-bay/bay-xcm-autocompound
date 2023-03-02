@@ -1,6 +1,7 @@
 import type { FC, ReactNode } from 'react';
 import { useIsMounted } from '@hooks/useIsMounted';
 import Loading from '@components/Common/Loading';
+import Image from 'next/image';
 
 interface Props {
   children: ReactNode;
@@ -14,7 +15,7 @@ const Layout: FC<Props> = ({ children }) => {
   }
 
   return (
-    <div className="flex font-sans flex-col min-h-screen font-inter bg-black text-white">
+    <div className="flex font-sans flex-col min-h-screen text-white bg-bgBlack bg-bg-pattern">
       {children}
     </div>
   );
