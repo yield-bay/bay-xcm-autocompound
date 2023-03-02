@@ -1,4 +1,4 @@
-import type { FC } from 'react';
+import { type FC, useRef, useEffect } from 'react';
 import { useAtom } from 'jotai';
 import { accountAtom, walletAccountsAtom } from '@store/accountAtoms';
 import { walletsAtom } from '@store/walletAtoms';
@@ -7,6 +7,9 @@ import { Wallet, WalletAccount } from '@talismn/connect-wallets';
 import { walletAtom } from '@store/walletAtoms';
 import { APP_NAME } from '@utils/constants';
 import ModalWrapper from './Modal';
+import Image from 'next/image';
+import clsx from 'clsx';
+import { CheckCircleIcon } from '@heroicons/react/24/outline';
 
 interface ConnectWalletProps {
   className?: string;
@@ -20,7 +23,17 @@ const ConnectWallet: FC<ConnectWalletProps> = () => {
   const [account, setAccount] = useAtom(accountAtom); // selected account
   const [walletConnected, setWalletConnected] = useState(false); // connected to wallet
 
+  const [isCopied, setIsCopied] = useState(false); // copied address to clipboard
+  const timerRef = useRef<null | ReturnType<typeof setTimeout>>(null);
+
   const connected = walletAccounts !== null;
+
+  useEffect(() => {
+    // Clear timeout when component unmounts
+    return () => {
+      clearTimeout(timerRef.current as ReturnType<typeof setTimeout>);
+    };
+  }, []);
 
   const ConnectModal = () => (
     <ModalWrapper title="Connect Modal" open={isOpen} setOpen={setIsOpen}>
@@ -36,9 +49,9 @@ const ConnectWallet: FC<ConnectWalletProps> = () => {
                     try {
                       await wallet.enable(APP_NAME);
                       await wallet.subscribeAccounts(
-                        (accounts: WalletAccount[]) => {
+                        (accounts: WalletAccount[] | undefined) => {
                           // jotai:: setting accounts in selected wallet
-                          setWalletAccounts(accounts);
+                          setWalletAccounts(accounts as WalletAccount[]);
                         }
                       );
                       // jotai:: setting selected wallet
@@ -100,15 +113,62 @@ const ConnectWallet: FC<ConnectWalletProps> = () => {
   );
 
   return (
-    <div className="flex flex-row">
+    <>
       <button
-        onClick={() => setIsOpen(true)}
-        className="flex flex-row h-fit items-center justify-center text-base leading-[22px] bg-white text-black py-[25px] px-9 rounded-lg hover:bg-offWhite transition duration-200"
+        onClick={account == null ? () => setIsOpen(true) : () => {}}
+        className={clsx(
+          'flex flex-row h-fit items-center w-[200px] justify-center text-base leading-[22px] bg-white text-black py-6 rounded-lg transition duration-200',
+          account == null ? 'hover:bg-offWhite' : 'cursor-default'
+        )}
       >
-        {account == null ? 'Connect Wallet' : `${account.name}`}
+        {account == null ? (
+          <span>Connect Wallet</span>
+        ) : (
+          <div className="inline-flex">
+            <span>{account.name}</span>
+            <button
+              className="ml-6"
+              onClick={() => {
+                navigator.clipboard.writeText(account?.address);
+                setIsCopied(true);
+                timerRef.current = setTimeout(() => {
+                  setIsCopied(false);
+                }, 500);
+              }}
+            >
+              {isCopied ? (
+                <CheckCircleIcon className="h-6 w-6 text-green-500" />
+              ) : (
+                <Image
+                  src="/icons/Copy.svg"
+                  alt="copy address"
+                  width={24}
+                  height={24}
+                />
+              )}
+            </button>
+            <button
+              className="ml-3"
+              onClick={() => {
+                // Clear all states to disconnect wallet
+                setWallet(null);
+                setWalletAccounts(null);
+                setAccount(null);
+                setWalletConnected(false);
+              }}
+            >
+              <Image
+                src="/icons/XCircle.svg"
+                alt="disconnect wallet"
+                width={24}
+                height={24}
+              />
+            </button>
+          </div>
+        )}
       </button>
       <ConnectModal />
-    </div>
+    </>
   );
 };
 
