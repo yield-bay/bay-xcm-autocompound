@@ -15,7 +15,7 @@ const Layout: FC<Props> = ({ children }) => {
   }
 
   return (
-    <div className="flex font-sans flex-col min-h-screen text-white bg-bgBlack bg-bg-pattern">
+    <div className="flex font-sans flex-col min-h-screen text-white font-bold tracking-wide bg-bgBlack bg-bg-pattern">
       {children}
     </div>
   );
