@@ -8,6 +8,7 @@ import FarmsList from './FarmsList';
 import SearchInput from '@components/Library/SearchInput';
 import { Cog8ToothIcon } from '@heroicons/react/24/outline';
 import useFilteredFarms from '@hooks/useFilteredFarms';
+import SettingsMenu from '@components/Library/SettingsMenu';
 
 const Home = () => {
   const [farms, setFarms] = useState<FarmType[]>([]);
@@ -37,9 +38,7 @@ const Home = () => {
         <div className="max-w-[1138px] mx-auto">
           <div className="flex flex-row border-opacity-40 items-center w-full justify-center sm:justify-end lg:justify-center">
             <SearchInput term={searchTerm} setTerm={setSearchTerm} />
-            <button onClick={() => {}}>
-              <Cog8ToothIcon className="w-8 h-8 ml-4" />
-            </button>
+            <SettingsMenu />
           </div>
           <FarmsList farms={filteredFarms} noFarms={noFilteredFarms} />
         </div>

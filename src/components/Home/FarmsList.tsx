@@ -8,6 +8,7 @@ import toDollarUnits, {
   replaceTokenSymbols,
 } from '@utils/farmMethods';
 import { FarmType } from '@utils/types';
+import Tooltip from '@components/Library/Tooltip';
 
 interface Props {
   farms: FarmType[];
@@ -70,7 +71,26 @@ const FarmsList: FC<Props> = ({ farms, noFarms }) => {
                       <p className="text-2xl">
                         {(farm?.apr.reward + farm?.apr.base).toFixed(2)}%
                       </p>
-                      <QuestionMarkCircleIcon className="w-5 h-5 opacity-50" />
+                      <Tooltip
+                        content={
+                          <>
+                            <p>
+                              Base:{' '}
+                              <span>
+                                {farm?.apr.base.toFixed(2)}%
+                              </span>
+                            </p>
+                            <p>
+                              Reward:{' '}
+                              <span>
+                                {farm?.apr.reward.toFixed(2)}%
+                              </span>
+                            </p>
+                          </>
+                        }
+                      >
+                        <QuestionMarkCircleIcon className="w-5 h-5 opacity-50" />
+                      </Tooltip>
                     </div>
                   </div>
                 </div>
