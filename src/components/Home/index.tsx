@@ -7,16 +7,22 @@ import { FarmType } from '@utils/types';
 import FarmsList from './FarmsList';
 import SearchInput from '@components/Library/SearchInput';
 import { Cog8ToothIcon } from '@heroicons/react/24/outline';
+import useFilteredFarms from '@hooks/useFilteredFarms';
 
 const Home = () => {
   const [farms, setFarms] = useState<FarmType[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
 
+  const [filteredFarms, noFilteredFarms] = useFilteredFarms(
+    farms,
+    searchTerm
+  );
+
   useEffect(() => {
     (async () => {
       try {
         const { farms } = await fetchFarms();
-        const filteredFarms = filterMGXFarms(farms);
+        const filteredFarms = filterMGXFarms(farms); // Filter farms with MGX token
         setFarms(filteredFarms);
       } catch (error) {
         console.error(error);
@@ -35,7 +41,7 @@ const Home = () => {
               <Cog8ToothIcon className="w-8 h-8 ml-4" />
             </button>
           </div>
-          <FarmsList farms={farms} />
+          <FarmsList farms={filteredFarms} noFarms={noFilteredFarms} />
         </div>
       </main>
     </div>
