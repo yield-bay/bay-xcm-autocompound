@@ -7,20 +7,7 @@ import Layout from './Layout';
 
 // Fonts
 const satoshi = localFont({
-  src: [
-    {
-      path: '../../../public/fonts/satoshi/Satoshi-Regular.woff2',
-      weight: '400', // font-normal
-    },
-    {
-      path: '../../../public/fonts/satoshi/Satoshi-Medium.woff2',
-      weight: '500', // font-medium
-    },
-    {
-      path: '../../../public/fonts/satoshi/Satoshi-Bold.woff2',
-      weight: '700', // font-bold
-    },
-  ],
+  src: '../../styles/fonts/Satoshi-Variable.ttf',
   variable: '--font-satoshi',
 });
 

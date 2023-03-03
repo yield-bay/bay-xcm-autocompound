@@ -14,6 +14,11 @@ export function formatTokenSymbols(farmName: string): string[] {
   return [farmName];
 }
 
+export function formatFarmType(farmType: string): string {
+  if (farmType === "SingleStaking") return "Single staking";
+  else return farmType.slice(0, -3) + " swap";
+}
+
 // Filter farms with MGX token and return them
 export const filterMGXFarms = (farms: FarmType[]): FarmType[] => {
   const filteredFarms = farms.filter((farm) => {
