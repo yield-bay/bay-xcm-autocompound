@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { Wallet, WalletAccount } from '@talismn/connect-wallets';
 import { walletAtom } from '@store/walletAtoms';
 import { APP_NAME } from '@utils/constants';
-import ModalWrapper from './Modal';
+import ModalWrapper from './ModalWrapper';
 import Image from 'next/image';
 import clsx from 'clsx';
 import { CheckCircleIcon } from '@heroicons/react/24/outline';
@@ -36,14 +36,15 @@ const ConnectWallet: FC<ConnectWalletProps> = () => {
   }, []);
 
   const ConnectModal = () => (
-    <ModalWrapper title="Connect Modal" open={isOpen} setOpen={setIsOpen}>
-      <div className="mt-8 flex flex-col gap-y-4">
-        <div className="flex flex-col gap-y-5">
-          {!connected ? (
-            <div className="m-10 flex flex-col gap-y-5">
+    <ModalWrapper open={isOpen} setOpen={setIsOpen}>
+      <div className="flex flex-col gap-y-4">
+        {!connected ? (
+          <div className="flex flex-col gap-y-8">
+            <h3>Connect Wallet</h3>
+            <div className="flex flex-col gap-y-5">
               {wallets.map((wallet: Wallet) => (
                 <button
-                  className="border border-baseGray rounded-xl p-4 font-semibold transition duration-200"
+                  className="flex flex-row gap-x-5 items-center border border-baseGray hover:border-primaryGreen rounded-xl p-6 text-left transition duration-200"
                   key={wallet.extensionName}
                   onClick={async () => {
                     try {
@@ -61,38 +62,45 @@ const ConnectWallet: FC<ConnectWalletProps> = () => {
                     }
                   }}
                 >
-                  Connect to {wallet.title}
+                  <Image
+                    alt={wallet.logo.alt}
+                    src={wallet.logo.src}
+                    width={32}
+                    height={32}
+                  />
+                  <span>{wallet.title}</span>
                 </button>
               ))}
             </div>
-          ) : walletAccounts.length > 0 ? (
-            <div className="m-10 flex flex-col gap-y-5">
-              <p>
-                Accounts in{' '}
-                {wallet?.extensionName
-                  ? wallet.extensionName
-                  : 'no_wallet_found'}
-              </p>
+          </div>
+        ) : walletAccounts.length > 0 ? (
+          <div className="flex flex-col gap-y-8">
+            <h3>Select Account</h3>
+            <div className="flex flex-col gap-y-5">
               {walletAccounts.map((account: WalletAccount) => (
                 <button
-                  className="border max-w-fit border-gray-600 rounded p-4 font-semibold transition duration-200"
-                  key={account.name}
+                  className={clsx(
+                    'flex flex-col gap-y-3 border border-[#666666] hover:border-primaryGreen p-6 rounded-lg'
+                  )}
                   onClick={async () => {
                     setAccount(account);
                     setWalletConnected(true);
+                    setIsOpen(false);
                   }}
                 >
-                  {account.address}
+                  <p>{account.name}</p>
+                  <p className="text-[#969696] text-base">{account.address}</p>
                 </button>
               ))}
             </div>
-          ) : (
-            <div className="mt-10">
-              <p>No accounts found</p>
-              <p>Please check settings and try again</p>
-            </div>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div className="mt-10">
+            <p>No accounts found</p>
+            <p>Please check settings and try again</p>
+          </div>
+        )}
+        {/* </div> */}
         {walletConnected && (
           <div className="flex flex-col gap-y-10 m-10">
             <button
@@ -125,7 +133,11 @@ const ConnectWallet: FC<ConnectWalletProps> = () => {
           <span>Connect Wallet</span>
         ) : (
           <div className="inline-flex">
-            <span>{account.name}</span>
+            <span>
+              {account.name && account?.name.length > 10
+                ? `${account.name.slice(0, 10)}...`
+                : account.name}
+            </span>
             <button
               className="ml-6"
               onClick={() => {
