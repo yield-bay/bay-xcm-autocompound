@@ -24,7 +24,10 @@ const FarmsList: FC<Props> = ({ farms, noFarms }) => {
             replaceTokenSymbols(farm?.asset.symbol)
           );
           return (
-            <div key={index} className="flex flex-row group w-full bg-baseGrayDark hover:ring-[1px] transition duration-20 ring-primaryGreen rounded-lg">
+            <div
+              key={index}
+              className="flex flex-row w-full bg-baseGrayDark hover:ring-[1px] transition duration-20 ring-primaryGreen rounded-lg"
+            >
               {/* LEFT */}
               <div className="flex flex-row items-center justify-between px-6 py-14 w-full max-w-[400px] rounded-l-lg bg-card-gradient">
                 {/* Assets and Farm Type */}
@@ -44,6 +47,7 @@ const FarmsList: FC<Props> = ({ farms, noFarms }) => {
                     ))}
                   </p>
                 </div>
+                {/* -- Not required for now
                 <button className="rounded-full scale-0 group-hover:scale-100 bg-white p-[10px] h-fit hover:bg-offWhite text-black transition-all duration-200">
                   <Image
                     height={28}
@@ -51,7 +55,7 @@ const FarmsList: FC<Props> = ({ farms, noFarms }) => {
                     src="/icons/ArrowRight.svg"
                     alt="Right Arrow"
                   />
-                </button>
+                </button> */}
               </div>
               {/* RIGHT SIDE */}
               <div className="flex flex-row pl-8 pr-7 py-6 justify-between w-full rounded-r-lg">
@@ -75,16 +79,11 @@ const FarmsList: FC<Props> = ({ farms, noFarms }) => {
                         content={
                           <>
                             <p>
-                              Base:{' '}
-                              <span>
-                                {farm?.apr.base.toFixed(2)}%
-                              </span>
+                              Base: <span>{farm?.apr.base.toFixed(2)}%</span>
                             </p>
                             <p>
                               Reward:{' '}
-                              <span>
-                                {farm?.apr.reward.toFixed(2)}%
-                              </span>
+                              <span>{farm?.apr.reward.toFixed(2)}%</span>
                             </p>
                           </>
                         }

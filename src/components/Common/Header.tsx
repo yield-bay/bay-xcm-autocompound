@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import ConnectWallet from '@components/Library/ConnectWallet';
+import ConnectWallet from '@components/Common/ConnectWallet';
 import { YIELDBAY_LANDING } from '@utils/constants';
 import { useAtom } from 'jotai';
 import { accountAtom } from '@store/accountAtoms';

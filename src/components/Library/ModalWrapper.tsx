@@ -5,13 +5,12 @@ import clsx from 'clsx';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 
 interface Props {
-  title?: ReactNode;
   open: boolean;
   setOpen: (value: boolean) => void;
   children: ReactNode | ReactNode[];
 }
 
-const ModalWrapper: FC<Props> = ({ title, open, setOpen, children }) => {
+const ModalWrapper: FC<Props> = ({ open, setOpen, children }) => {
   return (
     <Transition appear show={open} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={() => setOpen(false)}>
