@@ -24,7 +24,7 @@ const FarmsList: FC<Props> = ({ farms, noFarms }) => {
             replaceTokenSymbols(farm?.asset.symbol)
           );
           return (
-            <div className="flex flex-row group w-full bg-baseGrayDark hover:ring-[1px] transition duration-20 ring-primaryGreen rounded-lg">
+            <div key={index} className="flex flex-row group w-full bg-baseGrayDark hover:ring-[1px] transition duration-20 ring-primaryGreen rounded-lg">
               {/* LEFT */}
               <div className="flex flex-row items-center justify-between px-6 py-14 w-full max-w-[400px] rounded-l-lg bg-card-gradient">
                 {/* Assets and Farm Type */}

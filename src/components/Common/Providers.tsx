@@ -5,12 +5,6 @@ import { FC, ReactNode, useEffect } from 'react';
 import localFont from 'next/font/local';
 import Layout from './Layout';
 
-// Fonts
-const satoshi = localFont({
-  src: '../../styles/fonts/Satoshi-Variable.ttf',
-  variable: '--font-satoshi',
-});
-
 interface Props {
   children: ReactNode;
 }
@@ -32,11 +26,7 @@ const Providers: FC<Props> = ({ children }) => {
     };
   }, []);
 
-  return (
-    <div className={`${satoshi.variable} font-sans`}>
-      <Layout>{children}</Layout>
-    </div>
-  );
+  return <Layout>{children}</Layout>;
 };
 
 export default Providers;

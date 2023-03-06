@@ -1,5 +1,7 @@
-import { useState, Fragment, ReactNode, FC } from 'react';
+import { Fragment, ReactNode, FC } from 'react';
 import { Transition, Dialog } from '@headlessui/react';
+import { satoshiFont } from '@utils/localFont';
+import clsx from 'clsx';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 
 interface Props {
@@ -35,8 +37,13 @@ const ModalWrapper: FC<Props> = ({ title, open, setOpen, children }) => {
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="border border-baseGray w-full max-w-fit bg-baseGrayDark text-white text-base font-bold leading-5 transform overflow-hidden rounded-2xl px-3 py-6 sm:px-12 sm:py-[60px] text-left align-middle shadow-xl transition-all">
-                <div className="absolute top-0 right-0 pt-[60px] pr-12">
+              <Dialog.Panel
+                className={clsx(
+                  'flex flex-col gap-y-8 w-full min-w-[600px] font-sans font-bold tracking-wide text-xl max-w-fit border border-baseGray bg-baseGrayMid text-white transform overflow-hidden rounded-lg p-6 sm:p-12 text-left align-middle shadow-xl transition-all',
+                  satoshiFont.variable
+                )}
+              >
+                {/* <div className="absolute top-0 right-0 pt-[60px] pr-12">
                   <div className="flex items-center group rounded-full p-1 hover:bg-neutral-700">
                     <button
                       type="button"
@@ -47,8 +54,7 @@ const ModalWrapper: FC<Props> = ({ title, open, setOpen, children }) => {
                       <XMarkIcon className="w-4 h-4" aria-hidden="true" />
                     </button>
                   </div>
-                </div>
-                {title && <Dialog.Title as="h3">{title}</Dialog.Title>}
+                </div> */}
                 {children}
               </Dialog.Panel>
             </Transition.Child>
