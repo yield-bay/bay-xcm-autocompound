@@ -4,6 +4,7 @@ import Loading from '@components/Common/Loading';
 import clsx from 'clsx';
 import { satoshiFont } from '@utils/localFont';
 import ConnectModal from '@components/Library/ConnectModal';
+import CompoundModal from '@components/Home/CompoundModal';
 import Header from './Header';
 
 interface Props {
@@ -25,6 +26,7 @@ const Layout: FC<Props> = ({ children }) => {
       )}
     >
       <ConnectModal />
+      <CompoundModal />
       <div className='flex flex-col flex-1'>
         <Header />
         {children}

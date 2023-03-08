@@ -42,8 +42,8 @@ const ConnectWallet: FC = () => {
               ? `${account.name.slice(0, 10)}...`
               : account.name}
           </span>
-          <button
-            className="ml-6"
+          <div
+            className="ml-6 cursor-pointer"
             onClick={() => {
               navigator.clipboard.writeText(account?.address);
               setIsCopied(true);
@@ -62,9 +62,9 @@ const ConnectWallet: FC = () => {
                 height={24}
               />
             )}
-          </button>
-          <button
-            className="ml-3"
+          </div>
+          <div
+            className="ml-3 cursor-pointer"
             onClick={() => {
               // Clear all states to disconnect wallet
               setWallet(null);
@@ -78,7 +78,7 @@ const ConnectWallet: FC = () => {
               width={24}
               height={24}
             />
-          </button>
+          </div>
         </div>
       )}
     </button>

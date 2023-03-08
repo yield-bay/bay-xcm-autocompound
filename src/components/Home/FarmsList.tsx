@@ -1,5 +1,4 @@
 import { FC } from 'react';
-import Image from 'next/image';
 import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
 import FarmAssets from '@components/Library/FarmAssets';
 import toDollarUnits, {
@@ -9,6 +8,8 @@ import toDollarUnits, {
 } from '@utils/farmMethods';
 import { FarmType } from '@utils/types';
 import Tooltip from '@components/Library/Tooltip';
+import { compoundModalOpenAtom } from '@store/commonAtoms';
+import { useAtom } from 'jotai';
 
 interface Props {
   farms: FarmType[];
@@ -16,6 +17,7 @@ interface Props {
 }
 
 const FarmsList: FC<Props> = ({ farms, noFarms }) => {
+  const [open, setOpen] = useAtom(compoundModalOpenAtom);
   return (
     <div className="flex flex-col items-center gap-y-[25px] py-16">
       {!noFarms ? (
@@ -79,11 +81,12 @@ const FarmsList: FC<Props> = ({ farms, noFarms }) => {
                         content={
                           <>
                             <p>
-                              Base: <span>{farm?.apr.base.toFixed(2)}%</span>
+                              <span className="opacity-50 mr-2">Base</span>
+                              {farm?.apr.base.toFixed(2)}%
                             </p>
                             <p>
-                              Reward:{' '}
-                              <span>{farm?.apr.reward.toFixed(2)}%</span>
+                              <span className="opacity-50 mr-2">Reward</span>
+                              {farm?.apr.reward.toFixed(2)}%
                             </p>
                           </>
                         }
@@ -99,7 +102,10 @@ const FarmsList: FC<Props> = ({ farms, noFarms }) => {
                     <p>Add/Remove</p>
                     <p>Liquidity</p>
                   </button>
-                  <button className="px-4 py-3 rounded-lg bg-white hover:bg-offWhite text-black transition duration-200">
+                  <button
+                    className="px-4 py-3 rounded-lg bg-white hover:bg-offWhite text-black transition duration-200"
+                    onClick={() => setOpen(true)}
+                  >
                     Autocompound
                   </button>
                 </div>

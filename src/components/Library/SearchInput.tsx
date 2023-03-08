@@ -35,6 +35,7 @@ const SearchInput: FC<Props> = ({ term, setTerm }) => {
         type="search"
         id="text"
         value={term}
+        autoComplete='off'
         onChange={(event) => {
           setTerm(event.target.value == '/' ? '' : event.target.value);
         }}

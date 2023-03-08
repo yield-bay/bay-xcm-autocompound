@@ -1,27 +1,27 @@
-import { type ReactNode, memo } from "react";
+import type { FC } from 'react';
+import clsx from 'clsx';
 
-type ButtonProps = {
-  children: ReactNode;
-  size: "small" | "base" | "large";
-  style?: string;
-  onButtonClick?: () => void;
-};
+interface ButtonProps {
+  type: 'primary' | 'secondary' | 'disabled';
+  text: string;
+  onClick?: () => void;
+}
 
-const Button = ({ children, size, style, onButtonClick }: ButtonProps) => {
+const Button: FC<ButtonProps> = ({ type, text, onClick }) => {
   return (
     <button
-      className={`flex flex-row items-center max-w-fit justify-center ring-2 text-base ring-[#314584] hover:ring-[#455b9c] text-white font-semibold rounded-xl leading-5 transition duration-200 ${style} ${
-        size == "small"
-          ? "py-2 px-[18px] sm:py-3 sm:px-6" // small
-          : size == "base"
-          ? "py-[10.5px] px-6 rounded-[8px]" // base
-          : "py-[10.5px] sm:py-[14.5px] px-6" // large
-      }`}
-      onClick={onButtonClick}
+      className={clsx(
+        'text-center w-full text-base bg-white hover:bg-offWhite leading-[21.6px] py-[9px] transition duration-100 ease-in-out rounded-lg',
+        type === 'primary' && 'bg-white text-black',
+        type === 'secondary' &&
+          'bg-opacity-0 hover:bg-opacity-5 active:bg-opacity-0',
+        type === 'disabled' && 'bg-opacity-50 pointer-events-none text-black'
+      )}
+      onClick={onClick}
     >
-      {children}
+      {text}
     </button>
   );
 };
 
-export default memo(Button);
+export default Button;
