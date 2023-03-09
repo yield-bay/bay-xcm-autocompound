@@ -30,8 +30,11 @@ const CompoundTab = () => {
 };
 
 const AddLiquidityTab = () => {
+  const [, setOpen] = useAtom(compoundModalOpenAtom);
+  // Amount States
   const [mgxAmount, setMgxAmount] = useState('');
   const [turAmount, setTurAmount] = useState('');
+  // Process States
   const [isInProcess, setIsInProcess] = useState(false);
   const [isSigning, setIsSigning] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -109,10 +112,16 @@ const AddLiquidityTab = () => {
         ) : (
           <Button type="primary" text="Confirm" onClick={() => {}} />
         )}
-        <Button type="secondary" text="Go Back" onClick={() => {}} />
+        <Button
+          type="secondary"
+          text="Go Back"
+          onClick={() => {
+            setOpen(false);
+          }}
+        />
       </div>
       {/* Stepper */}
-      <div>
+      {isInProcess && (
         <ProcessStepper
           activeStep={2}
           steps={[
@@ -121,7 +130,7 @@ const AddLiquidityTab = () => {
             { label: 'Complete' },
           ]}
         />
-      </div>
+      )}
       {isInProcess && (
         <div className="flex flex-row px-4 items-center justify-center text-base leading-[21.6px] bg-baseGray rounded-lg py-10 text-center">
           {(isSigning || !isSuccess) && <Loader />}
@@ -146,20 +155,119 @@ const AddLiquidityTab = () => {
 };
 
 const RemoveLiquidityTab = () => {
-  const [percentage, setPercentage] = useState(0);
-  const value = percentage.toString() + '%';
+  const [percentage, setPercentage] = useState<string>('');
+  const [isVerify, setIsVerify] = useState<boolean>(false);
+  const [, setOpen] = useAtom(compoundModalOpenAtom);
+
+  const handlePercChange = (event: any) => {
+    event.preventDefault();
+    let percFloat = parseFloat(event.target.value);
+    if ((percFloat > 0 && percFloat <= 100) || event.target.value === '') {
+      setPercentage(event.target.value);
+    } else {
+      alert('Percentage should be between 0 and 100!');
+    }
+  };
 
   return (
-    <div className="w-full flex flex-col gap-y-10 mt-10">
-      <div>
-        <input
-          className="text-2xl bg-transparent text-left focus:outline-none w-full ring-1 ring-[#727272] focus:ring-primaryGreen rounded-lg p-4"
-          autoFocus={true}
-          value={value}
-          placeholder={'0'}
-          onChange={(e) => setPercentage(parseInt(e.target.value))}
-        />
-      </div>
+    <div className="w-full">
+      {!isVerify ? (
+        <div className="w-full flex flex-col gap-y-10 mt-10">
+          <div className="relative">
+            <input
+              className="text-2xl bg-transparent text-left focus:outline-none w-full border-0 ring-1 ring-[#727272] focus:ring-primaryGreen rounded-lg p-4 number-input"
+              autoFocus={true}
+              min={0}
+              max={100}
+              value={percentage}
+              placeholder={'0'}
+              onChange={handlePercChange}
+              type="number"
+            />
+            <div className="absolute right-4 top-[21px] bottom-0 text-base leading-[21.6px] text-[#727272]">
+              Percentage
+            </div>
+          </div>
+          <div className="flex flex-col gap-y-5 text-xl leading-[27px]">
+            <div className="inline-flex w-full justify-between items-center">
+              <p className="inline-flex items-center">
+                <Image
+                  src={'/image/mgx.svg'}
+                  alt="MGX Token"
+                  height={32}
+                  width={32}
+                />
+                <span className="ml-5">MGX</span>
+              </p>
+              <p className="text-base leading-[21.6px]">{'0.1'} MGX</p>
+            </div>
+            <div className="inline-flex w-full justify-between items-center">
+              <p className="inline-flex items-center">
+                <Image
+                  src={'/image/tur.png'}
+                  alt="TUR Token"
+                  height={32}
+                  width={32}
+                />
+                <span className="ml-5">TUR</span>
+              </p>
+              <p className="text-base leading-[21.6px]">{'0.1'} TUR</p>
+            </div>
+            <div className="inline-flex items-center justify-between text-[14px] leading-[18.9px]">
+              <p className="inline-flex items-end">
+                Fee
+                <QuestionMarkCircleIcon className="h-5 w-5 opacity-50 ml-2" />
+              </p>
+              <span>{'15.8083'} MGX</span>
+            </div>
+          </div>
+          <div className="flex flex-col gap-y-2">
+            <Button
+              type="primary"
+              text="Confirm"
+              onClick={() => {
+                if (percentage === '') {
+                  alert('Please enter a valid percentage');
+                  return;
+                } else {
+                  setIsVerify(true);
+                }
+              }}
+            />
+            <Button
+              type="secondary"
+              text="Go Back"
+              onClick={() => {
+                setOpen(false);
+              }}
+            />
+          </div>
+        </div>
+      ) : (
+        <div className="w-full flex flex-col gap-y-14 mt-10">
+          <p className="text-base leading-[21.6px] text-[#B9B9B9] text-center w-full px-24">
+            {parseFloat(percentage) == 100
+              ? 'Removing 100% of Liquidity also stops Autocompounding. Are you sure you want to go ahead?'
+              : `Are you sure you want to remove ${percentage}% of Liquidity?`}
+          </p>
+          <div className="inline-flex gap-x-2">
+            <Button
+              type="primary"
+              text={`Yes, Remove ${percentage}%`}
+              className="w-2/3 bg-warningRed hover:bg-[#e53c3c] text-white"
+            />
+            <Button
+              type="secondary"
+              text="Go Back"
+              className="w-1/3"
+              onClick={() => {
+                setPercentage('');
+                setIsVerify(false);
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

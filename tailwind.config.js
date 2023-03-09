@@ -20,6 +20,7 @@ module.exports = {
         primaryGreen: '#96E7D7',
         bgBlack: '#030303',
         offWhite: '#E6E6E6',
+        warningRed: '#F94646',
       },
       backgroundImage: {
         'bg-pattern': 'url("/Pattern.png")',

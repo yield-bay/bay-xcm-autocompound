@@ -5,9 +5,10 @@ interface ButtonProps {
   type: 'primary' | 'secondary' | 'disabled';
   text: string;
   onClick?: () => void;
+  className?: string;
 }
 
-const Button: FC<ButtonProps> = ({ type, text, onClick }) => {
+const Button: FC<ButtonProps> = ({ type, text, onClick, className }) => {
   return (
     <button
       className={clsx(
@@ -15,7 +16,8 @@ const Button: FC<ButtonProps> = ({ type, text, onClick }) => {
         type === 'primary' && 'bg-white text-black',
         type === 'secondary' &&
           'bg-opacity-0 hover:bg-opacity-5 active:bg-opacity-0',
-        type === 'disabled' && 'bg-opacity-50 pointer-events-none text-black'
+        type === 'disabled' && 'bg-opacity-50 pointer-events-none text-black',
+        className
       )}
       onClick={onClick}
     >
