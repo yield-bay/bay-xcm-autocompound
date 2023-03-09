@@ -38,7 +38,7 @@ const ModalWrapper: FC<Props> = ({ open, setOpen, children }) => {
             >
               <Dialog.Panel
                 className={clsx(
-                  'flex flex-col gap-y-8 w-full min-w-[600px] font-sans font-bold tracking-wide text-xl leading-[27px] max-w-fit border border-baseGray bg-baseGrayMid text-white transform overflow-hidden rounded-lg p-6 sm:p-12 text-left align-middle shadow-xl transition-all',
+                  'flex flex-col gap-y-8 w-full max-w-[600px] font-sans font-bold tracking-wide text-xl leading-[27px] border border-baseGray bg-baseGrayMid text-white transform overflow-hidden rounded-lg p-6 sm:p-12 text-left align-middle shadow-xl transition-all',
                   satoshiFont.variable
                 )}
               >

@@ -28,6 +28,8 @@
     "bn.js": "^5.2.1",
     "clsx": "^1.2.1",
     "dotenv": "^16.0.3",
+    "flowbite": "^1.6.3",
+    "flowbite-react": "^0.4.2",
     "graphql": "^16.6.0",
     "jotai": "^2.0.2",
     "moment": "^2.29.4",
@@ -35,6 +37,7 @@
     "next": "latest",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "react-form-stepper": "^2.0.3",
     "sharp": "^0.31.3"
   },
   "devDependencies": {
