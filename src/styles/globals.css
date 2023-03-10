@@ -1,3 +1,18 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+  input[type='radio'] + label span {
+    @apply bg-white;
+  }
+  input[type='radio']:checked + label span {
+    @apply bg-primaryGreen;
+  }
+  input[type='radio'] + label span, input[type='radio']:checked + label span {
+    -webkit-transition:background-color 0.2s ease-in-out;
+    -o-transition:background-color 0.2s ease-in-out;
+    -moz-transition:background-color 0.2s ease-in-out;
+    transition:background-color 0.2s ease-in-out;
+  }
+}

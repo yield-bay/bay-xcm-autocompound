@@ -1,7 +1,7 @@
 import { FC, useState } from 'react';
 import ModalWrapper from '../Library/ModalWrapper';
 import { useAtom } from 'jotai';
-import { compoundModalOpenAtom } from '@store/commonAtoms';
+import { compoundModalOpenAtom, selectedTabModalAtom } from '@store/commonAtoms';
 import clsx from 'clsx';
 import Image from 'next/image';
 import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
@@ -10,6 +10,7 @@ import AmountInput from '@components/Library/AmountInput';
 import Tooltip from '@components/Library/Tooltip';
 import Loader from '@components/Library/Loader';
 import ProcessStepper from '@components/Library/ProcessStepper';
+import RadioButton from '@components/Library/RadioButton';
 
 const tabs = [
   { name: 'Compound', id: 0 },
@@ -18,13 +19,121 @@ const tabs = [
 ];
 
 interface Props {
-  //
+  selectedTab: number;
 }
 
 const CompoundTab = () => {
+  const [frequency, setFrequency] = useState<number>(1);
+  const [duration, setDuration] = useState<number>(7);
+  const [percentage, setPercentage] = useState<number>(10);
+
   return (
-    <div className="w-full border">
-      <p>Hello Let's compound together</p>
+    <div className="w-full flex flex-col gap-y-10 mt-10 text-xl leading-[27px]">
+      <div>
+        <p className="inline-flex items-center mb-8">
+          Frequency
+          <Tooltip content={<span>Frequency of auto-compounding</span>}>
+            <QuestionMarkCircleIcon className="h-5 w-5 opacity-50 ml-3" />
+          </Tooltip>
+        </p>
+        <div className="flex flex-row gap-x-8">
+          <RadioButton
+            changed={setFrequency}
+            isSelected={frequency === 1}
+            label="Day"
+            value={1}
+          />
+          <RadioButton
+            changed={setFrequency}
+            isSelected={frequency === 7}
+            label="Week"
+            value={7}
+          />
+          <RadioButton
+            changed={setFrequency}
+            isSelected={frequency === 30}
+            label="Month"
+            value={30}
+          />
+        </div>
+      </div>
+      <div>
+        <p className="inline-flex items-center mb-8">
+          Duration
+          <Tooltip content={<span>Duration of auto-compounding</span>}>
+            <QuestionMarkCircleIcon className="h-5 w-5 opacity-50 ml-3" />
+          </Tooltip>
+        </p>
+        <div className="flex flex-row gap-x-8">
+          <RadioButton
+            changed={setDuration}
+            isSelected={duration === 7}
+            label="1 Week"
+            value={7}
+          />
+          <RadioButton
+            changed={setDuration}
+            isSelected={duration === 30}
+            label="1 Month"
+            value={30}
+          />
+        </div>
+      </div>
+      <div>
+        <p className="inline-flex items-center mb-8">
+          Percentage
+          <Tooltip
+            content={<span>Percentage of liquidity to auto-compound</span>}
+          >
+            <QuestionMarkCircleIcon className="h-5 w-5 opacity-50 ml-3" />
+          </Tooltip>
+        </p>
+        <div className="flex flex-row gap-x-8">
+          <RadioButton
+            changed={setPercentage}
+            isSelected={percentage === 10}
+            label="10%"
+            value={10}
+          />
+          <RadioButton
+            changed={setPercentage}
+            isSelected={percentage === 25}
+            label="25%"
+            value={25}
+          />
+          <RadioButton
+            changed={setPercentage}
+            isSelected={percentage === 35}
+            label="35%"
+            value={35}
+          />
+          <RadioButton
+            changed={setPercentage}
+            isSelected={percentage === 45}
+            label="45%"
+            value={45}
+          />
+        </div>
+      </div>
+      {/* Card box to show current and effective APY */}
+      <div className="inline-flex justify-between w-full rounded-lg bg-[#1C1C1C] py-6 px-9">
+        <div className="flex flex-col items-center gap-y-3">
+          <p className="text-xl font-medium opacity-60">Current APY</p>
+          <p className="text-2xl">45%</p>
+        </div>
+        <div className="flex flex-col items-center gap-y-3">
+          <p className="text-xl font-medium opacity-60">Effective APY</p>
+          <p className="text-2xl">45%</p>
+        </div>
+      </div>
+      <p className="text-base leading-[21.6px] font-medium text-center text-[#B9B9B9]">
+        Costs <span className="text-white">$45</span> including Gas Fees + 0.5%
+        Comission
+      </p>
+      <div className="flex flex-col gap-y-2">
+        <Button text="Autocompound" type="primary" />
+        <Button text="Cancel" type="secondary" />
+      </div>
     </div>
   );
 };
@@ -272,8 +381,8 @@ const RemoveLiquidityTab = () => {
   );
 };
 
-const TabContent = ({ currentTab }: { currentTab: number }) => {
-  switch (currentTab) {
+const TabContent = ({ selectedTab }: { selectedTab: number }) => {
+  switch (selectedTab) {
     case 0:
       return <CompoundTab />;
     case 1:
@@ -287,7 +396,7 @@ const TabContent = ({ currentTab }: { currentTab: number }) => {
 
 const CompoundModal: FC<Props> = () => {
   const [open, setOpen] = useAtom(compoundModalOpenAtom);
-  const [currentTab, setCurrentTab] = useState(1);
+  const [selectedTab, setSelectedTab] = useAtom(selectedTabModalAtom);
 
   return (
     <ModalWrapper open={open} setOpen={setOpen}>
@@ -297,9 +406,9 @@ const CompoundModal: FC<Props> = () => {
           {tabs.map((tab) => (
             <button
               key={tab.name}
-              onClick={() => setCurrentTab(tab.id)}
+              onClick={() => setSelectedTab(tab.id)}
               className={clsx(
-                tab.id == currentTab
+                tab.id == selectedTab
                   ? 'ring-1 ring-primaryGreen  px-4'
                   : 'opacity-40',
                 'rounded-md px-4 py-[10px] transition duration-300 ease-in-out'
@@ -310,7 +419,7 @@ const CompoundModal: FC<Props> = () => {
             </button>
           ))}
         </nav>
-        <TabContent currentTab={currentTab} />
+        <TabContent selectedTab={selectedTab} />
       </div>
     </ModalWrapper>
   );

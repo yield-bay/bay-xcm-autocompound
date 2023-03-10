@@ -8,7 +8,7 @@ import toDollarUnits, {
 } from '@utils/farmMethods';
 import { FarmType } from '@utils/types';
 import Tooltip from '@components/Library/Tooltip';
-import { compoundModalOpenAtom } from '@store/commonAtoms';
+import { compoundModalOpenAtom, selectedTabModalAtom } from '@store/commonAtoms';
 import { useAtom } from 'jotai';
 
 interface Props {
@@ -17,7 +17,8 @@ interface Props {
 }
 
 const FarmsList: FC<Props> = ({ farms, noFarms }) => {
-  const [open, setOpen] = useAtom(compoundModalOpenAtom);
+  const [, setOpen] = useAtom(compoundModalOpenAtom);
+  const [selectedTab, setSelectedTab] = useAtom(selectedTabModalAtom);
   return (
     <div className="flex flex-col items-center gap-y-[25px] py-16">
       {!noFarms ? (
@@ -98,13 +99,22 @@ const FarmsList: FC<Props> = ({ farms, noFarms }) => {
                 </div>
                 {/* Right Right */}
                 <div className="flex flex-col justify-between">
-                  <button className="bg-baseGray py-4 px-5 text-white text-base leading-5 hover:ring-1 ring-baseGrayLow rounded-lg transition duration-200">
+                  <button 
+                    className="bg-baseGray py-4 px-5 text-white text-base leading-5 hover:ring-1 ring-baseGrayLow rounded-lg transition duration-200"
+                    onClick={() => {
+                      setSelectedTab(1)
+                      setOpen(true);
+                    }}
+                  >
                     <p>Add/Remove</p>
                     <p>Liquidity</p>
                   </button>
                   <button
                     className="px-4 py-3 rounded-lg bg-white hover:bg-offWhite text-black transition duration-200"
-                    onClick={() => setOpen(true)}
+                    onClick={() => {
+                      setSelectedTab(0)
+                      setOpen(true);
+                    }}
                   >
                     Autocompound
                   </button>
