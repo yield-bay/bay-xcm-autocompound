@@ -1,7 +1,11 @@
-import { FC, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import ModalWrapper from '../Library/ModalWrapper';
 import { useAtom } from 'jotai';
-import { compoundModalOpenAtom, selectedTabModalAtom } from '@store/commonAtoms';
+import {
+  compoundModalOpenAtom,
+  selectedFarmAtom,
+  selectedTabModalAtom,
+} from '@store/commonAtoms';
 import clsx from 'clsx';
 import Image from 'next/image';
 import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
@@ -11,6 +15,10 @@ import Tooltip from '@components/Library/Tooltip';
 import Loader from '@components/Library/Loader';
 import ProcessStepper from '@components/Library/ProcessStepper';
 import RadioButton from '@components/Library/RadioButton';
+import { accountAtom } from '@store/accountAtoms';
+import { FarmType } from '@utils/types';
+import { WalletAccount } from '@talismn/connect-wallets';
+import { formatTokenSymbols, replaceTokenSymbols } from '@utils/farmMethods';
 
 const tabs = [
   { name: 'Compound', id: 0 },
@@ -18,11 +26,14 @@ const tabs = [
   { name: 'Remove Liquidity', id: 2 },
 ];
 
-interface Props {
-  selectedTab: number;
+interface TabProps {
+  farm: FarmType;
+  account: WalletAccount;
 }
 
-const CompoundTab = () => {
+const CompoundTab = ({ farm, account }: TabProps) => {
+  const [, setOpen] = useAtom(compoundModalOpenAtom);
+
   const [frequency, setFrequency] = useState<number>(1);
   const [duration, setDuration] = useState<number>(7);
   const [percentage, setPercentage] = useState<number>(10);
@@ -132,14 +143,21 @@ const CompoundTab = () => {
       </p>
       <div className="flex flex-col gap-y-2">
         <Button text="Autocompound" type="primary" />
-        <Button text="Cancel" type="secondary" />
+        <Button
+          text="Cancel"
+          type="secondary"
+          onClick={() => {
+            setOpen(false);
+          }}
+        />
       </div>
     </div>
   );
 };
 
-const AddLiquidityTab = () => {
+const AddLiquidityTab = ({ farm, account }: TabProps) => {
   const [, setOpen] = useAtom(compoundModalOpenAtom);
+
   // Amount States
   const [mgxAmount, setMgxAmount] = useState('');
   const [turAmount, setTurAmount] = useState('');
@@ -153,13 +171,17 @@ const AddLiquidityTab = () => {
   const inSufficientBalance =
     mgxBalance < parseFloat(mgxAmount) || turBalance < parseFloat(turAmount);
 
+  const tokenNames = formatTokenSymbols(
+    replaceTokenSymbols(farm?.asset.symbol)
+  );
+
   return (
     <div className="w-full flex flex-col gap-y-10 mt-10">
       {/* MGX Container */}
       <div className="flex flex-row justify-between p-4 border border-primaryGreen rounded-lg">
         <div className="flex flex-row gap-x-5 items-center">
-          <Image src="/image/mgx.svg" alt="MGX Token" height={32} width={32} />
-          <span>MGX</span>
+          <Image src={farm?.asset.logos[0]} alt={tokenNames[0]} height={32} width={32} />
+          <span>{tokenNames[0]}</span>
         </div>
         <div className="flex flex-col gap-y-3">
           <div className="flex flex-row justify-end items-center gap-x-3">
@@ -180,8 +202,8 @@ const AddLiquidityTab = () => {
       {/* TUR Container */}
       <div className="flex flex-row justify-between p-4 border border-[#727272] rounded-lg">
         <div className="flex flex-row gap-x-5 items-center">
-          <Image src="/image/tur.png" alt="TUR Token" height={32} width={32} />
-          <span>TUR</span>
+          <Image src={farm?.asset.logos[1]} alt={tokenNames[1]} height={32} width={32} />
+          <span>{tokenNames[1]}</span>
         </div>
         <div className="flex flex-col gap-y-3">
           <div className="flex flex-row justify-end items-center gap-x-3">
@@ -263,10 +285,14 @@ const AddLiquidityTab = () => {
   );
 };
 
-const RemoveLiquidityTab = () => {
+const RemoveLiquidityTab = ({ farm, account }: TabProps) => {
   const [percentage, setPercentage] = useState<string>('');
   const [isVerify, setIsVerify] = useState<boolean>(false);
   const [, setOpen] = useAtom(compoundModalOpenAtom);
+
+  const tokenNames = formatTokenSymbols(
+    replaceTokenSymbols(farm?.asset.symbol)
+  );
 
   const handlePercChange = (event: any) => {
     event.preventDefault();
@@ -301,24 +327,24 @@ const RemoveLiquidityTab = () => {
             <div className="inline-flex w-full justify-between items-center">
               <p className="inline-flex items-center">
                 <Image
-                  src={'/image/mgx.svg'}
-                  alt="MGX Token"
+                  src={farm?.asset.logos[0]}
+                  alt={tokenNames[0]}
                   height={32}
                   width={32}
                 />
-                <span className="ml-5">MGX</span>
+                <span className="ml-5">{tokenNames[0]}</span>
               </p>
               <p className="text-base leading-[21.6px]">{'0.1'} MGX</p>
             </div>
             <div className="inline-flex w-full justify-between items-center">
               <p className="inline-flex items-center">
                 <Image
-                  src={'/image/tur.png'}
-                  alt="TUR Token"
+                  src={farm?.asset.logos[1]}
+                  alt={tokenNames[1]}
                   height={32}
                   width={32}
                 />
-                <span className="ml-5">TUR</span>
+                <span className="ml-5">{tokenNames[1]}</span>
               </p>
               <p className="text-base leading-[21.6px]">{'0.1'} TUR</p>
             </div>
@@ -359,16 +385,16 @@ const RemoveLiquidityTab = () => {
               ? 'Removing 100% of Liquidity also stops Autocompounding. Are you sure you want to go ahead?'
               : `Are you sure you want to remove ${percentage}% of Liquidity?`}
           </p>
-          <div className="inline-flex gap-x-2">
+          <div className="inline-flex gap-x-2 w-full">
             <Button
-              type="primary"
+              type="warning"
               text={`Yes, Remove ${percentage}%`}
-              className="w-2/3 bg-warningRed hover:bg-[#e53c3c] text-white"
+              className="w-3/5"
             />
             <Button
               type="secondary"
               text="Go Back"
-              className="w-1/3"
+              className="w-2/5"
               onClick={() => {
                 setPercentage('');
                 setIsVerify(false);
@@ -381,22 +407,35 @@ const RemoveLiquidityTab = () => {
   );
 };
 
-const TabContent = ({ selectedTab }: { selectedTab: number }) => {
+interface TabContentProps {
+  selectedTab: number;
+  farm: FarmType;
+  account: WalletAccount;
+}
+
+const TabContent = ({ selectedTab, farm, account }: TabContentProps) => {
   switch (selectedTab) {
     case 0:
-      return <CompoundTab />;
+      return <CompoundTab farm={farm} account={account} />;
     case 1:
-      return <AddLiquidityTab />;
+      return <AddLiquidityTab farm={farm} account={account} />;
     case 2:
-      return <RemoveLiquidityTab />;
+      return <RemoveLiquidityTab farm={farm} account={account} />;
     default:
-      return <CompoundTab />;
+      return <CompoundTab farm={farm} account={account} />;
   }
 };
 
-const CompoundModal: FC<Props> = () => {
+const CompoundModal: FC = () => {
   const [open, setOpen] = useAtom(compoundModalOpenAtom);
   const [selectedTab, setSelectedTab] = useAtom(selectedTabModalAtom);
+  const [selectedFarm] = useAtom(selectedFarmAtom);
+  const [account] = useAtom(accountAtom);
+
+  useEffect(() => {
+    console.log('selectedFarm', selectedFarm);
+    console.log('account', account);
+  }, [selectedFarm, account]);
 
   return (
     <ModalWrapper open={open} setOpen={setOpen}>
@@ -419,7 +458,11 @@ const CompoundModal: FC<Props> = () => {
             </button>
           ))}
         </nav>
-        <TabContent selectedTab={selectedTab} />
+        <TabContent
+          selectedTab={selectedTab}
+          farm={selectedFarm as FarmType}
+          account={account as WalletAccount}
+        />
       </div>
     </ModalWrapper>
   );

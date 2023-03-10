@@ -8,7 +8,7 @@ import toDollarUnits, {
 } from '@utils/farmMethods';
 import { FarmType } from '@utils/types';
 import Tooltip from '@components/Library/Tooltip';
-import { compoundModalOpenAtom, selectedTabModalAtom } from '@store/commonAtoms';
+import { compoundModalOpenAtom, selectedTabModalAtom, selectedFarmAtom } from '@store/commonAtoms';
 import { useAtom } from 'jotai';
 
 interface Props {
@@ -18,7 +18,8 @@ interface Props {
 
 const FarmsList: FC<Props> = ({ farms, noFarms }) => {
   const [, setOpen] = useAtom(compoundModalOpenAtom);
-  const [selectedTab, setSelectedTab] = useAtom(selectedTabModalAtom);
+  const [, setSelectedTab] = useAtom(selectedTabModalAtom);
+  const [, setSelectedFarm] = useAtom(selectedFarmAtom);
   return (
     <div className="flex flex-col items-center gap-y-[25px] py-16">
       {!noFarms ? (
@@ -104,6 +105,7 @@ const FarmsList: FC<Props> = ({ farms, noFarms }) => {
                     onClick={() => {
                       setSelectedTab(1)
                       setOpen(true);
+                      setSelectedFarm(farm);
                     }}
                   >
                     <p>Add/Remove</p>
@@ -114,6 +116,7 @@ const FarmsList: FC<Props> = ({ farms, noFarms }) => {
                     onClick={() => {
                       setSelectedTab(0)
                       setOpen(true);
+                      setSelectedFarm(farm);
                     }}
                   >
                     Autocompound
