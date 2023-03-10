@@ -26,16 +26,13 @@ const SearchInput: FC<Props> = ({ term, setTerm }) => {
   return (
     <div className="relative flex w-full text-white sm:rounded-lg ring-transparent">
       <div className="absolute pl-10 sm:pl-6 lg:pl-6 left-0 inset-y-0 flex items-center pointer-events-none">
-        <MagnifyingGlassIcon
-          className="w-3 sm:w-[18px]"
-          aria-hidden="true"
-        />
+        <MagnifyingGlassIcon className="w-3 sm:w-[18px]" aria-hidden="true" />
       </div>
       <input
         type="search"
         id="text"
         value={term}
-        autoComplete='off'
+        autoComplete="off"
         onChange={(event) => {
           setTerm(event.target.value == '/' ? '' : event.target.value);
         }}
@@ -54,6 +51,6 @@ const SearchInput: FC<Props> = ({ term, setTerm }) => {
       </div>
     </div>
   );
-}
+};
 
 export default SearchInput;

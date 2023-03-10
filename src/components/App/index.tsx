@@ -7,7 +7,7 @@ import FarmsList from './FarmsList';
 import SearchInput from '@components/Library/SearchInput';
 import useFilteredFarms from '@hooks/useFilteredFarms';
 
-const Home = () => {
+const App = () => {
   const [farms, setFarms] = useState<FarmType[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -37,4 +37,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default App;

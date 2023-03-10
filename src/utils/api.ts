@@ -11,7 +11,7 @@ export const fetchFarms = async () => {
     .query(
       gql`
         query Farms {
-          farms(chain: "Mangata Kusama", protocol: "Mangata X") { 
+          farms(chain: "Mangata Kusama", protocol: "Mangata X") {
             id
             chef
             chain

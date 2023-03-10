@@ -11,14 +11,8 @@ await mangataHelper.initialize();
 const turingChainName = turingHelper.config.key;
 const mangataChainName = mangataHelper.config.key;
 
-console.log(
-  'turingHelper.config.assets',
-  turingHelper.config.assets
-);
-console.log(
-  'mangataHelper.config.assets',
-  mangataHelper.config.assets
-);
+console.log('turingHelper.config.assets', turingHelper.config.assets);
+console.log('mangataHelper.config.assets', mangataHelper.config.assets);
 
 const turingNativeToken = _.first(turingHelper.config.assets);
 const mangataNativeToken = _.first(mangataHelper.config.assets);
@@ -47,10 +41,8 @@ await account1.init([turingHelper, mangataHelper]);
 
 console.log('account1', account1);
 
-const mangataAddress =
-  account1.getChainByName(mangataChainName)?.address;
-const turingAddress =
-  account1.getChainByName(turingChainName)?.address;
+const mangataAddress = account1.getChainByName(mangataChainName)?.address;
+const turingAddress = account1.getChainByName(turingChainName)?.address;
 console.log('mangataAddress', mangataAddress);
 console.log('turingAddress', turingAddress);
 
@@ -74,8 +66,9 @@ const proxyAddress = mangataHelper.getProxyAccount(
   mangataAddress,
   turingHelper.config.paraId
 );
-const proxiesResponse =
-  await mangataHelper.api.query.proxy.proxies(mangataAddress);
+const proxiesResponse = await mangataHelper.api.query.proxy.proxies(
+  mangataAddress
+);
 const proxies = _.first(proxiesResponse.toJSON());
 
 const proxyType = 'AutoCompound';
@@ -92,21 +85,14 @@ if (proxyMatch) {
   if (_.isEmpty(proxies)) {
     console.log(`Proxy array of ${account.address} is empty ...`);
   } else {
-    console.log(
-      'Proxy not found. Expected',
-      matchCondition,
-      'Actual',
-      proxies
-    );
+    console.log('Proxy not found. Expected', matchCondition, 'Actual', proxies);
   }
 
   console.log(
     `Adding a proxy for paraId ${turingHelper.config.paraId}. Proxy address: ${proxyAddress} ...`
   );
   const aptx = mangataHelper.addProxyTx(proxyAddress, proxyType);
-  await (
-    await aptx
-  ).signAndSend(account1.address, { signer: signer });
+  await(await aptx).signAndSend(account1.address, { signer: signer });
   // const addProxyTx = api.tx.proxy.addProxy(proxyAccount, proxyType, 0)
 }
 
@@ -118,16 +104,12 @@ console.log('pools', pools);
 
 const pool = _.find(pools, {
   firstTokenId: mangataHelper.getTokenIdBySymbol(mgxToken.symbol),
-  secondTokenId: mangataHelper.getTokenIdBySymbol(
-    turToken.symbol
-  ),
+  secondTokenId: mangataHelper.getTokenIdBySymbol(turToken.symbol),
 });
 console.log(`Found a pool of ${poolName}`, pool);
 
 if (_.isUndefined(pool)) {
-  throw new Error(
-    `Couldn’t find a liquidity pool for ${poolName} ...`
-  );
+  throw new Error(`Couldn’t find a liquidity pool for ${poolName} ...`);
 }
 
 // Calculate rwards amount in pool
@@ -145,17 +127,14 @@ const rewardAmount = await mangataHelper.calculateRewardsAmount(
 );
 console.log(`Claimable reward in ${poolName}: `, rewardAmount);
 
-const liquidityBalance =
-  await mangataHelper.mangata.getTokenBalance(
-    liquidityTokenId,
-    mangataAddress
-  );
+const liquidityBalance = await mangataHelper.mangata.getTokenBalance(
+  liquidityTokenId,
+  mangataAddress
+);
 const poolNameDecimalBN = getDecimalBN(
   mangataHelper.getDecimalsBySymbol(poolName)
 );
-const numReserved = new BN(liquidityBalance.reserved).div(
-  poolNameDecimalBN
-);
+const numReserved = new BN(liquidityBalance.reserved).div(poolNameDecimalBN);
 
 console.log(
   `Before auto-compound, ${
@@ -164,9 +143,7 @@ console.log(
 );
 
 // autocompound
-console.log(
-  '\n4. Start to schedule an auto-compound call via XCM ...'
-);
+console.log('\n4. Start to schedule an auto-compound call via XCM ...');
 const proxyExtrinsic = mangataHelper.api.tx.xyk.compoundRewards(
   liquidityTokenId,
   100
@@ -176,17 +153,11 @@ const mangataProxyCall = await mangataHelper.createProxyCall(
   proxyType,
   proxyExtrinsic
 );
-const encodedMangataProxyCall =
-  mangataProxyCall.method.toHex(mangataProxyCall);
-const mangataProxyCallFees = await mangataProxyCall.paymentInfo(
-  mangataAddress
-);
+const encodedMangataProxyCall = mangataProxyCall.method.toHex(mangataProxyCall);
+const mangataProxyCallFees = await mangataProxyCall.paymentInfo(mangataAddress);
 
 console.log('encodedMangataProxyCall: ', encodedMangataProxyCall);
-console.log(
-  'mangataProxyCallFees: ',
-  mangataProxyCallFees.toHuman()
-);
+console.log('mangataProxyCallFees: ', mangataProxyCallFees.toHuman());
 
 // Create Turing scheduleXcmpTask extrinsic
 console.log('\na) Create the call for scheduleXcmpTask ');
@@ -198,59 +169,45 @@ const secPerHour = 3600;
 const msPerHour = 3600 * 1000;
 const currentTimestamp = moment().valueOf();
 const timestampNextHour =
-  (currentTimestamp - (currentTimestamp % msPerHour)) / 1000 +
-  secPerHour;
+  (currentTimestamp - (currentTimestamp % msPerHour)) / 1000 + secPerHour;
 const timestampTwoHoursLater =
-  (currentTimestamp - (currentTimestamp % msPerHour)) / 1000 +
-  secPerHour * 2;
+  (currentTimestamp - (currentTimestamp % msPerHour)) / 1000 + secPerHour * 2;
 
 // call from proxy
-const xcmpCall =
-  await turingHelper.api.tx.automationTime.scheduleXcmpTask(
-    providedId,
-    {
-      Fixed: {
-        executionTimes: [
-          timestampNextHour,
-          timestampTwoHoursLater,
-        ],
-      },
+const xcmpCall = await turingHelper.api.tx.automationTime.scheduleXcmpTask(
+  providedId,
+  {
+    Fixed: {
+      executionTimes: [timestampNextHour, timestampTwoHoursLater],
     },
-    mangataHelper.config.paraId,
-    0,
-    encodedMangataProxyCall,
-    parseInt(mangataProxyCallFees.weight.refTime, 10)
-  );
+  },
+  mangataHelper.config.paraId,
+  0,
+  encodedMangataProxyCall,
+  parseInt(mangataProxyCallFees.weight.refTime, 10)
+);
 // await (xcmpCall).signAndSend(account1.address, {signer:signer});
 console.log('xcmpCall: ', xcmpCall);
 
 // Query automationTime fee
 console.log('\nb) Query automationTime fee details ');
 const { executionFee, xcmpFee } =
-  await turingHelper.api.rpc.automationTime.queryFeeDetails(
-    xcmpCall
-  );
+  await turingHelper.api.rpc.automationTime.queryFeeDetails(xcmpCall);
 console.log('automationFeeDetails: ', {
   executionFee: executionFee.toHuman(),
   xcmpFee: xcmpFee.toHuman(),
 });
 
 // Get a TaskId from Turing rpc
-const taskId =
-  await turingHelper.api.rpc.automationTime.generateTaskId(
-    turingAddress,
-    providedId
-  );
+const taskId = await turingHelper.api.rpc.automationTime.generateTaskId(
+  turingAddress,
+  providedId
+);
 console.log('TaskId:', taskId.toHuman());
 
 // Send extrinsic
 console.log('\nc) Sign and send scheduleXcmpTask call ...');
-await turingHelper.sendXcmExtrinsic(
-  xcmpCall,
-  account.address,
-  signer,
-  taskId
-);
+await turingHelper.sendXcmExtrinsic(xcmpCall, account.address, signer, taskId);
 
 // Listen XCM events on Mangata side
 console.log(
@@ -262,8 +219,7 @@ console.log(
 );
 await listenEvents(mangataHelper.api, 'proxy', 'ProxyExecuted');
 
-const nextHourExecutionTimeout =
-  calculateTimeout(timestampNextHour);
+const nextHourExecutionTimeout = calculateTimeout(timestampNextHour);
 const isTaskExecuted = await listenEvents(
   mangataHelper.api,
   'proxy',
@@ -277,17 +233,14 @@ if (!isTaskExecuted) {
 
 console.log('Task has been executed!');
 
-console.log(
-  '\nWaiting 20 seconds before reading new chain states ...'
-);
+console.log('\nWaiting 20 seconds before reading new chain states ...');
 await delay(20000);
 
 // Account’s reserved LP token after auto-compound
-const newLiquidityBalance =
-  await mangataHelper.mangata.getTokenBalance(
-    liquidityTokenId,
-    mangataAddress
-  );
+const newLiquidityBalance = await mangataHelper.mangata.getTokenBalance(
+  liquidityTokenId,
+  mangataAddress
+);
 console.log(
   `\nAfter auto-compound, reserved ${poolName} is: ${newLiquidityBalance.reserved.toString()} planck ...`
 );

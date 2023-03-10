@@ -35,8 +35,7 @@ const ProcessStepper: FC<Props> = ({ activeStep, steps }) => {
         borderRadius: '50%',
       }}
       steps={steps}
-    >
-    </Stepper>
+    ></Stepper>
   );
 };
 

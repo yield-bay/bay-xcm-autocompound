@@ -25,7 +25,10 @@ export const accountAtom = atom(
     );
   },
   (get, set, accountUpdate: WalletAccount | null) => {
-    set(accountAddressAtom, accountUpdate !== null ? accountUpdate.address : null);
+    set(
+      accountAddressAtom,
+      accountUpdate !== null ? accountUpdate.address : null
+    );
   }
 );
 accountAtom.debugLabel = 'polkadotAccount';

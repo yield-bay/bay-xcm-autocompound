@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from 'react';
 
 /**
  *
@@ -32,10 +32,10 @@ const useKeyPress = (
   useEffect(() => {
     // target is either the provided node or the document
     const targetNode = node ?? document;
-    targetNode && targetNode.addEventListener("keydown", handleKeyPress);
+    targetNode && targetNode.addEventListener('keydown', handleKeyPress);
 
     return () => {
-      targetNode && targetNode.removeEventListener("keydown", handleKeyPress);
+      targetNode && targetNode.removeEventListener('keydown', handleKeyPress);
     };
   }, [handleKeyPress, node]);
 };

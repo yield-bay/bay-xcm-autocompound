@@ -1,3 +1,3 @@
-import Home from "@components/Home";
+import App from '@components/App';
 
-export default Home;
+export default App;

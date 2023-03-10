@@ -16,9 +16,10 @@ const Button: FC<ButtonProps> = ({ type, text, onClick, className }) => {
         type === 'primary' && 'bg-white hover:bg-offWhite text-black',
         type === 'secondary' &&
           'bg-white bg-opacity-0 hover:bg-opacity-5 active:bg-opacity-0',
-        type === 'disabled' && 'bg-opacity-50 pointer-events-none text-black',
+        type === 'disabled' &&
+          'bg-white bg-opacity-50 pointer-events-none text-black',
         type === 'warning' && 'bg-warningRed hover:bg-[#e53c3c]',
-        className ?? '',
+        className ?? ''
       )}
       onClick={onClick}
     >

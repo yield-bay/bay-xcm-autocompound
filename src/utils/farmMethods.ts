@@ -15,8 +15,8 @@ export function formatTokenSymbols(farmName: string): string[] {
 }
 
 export function formatFarmType(farmType: string): string {
-  if (farmType === "SingleStaking") return "Single staking";
-  else return farmType.slice(0, -3) + " swap";
+  if (farmType === 'SingleStaking') return 'Single staking';
+  else return farmType.slice(0, -3) + ' swap';
 }
 
 // Filter farms with MGX token and return them
@@ -33,7 +33,7 @@ export const replaceTokenSymbols = (farmName: string) => {
   let temp = farmName.replace('KSM', 'ROC');
   temp = temp.replace('MGX', 'MGR');
   return temp;
-}
+};
 
 /**
  *
@@ -42,10 +42,9 @@ export const replaceTokenSymbols = (farmName: string) => {
  */
 export default function toDollarUnits(num: number): string {
   if (num >= 1000000) {
-    return "$" + (num / 1000000).toFixed(2) + "M";
+    return '$' + (num / 1000000).toFixed(2) + 'M';
   } else if (num >= 1000 && num < 1000000) {
-    return "$" + (num / 1000).toFixed(2) + "K";
+    return '$' + (num / 1000).toFixed(2) + 'K';
   }
-  return "$" + num.toFixed(0);
+  return '$' + num.toFixed(0);
 }
-

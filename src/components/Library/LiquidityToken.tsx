@@ -6,16 +6,34 @@ interface LiquidityTokenProps {
   secondTokenSymbol: string;
 }
 
-function LiquidityToken({ firstTokenSymbol, secondTokenSymbol }: LiquidityTokenProps) {
+function LiquidityToken({
+  firstTokenSymbol,
+  secondTokenSymbol,
+}: LiquidityTokenProps) {
   const getImageBySymbol = (symbol: any) => {
     const imageMgx = (
-      <Image src={"/image/mgx.svg"} alt={`${symbol} Token Icon`} width={24} height={24} />
+      <Image
+        src={'/image/mgx.svg'}
+        alt={`${symbol} Token Icon`}
+        width={24}
+        height={24}
+      />
     );
     const imageTur = (
-      <Image src={"/image/tur.png"} alt={`${symbol} Token Icon`} width={24} height={24} />
+      <Image
+        src={'/image/tur.png'}
+        alt={`${symbol} Token Icon`}
+        width={24}
+        height={24}
+      />
     );
     const imageKsm = (
-      <Image src={"/image/ksm.svg"} alt={`${symbol} Token Icon`} width={24} height={24} />
+      <Image
+        src={'/image/ksm.svg'}
+        alt={`${symbol} Token Icon`}
+        width={24}
+        height={24}
+      />
     );
 
     switch (symbol) {
@@ -30,7 +48,7 @@ function LiquidityToken({ firstTokenSymbol, secondTokenSymbol }: LiquidityTokenP
   };
 
   return (
-    <ClientOnly>     
+    <ClientOnly>
       {/* {getImageBySymbol(firstTokenSymbol)}
       {getImageBySymbol(secondTokenSymbol)} */}
       <div className="inline-block margin-left-12">

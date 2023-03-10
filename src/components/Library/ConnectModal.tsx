@@ -1,13 +1,13 @@
-import ModalWrapper from "./ModalWrapper";
-import type { Wallet, WalletAccount } from "@talismn/connect-wallets";
-import { walletModalOpenAtom } from "@store/commonAtoms";
-import { walletsAtom, walletAtom } from "@store/walletAtoms";
-import { walletAccountsAtom, accountAtom } from "@store/accountAtoms"; 
-import { useAtom } from "jotai";
-import { FC } from "react";
-import { APP_NAME } from "@utils/constants";
-import Image from "next/image";
-import clsx from "clsx";
+import ModalWrapper from './ModalWrapper';
+import type { Wallet, WalletAccount } from '@talismn/connect-wallets';
+import { walletModalOpenAtom } from '@store/commonAtoms';
+import { walletsAtom, walletAtom } from '@store/walletAtoms';
+import { walletAccountsAtom, accountAtom } from '@store/accountAtoms';
+import { useAtom } from 'jotai';
+import { FC } from 'react';
+import { APP_NAME } from '@utils/constants';
+import Image from 'next/image';
+import clsx from 'clsx';
 
 interface Props {
   connected: boolean;
@@ -69,6 +69,7 @@ const ConnectModal: FC = () => {
                   className={clsx(
                     'flex flex-col gap-y-3 border border-[#666666] hover:border-primaryGreen p-6 rounded-lg'
                   )}
+                  key={account.name}
                   onClick={async () => {
                     setAccount(account);
                     // setWalletConnected(true);

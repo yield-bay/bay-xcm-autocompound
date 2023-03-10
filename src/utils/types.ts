@@ -1,3 +1,5 @@
+import { WalletAccount } from "@talismn/connect-wallets";
+
 export interface FarmType {
   id: number;
   chef: string;
@@ -25,4 +27,9 @@ export interface FarmType {
   allocPoint: number;
   lastUpdatedAtUTC: string;
   safetyScore: number;
+}
+
+export interface TabProps {
+  farm: FarmType;
+  account: WalletAccount;
 }

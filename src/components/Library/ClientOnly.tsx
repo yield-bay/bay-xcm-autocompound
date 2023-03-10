@@ -1,5 +1,5 @@
-"use client";
-import { ReactNode, useEffect, useState } from "react";
+'use client';
+import { ReactNode, useEffect, useState } from 'react';
 
 // Wrapper to disable SSR for wrapped component
 // Runs on client side

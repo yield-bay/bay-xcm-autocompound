@@ -8,7 +8,11 @@ import toDollarUnits, {
 } from '@utils/farmMethods';
 import { FarmType } from '@utils/types';
 import Tooltip from '@components/Library/Tooltip';
-import { compoundModalOpenAtom, selectedTabModalAtom, selectedFarmAtom } from '@store/commonAtoms';
+import {
+  mainModalOpenAtom,
+  selectedTabModalAtom,
+  selectedFarmAtom,
+} from '@store/commonAtoms';
 import { useAtom } from 'jotai';
 
 interface Props {
@@ -17,7 +21,7 @@ interface Props {
 }
 
 const FarmsList: FC<Props> = ({ farms, noFarms }) => {
-  const [, setOpen] = useAtom(compoundModalOpenAtom);
+  const [, setOpen] = useAtom(mainModalOpenAtom);
   const [, setSelectedTab] = useAtom(selectedTabModalAtom);
   const [, setSelectedFarm] = useAtom(selectedFarmAtom);
   return (
@@ -100,10 +104,10 @@ const FarmsList: FC<Props> = ({ farms, noFarms }) => {
                 </div>
                 {/* Right Right */}
                 <div className="flex flex-col justify-between">
-                  <button 
+                  <button
                     className="bg-baseGray py-4 px-5 text-white text-base leading-5 hover:ring-1 ring-baseGrayLow rounded-lg transition duration-200"
                     onClick={() => {
-                      setSelectedTab(1)
+                      setSelectedTab(1);
                       setOpen(true);
                       setSelectedFarm(farm);
                     }}
@@ -114,7 +118,7 @@ const FarmsList: FC<Props> = ({ farms, noFarms }) => {
                   <button
                     className="px-4 py-3 rounded-lg bg-white hover:bg-offWhite text-black transition duration-200"
                     onClick={() => {
-                      setSelectedTab(0)
+                      setSelectedTab(0);
                       setOpen(true);
                       setSelectedFarm(farm);
                     }}

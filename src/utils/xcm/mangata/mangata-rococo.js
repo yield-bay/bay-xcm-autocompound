@@ -14,11 +14,13 @@ import { MangataRococo, TuringStaging } from '../config';
 
 /** * Main entrance of the program */
 async function main() {
-    const autoCompound = new AutoCompound(TuringStaging, MangataRococo);
-    await autoCompound.run();
+  const autoCompound = new AutoCompound(TuringStaging, MangataRococo);
+  await autoCompound.run();
 }
 
-main().catch(console.error).finally(() => {
+main()
+  .catch(console.error)
+  .finally(() => {
     console.log('Reached end of main() ...');
     process.exit();
-});
+  });
