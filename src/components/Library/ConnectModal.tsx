@@ -8,6 +8,7 @@ import { FC } from 'react';
 import { APP_NAME } from '@utils/constants';
 import Image from 'next/image';
 import clsx from 'clsx';
+import { pullWalletAccounts } from '@utils/polkadotMethods';
 
 interface Props {
   connected: boolean;
@@ -34,19 +35,9 @@ const ConnectModal: FC = () => {
                   className="flex flex-row gap-x-5 items-center border border-baseGray hover:border-primaryGreen rounded-xl p-6 text-left transition duration-200"
                   key={wallet.extensionName}
                   onClick={async () => {
-                    try {
-                      await wallet.enable(APP_NAME);
-                      await wallet.subscribeAccounts(
-                        (accounts: WalletAccount[] | undefined) => {
-                          // jotai:: setting accounts in selected wallet
-                          setWalletAccounts(accounts as WalletAccount[]);
-                        }
-                      );
-                      // jotai:: setting selected wallet
-                      setWallet(wallet);
-                    } catch (err) {
-                      console.error(err);
-                    }
+                    pullWalletAccounts(wallet, setWalletAccounts);
+                    // jotai:: setting selected wallet
+                    setWallet(wallet);
                   }}
                 >
                   <Image
