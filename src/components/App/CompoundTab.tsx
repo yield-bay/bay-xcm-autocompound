@@ -15,6 +15,7 @@ import RadioButton from '@components/Library/RadioButton';
 import Button from '@components/Library/Button';
 import _ from 'lodash';
 import moment from 'moment';
+import CountUp from 'react-countup';
 
 // Utils
 import { MangataRococo, TuringStaging } from '@utils/xcm/config';
@@ -36,7 +37,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
 
   const [frequency, setFrequency] = useState<number>(1); // default day
   const [duration, setDuration] = useState<number>(7); // default week
-  const [percentage, setPercentage] = useState<number>(10); // default 10%
+  const [gasChoice, setGasChoice] = useState<number>(0); // default 0 == "MGX" / 1 == "TUR"
 
   const [balance, setBalance] = useState<number>(0);
 
@@ -80,7 +81,6 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
     const tokenAmount = BigInt(mgxTurBal.reserved).toString(10) / 10 ** decimal;
     setBalance(tokenAmount);
 
-    // TODO: COMMENTED THIS --- NEED TO CHECK
     let activateLiquidityTxn = await mangataHelper.activateLiquidityV2(
       liquidityTokenId,
       tokenAmount
@@ -240,45 +240,69 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
     const turfreebal = turbal?.toHuman()?.free;
     console.log('turbal', turfreebal);
 
-    if (turfreebal < totalFees) {
-      const diff = totalFees - turfreebal;
-      console.log('diff', diff);
-      // TODO: buy TUR using MGX on mangata condition
+    /* Logic for managing the payment of fees
+        if paywithmgx:
+          mangatahelper.buyassettx('mgr','tur',...)//as written in current code (means buy tur with mgx on mangata network)
+          mangatahelper.transfertur()//to turing network
 
-      const turBalMangata = await mangataHelper.getBalance(
-        account?.address,
-        'TUR'
+        else if paywithtur:
+          if turfreebal<totalfees:
+            turbalmangata=mangatahelper.getbalance(acc.addr, 'tur')
+            mangatahelper.transfertur()//to turing network
+    */
+
+    if (gasChoice === 0) {
+      // pay with MGX
+      const baTx = await mangataHelper.buyAssetTx(
+        'MGR',
+        'TUR',
+        totalFees,
+        '100000000000000000000'
       );
-      console.log(
-        'turBalMangata.free.toNumber()',
-        turBalMangata.free.toNumber()
-      );
+      mangataTransactions.push(baTx);
 
-      if (turBalMangata.free.toNumber() < diff) {
-        const baTx = await mangataHelper.buyAssetTx(
-          'MGR',
-          'TUR',
-          totalFees,
-          '100000000000000000000'
-        );
-        // await baTx.signAndSend(account1.address, { signer: signer })
-        mangataTransactions.push(baTx);
-      }
-
-      // return
+      console.log('Before TUR Transfer', totalFees);
       const transferTurTx = await mangataHelper.transferTur(
         totalFees,
         turingAddress
       );
-      // await transferTurTx.signAndSend(account1.address, { signer: signer });
+      // Transfer to Turing network
       mangataTransactions.push(transferTurTx);
+    } else if (gasChoice === 1) {
+      // pay with TUR
+      if (turfreebal < totalFees) {
+        console.log('Before TUR Transfer', totalFees);
+        const transferTurTx = await mangataHelper.transferTur(
+          totalFees,
+          turingAddress
+        );
+        mangataTransactions.push(transferTurTx);
+      }
+    } else {
+      console.log("gasChoice doesn't exist");
     }
-    // return
 
     const mangataBatchTx = await mangataHelper.api.tx.utility.batchAll(
       mangataTransactions
     );
-    await mangataBatchTx.signAndSend(account1.address, { signer: signer });
+    await mangataBatchTx
+      .signAndSend(
+        account1.address,
+        { signer: signer },
+        async ({ status }: any) => {
+          if (status.isInBlock) {
+            console.log(`Successful with hash ${status.asInBlock.toHex()}`);
+            // unsub();
+            // resolve();
+          } else {
+            console.log(`Status: ${status.type}`);
+          }
+        }
+      )
+      .catch((error: any) => {
+        console.log('Error in Batch Transaction: ', error);
+      });
+    console.log('BATCH CALL DONE!');
 
     // Get a TaskId from Turing rpc
     const taskId = await turingHelper.api.rpc.automationTime.generateTaskId(
@@ -305,13 +329,13 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       account?.address
     );
     console.log(
-      `\nAfter auto-compound, reserved ${poolName} is: ${newLiquidityBalance.reserved.toString()} planck ...`
+      `\nAfter auto-compound, reserved ${token0}-${token1} is: ${newLiquidityBalance.reserved.toString()} planck ...`
     );
 
     console.log(
       `${account?.name} has compounded ${newLiquidityBalance.reserved
         .sub(liquidityBalance.reserved)
-        .toString()} planck more ${poolName} ...`
+        .toString()} planck more ${token0}-${token1} ...`
     );
 
     // remove liquidity
@@ -336,7 +360,27 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       pool.secondTokenId,
       newLiquidityBalance.reserved
     );
-    await bltx.signAndSend(account1?.address, { signer: signer });
+    await bltx
+      .signAndSend(
+        account1?.address,
+        { signer: signer },
+        async ({ status }: any) => {
+          if (status.isInBlock) {
+            console.log(
+              `Burn Liquidity Successfully for ${pool.firstTokenId} & ${
+                pool.secondTokenId
+              } with hash ${status.asInBlock.toHex()}`
+            );
+            // unsub();
+            // resolve();
+          } else {
+            console.log(`Status: ${status.type}`);
+          }
+        }
+      )
+      .catch((e: any) => {
+        console.log('Error in burnLiquidityTx', e);
+      });
   };
 
   return (
@@ -391,42 +435,6 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
           />
         </div>
       </div>
-      <div>
-        <p className="inline-flex items-center mb-8">
-          Percentage
-          <Tooltip
-            content={<span>Percentage of liquidity to auto-compound</span>}
-          >
-            <QuestionMarkCircleIcon className="h-5 w-5 opacity-50 ml-3" />
-          </Tooltip>
-        </p>
-        <div className="flex flex-row gap-x-8">
-          <RadioButton
-            changed={setPercentage}
-            isSelected={percentage === 10}
-            label="10%"
-            value={10}
-          />
-          <RadioButton
-            changed={setPercentage}
-            isSelected={percentage === 25}
-            label="25%"
-            value={25}
-          />
-          <RadioButton
-            changed={setPercentage}
-            isSelected={percentage === 35}
-            label="35%"
-            value={35}
-          />
-          <RadioButton
-            changed={setPercentage}
-            isSelected={percentage === 45}
-            label="45%"
-            value={45}
-          />
-        </div>
-      </div>
       {/* Card box to show current and effective APY */}
       <div className="inline-flex justify-between w-full rounded-lg bg-[#1C1C1C] py-6 px-9">
         <div className="flex flex-col items-center gap-y-3">
@@ -435,13 +443,39 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
         </div>
         <div className="flex flex-col items-center gap-y-3">
           <p className="text-xl font-medium opacity-60">Effective APY</p>
-          <p className="text-2xl">{effectiveAPY}%</p>
+          <p className="text-2xl">
+            <CountUp
+              start={0}
+              end={parseFloat(effectiveAPY)}
+              decimals={2}
+              decimal="."
+              suffix="%"
+              duration={0.75}
+              delay={0}
+            />
+          </p>
         </div>
       </div>
-      <p className="text-base leading-[21.6px] font-medium text-center text-[#B9B9B9]">
-        Costs <span className="text-white">$45</span> including Gas Fees + 0.5%
-        Comission
-      </p>
+      <div className="flex flex-col gap-y-12 text-base leading-[21.6px] font-bold items-center">
+        <p className="text-[#B9B9B9]">
+          Costs <span className="text-white">$45</span> including Gas Fees +
+          0.5% Comission
+        </p>
+        <div className="inline-flex items-center gap-x-10">
+          <RadioButton
+            changed={setGasChoice}
+            isSelected={gasChoice == 0}
+            label="Pay with MGX"
+            value={0}
+          />
+          <RadioButton
+            changed={setGasChoice}
+            isSelected={gasChoice == 1}
+            label="Pay with TUR"
+            value={1}
+          />
+        </div>
+      </div>
       <div className="flex flex-col gap-y-2">
         <Button
           text="Autocompound"

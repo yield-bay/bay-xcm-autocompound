@@ -157,7 +157,24 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
 
     setIsSigning(true);
 
-    await mintLiquidityTxn.signAndSend(account1?.address, { signer: signer });
+    await mintLiquidityTxn
+      .signAndSend(account1?.address, { signer: signer }, ({ status }: any) => {
+        if (status.isInBlock) {
+          console.log(
+            `Mint liquidity trxn successful with hash ${status.asInBlock.toHex()}`
+          );
+        } else if (status.isFinalised) {
+          console.log('Finalized');
+          setIsInProcess(false);
+          setIsSigning(false);
+          setIsSuccess(true);
+        } else {
+          console.log('Status:', status.type);
+        }
+      })
+      .catch((err: any) => {
+        console.log('Error while minting liquidity: ', err);
+      });
     setIsSigning(false);
     setIsSuccess(true);
 

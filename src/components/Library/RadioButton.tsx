@@ -20,12 +20,7 @@ const RadioButton: FC<Props> = ({ changed, isSelected, label, value }) => {
           isSelected ? 'bg-primaryGreen' : 'bg-[#D9D9D9]'
         )}
       />
-      <span
-        className={clsx(
-          'text-sm font-medium',
-          isSelected && 'text-primaryGreen'
-        )}
-      >
+      <span className={clsx('text-base', isSelected && 'text-primaryGreen')}>
         {label}
       </span>
     </div>
