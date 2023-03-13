@@ -176,20 +176,14 @@ class MangataHelper {
    *
    * @param {string} tokenId Token id
    * @param {number} amount Amount in token unit, not planck
-   * @param {*} keyPair Account key pair to sign the extrinsic
    */
-  async activateLiquidityV2({ tokenId, amount, keyPair }) {
+  activateLiquidityV2 = async (tokenId, amount) => {
     const token = _.find(this.assets, { id: tokenId });
     const decimalBN = getDecimalBN(token.decimals);
     const amountBN = new BN(amount).mul(decimalBN);
 
-    const extrinsic = this.api.tx.xyk.activateLiquidityV2(
-      tokenId,
-      amountBN,
-      undefined
-    );
-    await sendExtrinsic(this.api, extrinsic, keyPair, { isSudo: true });
-  }
+    return this.api.tx.xyk.activateLiquidityV2(tokenId, amountBN, undefined);
+  };
 
   getMintLiquidityFee = async ({
     pair,
@@ -218,6 +212,51 @@ class MangataHelper {
     );
 
     return fees;
+  };
+  burnLiquidityTx = async (
+    firstTokenId,
+    secondTokenId,
+    liquidityAssetAmount
+  ) => {
+    // const firstToken = _.find(this.assets, { id: firstTokenId });
+    // const firstDecimalBN = getDecimalBN(firstToken.decimals);
+
+    // const secondToken = _.find(this.assets, { id: secondTokenId });
+    // const secondDecimalBN = getDecimalBN(secondToken.decimals);
+
+    // const amountBN = (new BN(firstTokenAmount, 10)).mul(firstDecimalBN);
+    // const expectedSecondAmountBN = (new BN(expectedSecondTokenAmount)).mul(secondDecimalBN);
+
+    return this.api.tx.xyk.burnLiquidity(
+      firstTokenId,
+      secondTokenId,
+      liquidityAssetAmount
+    );
+  };
+
+  mintLiquidityTx = async (
+    firstTokenId,
+    secondTokenId,
+    firstTokenAmount,
+    expectedSecondTokenAmount
+  ) => {
+    const firstToken = _.find(this.assets, { id: firstTokenId });
+    const firstDecimalBN = getDecimalBN(firstToken.decimals);
+
+    const secondToken = _.find(this.assets, { id: secondTokenId });
+    const secondDecimalBN = getDecimalBN(secondToken.decimals);
+
+    const amountBN = new BN(firstTokenAmount, 10).mul(firstDecimalBN);
+    const expectedSecondAmountBN = new BN(expectedSecondTokenAmount).mul(
+      secondDecimalBN
+    );
+
+    return this.api.tx.xyk.mintLiquidity(
+      firstTokenId,
+      secondTokenId,
+      amountBN,
+      expectedSecondAmountBN
+    );
   };
 
   mintLiquidity = async ({
@@ -337,6 +376,22 @@ class MangataHelper {
       new BN('100000000000000000000000000')
     );
   }
+
+  buyAssetTx = async (
+    sellSymbol,
+    buySymbol,
+    boughtAssetAmount,
+    maxAmountIn = '1000000000000'
+  ) => {
+    const soldAssetId = this.getTokenIdBySymbol(sellSymbol);
+    const boughtAssetId = this.getTokenIdBySymbol(buySymbol);
+    return this.api.tx.xyk.buyAsset(
+      soldAssetId,
+      boughtAssetId,
+      boughtAssetAmount,
+      maxAmountIn
+    );
+  };
 
   /**
    *

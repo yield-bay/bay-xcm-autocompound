@@ -32,4 +32,5 @@ export interface FarmType {
 export interface TabProps {
   farm: FarmType;
   account: WalletAccount;
+  pool: any | undefined;
 }

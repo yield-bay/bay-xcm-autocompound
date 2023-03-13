@@ -1,37 +1,151 @@
 import { useAtom } from 'jotai';
 import Image from 'next/image';
-import { useState } from 'react';
-import AmountInput from '@components/Library/AmountInput';
+import { useEffect, useMemo, useState } from 'react';
 import Button from '@components/Library/Button';
 import ProcessStepper from '@components/Library/ProcessStepper';
 import Tooltip from '@components/Library/Tooltip';
 import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
-import { mainModalOpenAtom } from '@store/commonAtoms';
+import {
+  account1Atom,
+  mainModalOpenAtom,
+  mangataHelperAtom,
+  turingHelperAtom,
+} from '@store/commonAtoms';
 import { formatTokenSymbols, replaceTokenSymbols } from '@utils/farmMethods';
 import { TabProps } from '@utils/types';
 import CircleLoader from '@components/Library/Loader';
 
-const AddLiquidityTab = ({ farm, account }: TabProps) => {
+const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
+  const [mangataHelper] = useAtom(mangataHelperAtom);
+  const [turingHelper] = useAtom(turingHelperAtom);
+
   const [, setOpen] = useAtom(mainModalOpenAtom);
+  console.log('pool in addliquidity', pool);
 
   // Amount States
-  const [mgxAmount, setMgxAmount] = useState('');
-  const [turAmount, setTurAmount] = useState('');
+  const [firstTokenAmount, setFirstTokenAmount] = useState('');
+  const [secondTokenAmount, setSecondTokenAmount] = useState('');
   // Process States
   const [isInProcess, setIsInProcess] = useState(false);
   const [isSigning, setIsSigning] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const mgxBalance = 0.3345; // temperory amount
-  const turBalance = 0.3345; // temperory amount
-  const isInsufficientBalance =
-    mgxBalance < parseFloat(mgxAmount) || turBalance < parseFloat(turAmount);
+  const [account1] = useAtom(account1Atom);
 
-  const [fees, setFees] = useState<number>(15.8083);
+  const [firstTokenBalance, setFirstTokenBalance] = useState<any>(null); // temperory amount
+  const [secondTokenBalance, setSecondTokenBalance] = useState<any>(null); // temperory amount
+  const isInsufficientBalance = false; // firstTokenBalance < parseFloat(firstTokenAmount);
+
+  const MAX_SLIPPIAGE = 0.08; // 4% slippage; can’t be too large
+
+  const [fees, setFees] = useState<number | null>(null);
 
   const tokenNames = formatTokenSymbols(
     replaceTokenSymbols(farm?.asset.symbol)
   );
+
+  // Estimate of fees; no need to be accurate
+  // Method to fetch trnx fees based on token Amounts
+  const handleFees = async (firstTokenAmt: any, secondTokenAmt: any) => {
+    console.log('Calculating fees...');
+    console.log('firstAmt', firstTokenAmt);
+
+    // Estimate of fees; no need to be accurate
+    const fees = await mangataHelper.getMintLiquidityFee({
+      pair: account1.address,
+      firstTokenId: pool.firstTokenId,
+      firstTokenAmount: firstTokenAmt,
+      secondTokenId: pool.secondTokenId,
+      secondTokenAmount: secondTokenAmt, // expectedSecondTokenAmount
+    });
+
+    console.log('fees:', fees, parseFloat(fees));
+    setFees(parseFloat(fees));
+  };
+
+  useEffect(() => {
+    (async () => {
+      if (account1) {
+        const token1Bal = await mangataHelper.mangata?.getTokenBalance(
+          pool.firstTokenId,
+          account1.address
+        );
+        const token2Bal = await mangataHelper.mangata?.getTokenBalance(
+          pool.secondTokenId,
+          account1.address
+        );
+
+        setFirstTokenBalance(token1Bal.free);
+        setSecondTokenBalance(token2Bal.free);
+        console.log('freebal', token1Bal.free, token2Bal);
+      } else {
+        console.log('acount 1 is empty');
+      }
+    })();
+  }, [account1, pool]);
+
+  // Method to update token values and fetch fees based on firstToken Inpout
+  const handleChangeFirstTokenAmount = async (e: any) => {
+    setFirstTokenAmount(e.target.value);
+    const firstTokenAmount = parseFloat(e.target.value);
+
+    if (e.target.value == '') {
+      setFees(null);
+    }
+
+    const poolRatio = pool.firstTokenAmountFloat / pool.secondTokenAmountFloat;
+    console.log('poolRatio', poolRatio);
+
+    // Caluculate second token amount
+    const expectedSecondTokenAmount =
+      (firstTokenAmount / poolRatio) * (1 + MAX_SLIPPIAGE);
+    console.log('Second Token Amount:', expectedSecondTokenAmount);
+
+    setSecondTokenAmount(
+      isNaN(expectedSecondTokenAmount)
+        ? '0'
+        : expectedSecondTokenAmount.toString()
+    );
+
+    await handleFees(firstTokenAmount, expectedSecondTokenAmount);
+  };
+
+  // Method to call to Add Liquidity confirmation
+  const handleAddLiquidity = async () => {
+    setIsInProcess(true);
+
+    // this should go in add liquidity modal
+    // if (liquidityBalance.reserved.toNumber() === 0) {
+    // console.log(
+    //   'Reserved pool token is zero; minting liquidity to generate rewards...'
+    // );
+
+    console.log(
+      'pool.firstTokenAmountFloat',
+      pool.firstTokenAmountFloat,
+      'pool.secondTokenAmountFloat',
+      pool.secondTokenAmountFloat,
+      'firstTokenAmount',
+      firstTokenAmount,
+      'expectedSecondTokenAmount',
+      secondTokenAmount // expectedSecondTokenAmount
+    );
+
+    // Method to Add Liquidity
+    const mintLiquidityTxn = await mangataHelper.mintLiquidityTx(
+      pool.firstTokenId,
+      pool.secondTokenId,
+      firstTokenAmount,
+      secondTokenAmount // expectedSecondTokenAmount
+    );
+
+    setIsSigning(true);
+
+    await mintLiquidityTxn.signAndSend(account1?.address, { signer: signer });
+    setIsSigning(false);
+    setIsSuccess(true);
+    // }
+  };
 
   return (
     <div className="w-full flex flex-col gap-y-10 mt-10">
@@ -50,14 +164,20 @@ const AddLiquidityTab = ({ farm, account }: TabProps) => {
           <div className="flex flex-row justify-end items-center gap-x-3">
             <p className="flex flex-col items-end text-sm leading-[19px] opacity-50">
               <span>Balance</span>
-              <span>{mgxBalance}</span>
+              <span>{'loading...'}</span>
             </p>
             <button className="p-[10px] rounded-lg bg-baseGray text-base leading-5">
               MAX
             </button>
           </div>
           <div className="text-right">
-            <AmountInput value={mgxAmount} onChange={setMgxAmount} />
+            <input
+              placeholder="0"
+              className="text-xl leading-[27px] bg-transparent text-right focus:outline-none"
+              min={0}
+              onChange={handleChangeFirstTokenAmount}
+              value={firstTokenAmount}
+            />
           </div>
         </div>
       </div>
@@ -77,39 +197,44 @@ const AddLiquidityTab = ({ farm, account }: TabProps) => {
           <div className="flex flex-row justify-end items-center gap-x-3">
             <p className="flex flex-col items-end text-sm leading-[19px] opacity-50">
               <span>Balance</span>
-              <span>{turBalance}</span>
+              <span>{'Loading...'}</span>
             </p>
-            <button className="p-[10px] rounded-lg bg-baseGray text-base leading-5">
-              MAX
-            </button>
           </div>
           <div className="text-right">
-            <AmountInput value={turAmount} onChange={setTurAmount} />
+            <p>{secondTokenAmount}</p>
           </div>
         </div>
       </div>
       {/* Fee and Share */}
       <div className="flex flex-col gap-y-5 pr-[19px] text-sm leading-[19px]">
-        <div className="flex flex-row justify-between">
-          <p className="inline-flex items-center">
-            Fee
-            <Tooltip content={<span>This is it</span>}>
-              <QuestionMarkCircleIcon className="ml-2 h-5 w-5 opacity-50" />
-            </Tooltip>
-          </p>
-          <p>{fees} MGX</p>
-        </div>
-        <div className="flex flex-row justify-between">
-          <p className="inline-flex items-center">Expected Share of Pool</p>
-          <p>&lt;0.001%</p>
-        </div>
+        {fees !== null ? (
+          <>
+            <div className="flex flex-row justify-between">
+              <p className="inline-flex items-center">
+                Fee
+                <Tooltip content={<span>This is it</span>}>
+                  <QuestionMarkCircleIcon className="ml-2 h-5 w-5 opacity-50" />
+                </Tooltip>
+              </p>
+              <p>{fees.toFixed(3)} MGX</p>
+            </div>
+            <div className="flex flex-row justify-between">
+              <p className="inline-flex items-center">Expected Share of Pool</p>
+              <p>&lt;0.001%</p>
+            </div>
+          </>
+        ) : firstTokenAmount.length > 0 ? (
+          <div className="text-center font-medium tracking-wide">
+            <p>Fetching best prices for you...</p>
+          </div>
+        ) : null}
       </div>
       {/* Buttons */}
       <div className="flex flex-col gap-y-2">
         {isInsufficientBalance ? (
           <Button type="disabled" text="Insufficient Balance" />
         ) : (
-          <Button type="primary" text="Confirm" onClick={() => {}} />
+          <Button type="primary" text="Confirm" onClick={handleAddLiquidity} />
         )}
         <Button
           type="secondary"
@@ -140,8 +265,8 @@ const AddLiquidityTab = ({ farm, account }: TabProps) => {
           )}
           {isSuccess && (
             <p>
-              Liquidity Added: {mgxAmount} MGX with {turAmount} TUR. Check your
-              hash{' '}
+              Liquidity Added: {firstTokenAmount} MGX with {secondTokenAmount}{' '}
+              TUR. Check your hash{' '}
               <a href="#" className="underline underline-offset-4">
                 here
               </a>
