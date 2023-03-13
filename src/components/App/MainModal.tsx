@@ -9,6 +9,8 @@ import {
   turingHelperAtom,
   mangataHelperAtom,
   account1Atom,
+  mangataAddressAtom,
+  turingAddressAtom,
 } from '@store/commonAtoms';
 import clsx from 'clsx';
 import { accountAtom } from '@store/accountAtoms';
@@ -49,6 +51,8 @@ const MainModal: FC = () => {
   const [, setMangataHelperX] = useAtom(mangataHelperAtom);
   const [, setTuringHelperX] = useAtom(turingHelperAtom);
   const [, setAccount1] = useAtom(account1Atom);
+  const [, setMangataAddress] = useAtom(mangataAddressAtom);
+  const [, setTuringAddress] = useAtom(turingAddressAtom);
   // const [pools, setPools] = useAtom(promotedPools);
 
   const [pool, setPool] = useState<any>(null);
@@ -115,6 +119,8 @@ const MainModal: FC = () => {
     const turingAddress = account1.getChainByName(turingChainName)?.address;
     console.log('mangataAddress', mangataAddress);
     console.log('turingAddress', turingAddress);
+    setMangataAddress(mangataAddress);
+    setTuringAddress(turingAddress);
 
     const pools = await mangataHelper.getPools({ isPromoted: true });
     console.log('Promoted Pools', pools);

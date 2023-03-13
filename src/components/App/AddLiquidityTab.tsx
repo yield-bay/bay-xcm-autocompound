@@ -5,6 +5,7 @@ import Button from '@components/Library/Button';
 import ProcessStepper from '@components/Library/ProcessStepper';
 import Tooltip from '@components/Library/Tooltip';
 import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
+import { accountAtom } from '@store/accountAtoms';
 import {
   account1Atom,
   mainModalOpenAtom,
@@ -14,10 +15,12 @@ import {
 import { formatTokenSymbols, replaceTokenSymbols } from '@utils/farmMethods';
 import { TabProps } from '@utils/types';
 import CircleLoader from '@components/Library/Loader';
+import { BN } from 'bn.js';
 
 const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
   const [mangataHelper] = useAtom(mangataHelperAtom);
   const [turingHelper] = useAtom(turingHelperAtom);
+  const signer = account?.wallet?.signer;
 
   const [, setOpen] = useAtom(mainModalOpenAtom);
   console.log('pool in addliquidity', pool);
@@ -66,18 +69,31 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
   useEffect(() => {
     (async () => {
       if (account1) {
-        const token1Bal = await mangataHelper.mangata?.getTokenBalance(
-          pool.firstTokenId,
-          account1.address
+        // Balance of both tokens on Mangata Chain
+        // const token1Bal = await mangataHelper.mangata?.getTokenBalance(
+        //   pool.firstTokenId,
+        //   account1.address
+        // );
+        // const token2Bal = await mangataHelper.mangata?.getTokenBalance(
+        //   pool.secondTokenId,
+        //   account1.address
+        // );
+        const token1Bal = await mangataHelper.getBalance(
+          account1.address,
+          tokenNames[0]
         );
-        const token2Bal = await mangataHelper.mangata?.getTokenBalance(
-          pool.secondTokenId,
-          account1.address
+
+        const token2Bal = await mangataHelper.getBalance(
+          account1.address,
+          tokenNames[1]
         );
 
         setFirstTokenBalance(token1Bal.free);
         setSecondTokenBalance(token2Bal.free);
-        console.log('freebal', token1Bal.free, token2Bal);
+        // const bal1 = new BN(mgxBal.free).toString(10) / 10 ** (assetsInfo['0']['decimals']);
+        // const bal2 = BigInt(mgxBal.free).toString(10) / 10 ** (assetsInfo[‘0’][‘decimals’]);
+        // console.log('freebal1', token1Bal.free.toNumber());
+        // console.log('freebal2', token2Bal.free.toNumber());
       } else {
         console.log('acount 1 is empty');
       }
@@ -135,8 +151,8 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
     const mintLiquidityTxn = await mangataHelper.mintLiquidityTx(
       pool.firstTokenId,
       pool.secondTokenId,
-      firstTokenAmount,
-      secondTokenAmount // expectedSecondTokenAmount
+      parseFloat(firstTokenAmount),
+      parseFloat(secondTokenAmount) // expectedSecondTokenAmount
     );
 
     setIsSigning(true);
@@ -144,6 +160,13 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
     await mintLiquidityTxn.signAndSend(account1?.address, { signer: signer });
     setIsSigning(false);
     setIsSuccess(true);
+
+    // TODO: activate liquidity mining
+    // figure out lp token amount
+    // await mangataHelper.activateLiquidityV2({
+    //     tokenId: liquidityTokenId,
+    //     amount:
+    // })
     // }
   };
 

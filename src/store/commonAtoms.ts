@@ -13,3 +13,5 @@ export const mangataHelperAtom = atom<any>(null);
 export const turingHelperAtom = atom<any>(null);
 
 export const account1Atom = atom<any>(null);
+export const mangataAddressAtom = atom<string | null>(null);
+export const turingAddressAtom = atom<string | null>(null);
