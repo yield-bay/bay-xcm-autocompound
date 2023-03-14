@@ -41,7 +41,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
   const [mangataAddress] = useAtom(mangataAddressAtom);
   const [turingAddress] = useAtom(turingAddressAtom);
 
-  const [isAutocompounding, setIsAutocompounding] = useState<boolean>(false);
+  const [isAutocompounding, setIsAutocompounding] = useState<boolean>(true);
   const [verifyStopCompounding, setVerifyStopCompounding] =
     useState<boolean>(false);
 

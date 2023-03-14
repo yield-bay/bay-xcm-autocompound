@@ -116,12 +116,12 @@ const FarmsList: FC<Props> = ({ farms, noFarms }) => {
                     onClick={() => {
                       if (account == null) {
                         toast({
-                          position: 'bottom-left',
+                          position: 'top',
                           duration: 3000,
                           render: () => (
                             <ToastWrapper
                               title="Please Connect Wallet"
-                              status="warning"
+                              status="error"
                             />
                           ),
                         });
@@ -132,7 +132,7 @@ const FarmsList: FC<Props> = ({ farms, noFarms }) => {
                       }
                     }}
                   >
-                    <p>Add/Remove</p>
+                    <p className="">Add/Remove</p>
                     <p>Liquidity</p>
                   </button>
                   <button
@@ -140,12 +140,12 @@ const FarmsList: FC<Props> = ({ farms, noFarms }) => {
                     onClick={() => {
                       if (account == null) {
                         toast({
-                          position: 'bottom-left',
+                          position: 'top',
                           duration: 3000,
                           render: () => (
                             <ToastWrapper
                               title="Please Connect Wallet"
-                              status="warning"
+                              status="error"
                             />
                           ),
                         });
