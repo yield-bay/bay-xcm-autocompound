@@ -6,7 +6,7 @@ export const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
 
 // APPLICATION
 export const SITE_NAME = ''; // TODO
-export const APP_NAME = 'Yieldbay Mangata';
+export const APP_NAME = 'yieldbay';
 export const DESCRIPTION = '';
 export const DOMAIN = '';
 export const IMAGE = '';

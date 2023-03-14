@@ -13,6 +13,7 @@ import TuringHelper from '@utils/xcm/common/turingHelper';
 import MangataHelper from '@utils/xcm/common/mangataHelper';
 import Account from '@utils/xcm/common/account';
 import _ from 'lodash';
+import Footer from './Footer';
 
 interface Props {
   children: ReactNode;
@@ -99,6 +100,7 @@ const Layout: FC<Props> = ({ children }) => {
       <div className="flex flex-col flex-1">
         <Header />
         {children}
+        <Footer />
       </div>
     </div>
   );
