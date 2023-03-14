@@ -6,12 +6,22 @@ interface Props {
   isSelected: boolean;
   label: string;
   value: number;
+  className?: string;
 }
 
-const RadioButton: FC<Props> = ({ changed, isSelected, label, value }) => {
+const RadioButton: FC<Props> = ({
+  changed,
+  isSelected,
+  label,
+  value,
+  className,
+}) => {
   return (
     <div
-      className="flex flex-col gap-y-3 justify-start cursor-pointer"
+      className={clsx(
+        'flex flex-col gap-y-3 justify-start cursor-pointer',
+        className
+      )}
       onClick={() => changed(value)}
     >
       <span

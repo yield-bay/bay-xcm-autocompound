@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { FC, useState, useEffect } from 'react';
 import { TabProps } from '@utils/types';
 import { useAtom } from 'jotai';
 import {
@@ -18,12 +18,8 @@ import moment from 'moment';
 import CountUp from 'react-countup';
 
 // Utils
-import { MangataRococo, TuringStaging } from '@utils/xcm/config';
 import { BN } from 'bn.js';
 import { delay, getDecimalBN } from '@utils/xcm/common/utils';
-import Account from '@utils/xcm/common/account';
-import MangataHelper from '@utils/xcm/common/mangataHelper';
-import TuringHelper from '@utils/xcm/common/turingHelper';
 import { accountAtom } from '@store/accountAtoms';
 import { formatTokenSymbols, replaceTokenSymbols } from '@utils/farmMethods';
 
@@ -40,9 +36,14 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
   const [gasChoice, setGasChoice] = useState<number>(0); // default 0 == "MGX" / 1 == "TUR"
 
   const [balance, setBalance] = useState<number>(0);
+  const [gasFees, setGasFees] = useState<number>(0);
 
   const [mangataAddress] = useAtom(mangataAddressAtom);
   const [turingAddress] = useAtom(turingAddressAtom);
+
+  const [isAutocompounding, setIsAutocompounding] = useState<boolean>(false);
+  const [verifyStopCompounding, setVerifyStopCompounding] =
+    useState<boolean>(false);
 
   const [token0, token1] = formatTokenSymbols(
     replaceTokenSymbols(farm?.asset.symbol)
@@ -53,6 +54,10 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
   const effectiveAPY = (((1 + APY / 100 / period) ** period - 1) * 100).toFixed(
     2
   );
+
+  useEffect(() => {
+    setIsAutocompounding(true);
+  }, []);
 
   // Function which performs Autocompounding
   const handleCompounding = async () => {
@@ -229,6 +234,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
     const totalFees = executionFee.toNumber() + xcmpFee.toNumber();
     console.log('totalFees', totalFees);
     // TOTAL_FEES / 10^(DECIMAL OF TUR)
+    setGasFees(totalFees / 10 ** 10);
 
     console.log('automationFeeDetails: ', {
       executionFee: executionFee.toHuman(),
@@ -239,6 +245,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
     const turbal = await turingHelper.getBalance(turingAddress);
     const turfreebal = turbal?.toHuman()?.free;
     console.log('turbal', turfreebal);
+    // return;
 
     /* Logic for managing the payment of fees
         if paywithmgx:
@@ -383,10 +390,27 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       });
   };
 
-  return (
+  return verifyStopCompounding ? (
+    <div className="w-full flex flex-col gap-y-12 mt-10">
+      <p className="text-base leading-[21.6px] text-[#B9B9B9] text-center w-full px-24">
+        Are you sure you want to remove of stop Autocompounding?
+      </p>
+      <div className="inline-flex gap-x-2 w-full">
+        <Button type="warning" text="Stop Autocompounding" className="w-3/5" />
+        <Button
+          type="secondary"
+          text="Go Back"
+          className="w-2/5"
+          onClick={() => {
+            setVerifyStopCompounding(false);
+          }}
+        />
+      </div>
+    </div>
+  ) : (
     <div className="w-full flex flex-col gap-y-10 mt-10 text-xl leading-[27px]">
       <div>
-        <p className="inline-flex items-center mb-8">
+        <p className="inline-flex items-center">
           Frequency
           <Tooltip content={<span>Frequency of auto-compounding</span>}>
             <QuestionMarkCircleIcon className="h-5 w-5 opacity-50 ml-3" />
@@ -458,8 +482,8 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       </div>
       <div className="flex flex-col gap-y-12 text-base leading-[21.6px] font-bold items-center">
         <p className="text-[#B9B9B9]">
-          Costs <span className="text-white">$45</span> including Gas Fees +
-          0.5% Comission
+          Costs <span className="text-white">{gasFees.toFixed(2)} TUR</span>{' '}
+          including Gas Fees + 0.5% Comission
         </p>
         <div className="inline-flex items-center gap-x-10">
           <RadioButton
@@ -467,29 +491,44 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
             isSelected={gasChoice == 0}
             label="Pay with MGX"
             value={0}
+            className={gasChoice == 0 ? '' : 'opacity-50'}
           />
           <RadioButton
             changed={setGasChoice}
             isSelected={gasChoice == 1}
             label="Pay with TUR"
             value={1}
+            className={gasChoice == 1 ? '' : 'opacity-50'}
           />
         </div>
       </div>
-      <div className="flex flex-col gap-y-2">
-        <Button
-          text="Autocompound"
-          type="primary"
-          onClick={handleCompounding}
-        />
-        <Button
-          text="Cancel"
-          type="secondary"
-          onClick={() => {
-            setOpen(false);
-          }}
-        />
-      </div>
+      {isAutocompounding ? (
+        <div className="flex flex-col gap-y-2">
+          <Button text="Save Changes" type="disabled" onClick={() => {}} />
+          <Button
+            text="Stop Autocompounding"
+            type="warning"
+            onClick={() => {
+              setVerifyStopCompounding(true);
+            }}
+          />
+        </div>
+      ) : (
+        <div className="flex flex-col gap-y-2">
+          <Button
+            text="Autocompound"
+            type="primary"
+            onClick={handleCompounding}
+          />
+          <Button
+            text="Cancel"
+            type="secondary"
+            onClick={() => {
+              setOpen(false);
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 };

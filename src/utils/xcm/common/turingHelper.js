@@ -93,7 +93,7 @@ class TuringHelper {
             }
           )
           .catch((err) => {
-            console.log("sendXcmExtrinsic Err", err);
+            console.log("sendXcmExtrinsic Err --\n", err);
           });
       };
       send();
