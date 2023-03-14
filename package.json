@@ -10,6 +10,9 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@chakra-ui/react": "^2.5.1",
+    "@emotion/react": "^11.10.6",
+    "@emotion/styled": "^11.10.6",
     "@headlessui/react": "^1.7.12",
     "@heroicons/react": "^2.0.16",
     "@inquirer/confirm": "^0.0.19-alpha.0",
@@ -28,8 +31,7 @@
     "bn.js": "^5.2.1",
     "clsx": "^1.2.1",
     "dotenv": "^16.0.3",
-    "flowbite": "^1.6.3",
-    "flowbite-react": "^0.4.2",
+    "framer-motion": "^10.3.0",
     "graphql": "^16.6.0",
     "jotai": "^2.0.2",
     "lodash": "^4.17.21",

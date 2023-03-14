@@ -6,6 +6,7 @@ import { mainModalOpenAtom } from '@store/commonAtoms';
 import { formatTokenSymbols, replaceTokenSymbols } from '@utils/farmMethods';
 import { TabProps } from '@utils/types';
 import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
+import Tooltip from '@components/Library/Tooltip';
 
 const RemoveLiquidityTab = ({ farm, account }: TabProps) => {
   const [percentage, setPercentage] = useState<string>('');
@@ -73,7 +74,9 @@ const RemoveLiquidityTab = ({ farm, account }: TabProps) => {
             <div className="inline-flex items-center justify-between text-[14px] leading-[18.9px]">
               <p className="inline-flex items-end">
                 Fee
-                <QuestionMarkCircleIcon className="h-5 w-5 opacity-50 ml-2" />
+                <Tooltip label="Fees to remove liquidity.">
+                  <QuestionMarkCircleIcon className="h-5 w-5 opacity-50 ml-2" />
+                </Tooltip>
               </p>
               <span>{'15.8083'} MGX</span>
             </div>

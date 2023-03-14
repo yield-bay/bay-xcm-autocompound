@@ -43,7 +43,7 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
 
   const [fees, setFees] = useState<number | null>(null);
 
-  const tokenNames = formatTokenSymbols(
+  const [token0, token1] = formatTokenSymbols(
     replaceTokenSymbols(farm?.asset.symbol)
   );
 
@@ -80,12 +80,12 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
         // );
         const token1Bal = await mangataHelper.getBalance(
           account1.address,
-          tokenNames[0]
+          token0
         );
 
         const token2Bal = await mangataHelper.getBalance(
           account1.address,
-          tokenNames[1]
+          token1
         );
 
         setFirstTokenBalance(token1Bal.free);
@@ -95,7 +95,7 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
         // console.log('freebal1', token1Bal.free.toNumber());
         // console.log('freebal2', token2Bal.free.toNumber());
       } else {
-        console.log('acount 1 is empty');
+        console.log('Account1 is empty');
       }
     })();
   }, [account1, pool]);
@@ -194,11 +194,12 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
         <div className="flex flex-row gap-x-5 items-center">
           <Image
             src={farm?.asset.logos[0]}
-            alt={tokenNames[0]}
+            alt={token0}
             height={32}
             width={32}
+            className="rounded-full"
           />
-          <span>{tokenNames[0]}</span>
+          <span>{token0}</span>
         </div>
         <div className="flex flex-col gap-y-3">
           <div className="flex flex-row justify-end items-center gap-x-3">
@@ -227,11 +228,12 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
         <div className="flex flex-row gap-x-5 items-center">
           <Image
             src={farm?.asset.logos[1]}
-            alt={tokenNames[1]}
+            alt={token1}
             height={32}
             width={32}
+            className="rounded-full"
           />
-          <span>{tokenNames[1]}</span>
+          <span>{token1}</span>
         </div>
         <div className="flex flex-col gap-y-3">
           <div className="flex flex-row justify-end items-center gap-x-3">
@@ -252,7 +254,7 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
             <div className="flex flex-row justify-between">
               <p className="inline-flex items-center">
                 Fee
-                <Tooltip content={<span>This is it</span>}>
+                <Tooltip label={<span>This is it</span>}>
                   <QuestionMarkCircleIcon className="ml-2 h-5 w-5 opacity-50" />
                 </Tooltip>
               </p>

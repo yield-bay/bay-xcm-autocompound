@@ -1,36 +1,29 @@
-import React from 'react';
-import Tippy from '@tippyjs/react/headless';
-import { satoshiFont } from '@utils/localFont';
-import clsx from 'clsx';
+import { Tooltip as TooltipChakra } from '@chakra-ui/react';
+import { FC } from 'react';
 
-type TooltipProps = {
-  children: React.ReactElement;
-  content: React.ReactElement;
-  onButtonClick?: () => void;
-};
+interface Props {
+  label: React.ReactNode;
+  children: React.ReactNode;
+}
 
-export default function Tooltip({
-  children,
-  content,
-  onButtonClick,
-}: TooltipProps) {
+const Tooltip: FC<Props> = ({ label, children }) => {
   return (
-    <Tippy
-      render={(attrs) => (
-        <div
-          className={clsx(
-            'text-base leading-[21.6px] bg-baseGray font-sans font-medium text-white py-3 px-4 rounded-lg max-w-xs bg-baseBlue',
-            satoshiFont.variable
-          )}
-          tabIndex={-1}
-          onClick={onButtonClick}
-          {...attrs}
-        >
-          {content}
-        </div>
-      )}
+    <TooltipChakra
+      label={label}
+      aria-label={`${label} Info`}
+      paddingY="12px"
+      paddingX="16px"
+      fontSize="16px"
+      rounded="8px"
+      lineHeight="21.6px"
+      fontWeight="medium"
+      hasArrow={true}
+      placement="right"
+      bg="#242424"
     >
       {children}
-    </Tippy>
+    </TooltipChakra>
   );
-}
+};
+
+export default Tooltip;

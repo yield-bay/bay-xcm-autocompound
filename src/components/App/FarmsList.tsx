@@ -7,13 +7,16 @@ import toDollarUnits, {
   replaceTokenSymbols,
 } from '@utils/farmMethods';
 import { FarmType } from '@utils/types';
-import Tooltip from '@components/Library/Tooltip';
 import {
   mainModalOpenAtom,
   selectedTabModalAtom,
   selectedFarmAtom,
 } from '@store/commonAtoms';
+import { accountAtom } from '@store/accountAtoms';
 import { useAtom } from 'jotai';
+import Tooltip from '@components/Library/Tooltip';
+import { useToast } from '@chakra-ui/react';
+import ToastWrapper from '@components/Library/ToastWrapper';
 
 interface Props {
   farms: FarmType[];
@@ -24,6 +27,10 @@ const FarmsList: FC<Props> = ({ farms, noFarms }) => {
   const [, setOpen] = useAtom(mainModalOpenAtom);
   const [, setSelectedTab] = useAtom(selectedTabModalAtom);
   const [, setSelectedFarm] = useAtom(selectedFarmAtom);
+  const [account] = useAtom(accountAtom);
+
+  const toast = useToast();
+
   return (
     <div className="flex flex-col items-center gap-y-[25px] py-16">
       {!noFarms ? (
@@ -84,7 +91,7 @@ const FarmsList: FC<Props> = ({ farms, noFarms }) => {
                         {(farm?.apr.reward + farm?.apr.base).toFixed(2)}%
                       </p>
                       <Tooltip
-                        content={
+                        label={
                           <>
                             <p>
                               <span className="opacity-50 mr-2">Base</span>
@@ -107,9 +114,22 @@ const FarmsList: FC<Props> = ({ farms, noFarms }) => {
                   <button
                     className="bg-baseGray py-4 px-5 text-white text-base leading-5 hover:ring-1 ring-baseGrayLow rounded-lg transition duration-200"
                     onClick={() => {
-                      setSelectedTab(1);
-                      setOpen(true);
-                      setSelectedFarm(farm);
+                      if (account == null) {
+                        toast({
+                          position: 'bottom-left',
+                          duration: 3000,
+                          render: () => (
+                            <ToastWrapper
+                              title="Please Connect Wallet"
+                              status="warning"
+                            />
+                          ),
+                        });
+                      } else {
+                        setSelectedTab(1);
+                        setOpen(true);
+                        setSelectedFarm(farm);
+                      }
                     }}
                   >
                     <p>Add/Remove</p>
@@ -118,9 +138,22 @@ const FarmsList: FC<Props> = ({ farms, noFarms }) => {
                   <button
                     className="px-4 py-3 rounded-lg bg-white hover:bg-offWhite text-black transition duration-200"
                     onClick={() => {
-                      setSelectedTab(0);
-                      setOpen(true);
-                      setSelectedFarm(farm);
+                      if (account == null) {
+                        toast({
+                          position: 'bottom-left',
+                          duration: 3000,
+                          render: () => (
+                            <ToastWrapper
+                              title="Please Connect Wallet"
+                              status="warning"
+                            />
+                          ),
+                        });
+                      } else {
+                        setSelectedTab(0);
+                        setOpen(true);
+                        setSelectedFarm(farm);
+                      }
                     }}
                   >
                     Autocompound

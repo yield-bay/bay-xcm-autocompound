@@ -1,5 +1,6 @@
 import { useAtom } from 'jotai';
 import { FC, ReactNode, useEffect } from 'react';
+import { ChakraProvider } from '@chakra-ui/react';
 import Layout from './Layout';
 import { walletAccountsAtom } from '@store/accountAtoms';
 import { walletsAtom, walletAtom } from '@store/walletAtoms';
@@ -37,7 +38,11 @@ const Providers: FC<Props> = ({ children }) => {
     }
   }, [wallet]);
 
-  return <Layout>{children}</Layout>;
+  return (
+    <ChakraProvider>
+      <Layout>{children}</Layout>
+    </ChakraProvider>
+  );
 };
 
 export default Providers;

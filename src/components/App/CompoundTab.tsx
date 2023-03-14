@@ -55,9 +55,10 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
     2
   );
 
-  useEffect(() => {
-    setIsAutocompounding(true);
-  }, []);
+  // TODO: This useEffect shound check if autocompounding is active in the selected pool and set the state accordingly
+  // useEffect(() => {
+  //   setIsAutocompounding(true);
+  // }, []);
 
   // Function which performs Autocompounding
   const handleCompounding = async () => {
@@ -410,9 +411,9 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
   ) : (
     <div className="w-full flex flex-col gap-y-10 mt-10 text-xl leading-[27px]">
       <div>
-        <p className="inline-flex items-center">
+        <p className="inline-flex items-center mb-8">
           Frequency
-          <Tooltip content={<span>Frequency of auto-compounding</span>}>
+          <Tooltip label="Frequency of auto-compounding">
             <QuestionMarkCircleIcon className="h-5 w-5 opacity-50 ml-3" />
           </Tooltip>
         </p>
@@ -440,7 +441,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       <div>
         <p className="inline-flex items-center mb-8">
           Duration
-          <Tooltip content={<span>Duration of auto-compounding</span>}>
+          <Tooltip label="Duration of auto-compounding">
             <QuestionMarkCircleIcon className="h-5 w-5 opacity-50 ml-3" />
           </Tooltip>
         </p>
