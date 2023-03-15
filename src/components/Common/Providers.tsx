@@ -1,6 +1,7 @@
 import { useAtom } from 'jotai';
 import { FC, ReactNode, useEffect } from 'react';
 import { ChakraProvider } from '@chakra-ui/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Layout from './Layout';
 import { walletAccountsAtom } from '@store/accountAtoms';
 import { walletsAtom, walletAtom } from '@store/walletAtoms';
@@ -15,6 +16,8 @@ const Providers: FC<Props> = ({ children }) => {
   const [, setWallets] = useAtom(walletsAtom);
   const [, setWalletAccounts] = useAtom(walletAccountsAtom);
   const [wallet] = useAtom(walletAtom);
+
+  const queryClient = new QueryClient();
 
   useEffect(() => {
     let unmounted = false;
@@ -39,9 +42,11 @@ const Providers: FC<Props> = ({ children }) => {
   }, [wallet]);
 
   return (
-    <ChakraProvider>
-      <Layout>{children}</Layout>
-    </ChakraProvider>
+    <QueryClientProvider client={queryClient}>
+      <ChakraProvider>
+        <Layout>{children}</Layout>
+      </ChakraProvider>
+    </QueryClientProvider>
   );
 };
 

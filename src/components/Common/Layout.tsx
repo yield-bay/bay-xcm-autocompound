@@ -82,7 +82,7 @@ const Layout: FC<Props> = ({ children }) => {
       const pools = await mangataHelper.getPools({ isPromoted: true });
       console.log('Promoted Pools', pools);
     })();
-  }, []);
+  }, [account]);
 
   if (!mounted) {
     return <Loading />;

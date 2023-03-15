@@ -1,5 +1,6 @@
 import { createClient, defaultExchanges, gql } from '@urql/core';
 import { API_URL } from './constants';
+import { FarmType } from './types';
 
 const client = createClient({
   url: API_URL,
@@ -45,7 +46,7 @@ export const fetchFarms = async () => {
     )
     .toPromise();
 
-  const farms = farmObj?.data?.farms;
+  const farms: FarmType[] = farmObj?.data?.farms;
   return {
     farms,
   };

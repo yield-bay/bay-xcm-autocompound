@@ -17,13 +17,15 @@ import { useAtom } from 'jotai';
 import Tooltip from '@components/Library/Tooltip';
 import { useToast } from '@chakra-ui/react';
 import ToastWrapper from '@components/Library/ToastWrapper';
+import Loader from '@components/Library/Loader';
 
 interface Props {
   farms: FarmType[];
   noFarms: boolean;
+  isLoading: boolean;
 }
 
-const FarmsList: FC<Props> = ({ farms, noFarms }) => {
+const FarmsList: FC<Props> = ({ farms, noFarms, isLoading }) => {
   const [, setOpen] = useAtom(mainModalOpenAtom);
   const [, setSelectedTab] = useAtom(selectedTabModalAtom);
   const [, setSelectedFarm] = useAtom(selectedFarmAtom);
@@ -33,7 +35,12 @@ const FarmsList: FC<Props> = ({ farms, noFarms }) => {
 
   return (
     <div className="flex flex-col items-center gap-y-[25px] py-16">
-      {!noFarms ? (
+      {isLoading ? (
+        <>
+          <Loader size="lg" />
+          <p>loading pools...</p>
+        </>
+      ) : !noFarms ? (
         farms.map((farm, index) => {
           const tokenNames = formatTokenSymbols(
             replaceTokenSymbols(farm?.asset.symbol)
