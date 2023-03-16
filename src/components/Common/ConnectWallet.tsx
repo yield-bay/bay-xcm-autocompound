@@ -112,7 +112,7 @@ const ConnectWalletButton: FC = () => {
     <div
       onClick={account == null ? () => setIsOpen(true) : () => {}}
       className={clsx(
-        'flex flex-row items-center w-[250px] justify-center text-base leading-[22px] bg-white text-black px-4 py-6 rounded-lg transition duration-200',
+        'flex flex-row items-center w-[250px] justify-center text-base leading-[22px] bg-white text-black cursor-pointer px-4 py-6 rounded-lg transition duration-200',
         account == null ? 'hover:bg-offWhite' : 'cursor-default'
       )}
     >

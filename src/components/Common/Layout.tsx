@@ -1,5 +1,5 @@
 // Library Imports
-import { FC, ReactNode, useEffect } from 'react';
+import { FC, ReactNode, useEffect, useMemo } from 'react';
 import { useAtom } from 'jotai';
 import clsx from 'clsx';
 import _ from 'lodash';
@@ -36,18 +36,25 @@ interface Props {
 const Layout: FC<Props> = ({ children }) => {
   const { mounted } = useIsMounted();
   const [account] = useAtom(accountAtom);
-  const [, setMangataHelper] = useAtom(mangataHelperAtom);
-  const [, setTuringHelper] = useAtom(turingHelperAtom);
+  const [mangataHelperx, setMangataHelper] = useAtom(mangataHelperAtom);
+  const [turingHelperx, setTuringHelper] = useAtom(turingHelperAtom);
   const [, setAccount1] = useAtom(account1Atom);
   const [, setMangataAddress] = useAtom(mangataAddressAtom);
   const [, setTuringAddress] = useAtom(turingAddressAtom);
   const [, setPools] = useAtom(poolsAtom);
   const [, setIsInitialised] = useAtom(isInitialisedAtom);
 
+  // Initial turing and mangata Helper setup.
+  // This is done only once when the app is loaded.
   useEffect(() => {
     (async () => {
       if (account == null) {
         console.log('Connect wallet to use App!');
+        return;
+      }
+
+      if (mangataHelperx != null && turingHelperx != null) {
+        console.log('Already initialised!');
         return;
       }
 
@@ -83,8 +90,6 @@ const Layout: FC<Props> = ({ children }) => {
       );
 
       console.log('1. Reading token and balance of account ...');
-
-      console.log('account', account);
 
       // New account instance from connected account
       const account1 = new Account({

@@ -14,7 +14,8 @@ export const USERNAME = 'yield_bay';
 export const YIELDBAY_LANDING = 'https://yieldbay.io';
 
 // MANGATA
-export const MG_MAINNET_1 = 'wss://mangata-x.api.onfinality.io/public-ws';
-export const MG_MAINNET_2 =
-  'wss://prod-kusama-collator-01.mangatafinance.cloud';
+export const MAINNET = [
+  'wss://mangata-x.api.onfinality.io/public-ws',
+  'wss://prod-kusama-collator-01.mangatafinance.cloud',
+];
 export const TESTNET = 'wss://roccoco-testnet-collator-01.mangatafinance.cloud';

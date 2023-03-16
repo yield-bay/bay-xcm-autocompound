@@ -1,10 +1,14 @@
 import { Spinner } from '@chakra-ui/react';
 
-const Loader = () => {
+interface Props {
+  size: 'sm' | 'md' | 'lg' | 'xl' | 'xs';
+}
+
+const Loader = ({ size = 'md' }: Props) => {
   return (
     <Spinner
       aria-hidden="true"
-      size="md"
+      size={size}
       color="white"
       thickness="2px"
       emptyColor="#242424"

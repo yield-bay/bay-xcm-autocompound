@@ -32,7 +32,7 @@ const ConnectModal: FC = () => {
             <div className="flex flex-col gap-y-5">
               {wallets.map((wallet: Wallet) => (
                 <button
-                  className="flex flex-row gap-x-5 items-center border border-baseGray hover:border-primaryGreen rounded-xl p-6 text-left transition duration-200"
+                  className="flex flex-row gap-x-5 items-center ring-1 ring-baseGray hover:ring-primaryGreen rounded-xl p-6 text-left border-0 focus:outline-0 transition duration-200"
                   key={wallet.extensionName}
                   onClick={async () => {
                     pullWalletAccounts(wallet, setWalletAccounts);
@@ -58,17 +58,19 @@ const ConnectModal: FC = () => {
               {walletAccounts.map((account: WalletAccount) => (
                 <button
                   className={clsx(
-                    'flex flex-col gap-y-3 border border-[#666666] hover:border-primaryGreen p-6 rounded-lg'
+                    'flex flex-col gap-y-3 ring-1 ring-[#666666] hover:ring-primaryGreen p-6 rounded-lg focus:outline-0 transition duration-200 '
                   )}
                   key={account.name}
-                  onClick={async () => {
+                  onClick={() => {
                     setAccount(account);
-                    // setWalletConnected(true);
                     setIsOpen(false);
                   }}
                 >
                   <p>{account.name}</p>
-                  <p className="text-[#969696] text-base">{account.address}</p>
+                  <p className="text-[#969696] text-base">
+                    {account.address.slice(0, 20)}...
+                    {account.address.slice(-15)}
+                  </p>
                 </button>
               ))}
             </div>
@@ -79,22 +81,6 @@ const ConnectModal: FC = () => {
             <p>Please check settings and try again</p>
           </div>
         )}
-        {/* </div> */}
-        {/* {account && ( // 
-          <div className="flex flex-col gap-y-10 m-10">
-            <button
-              className="p-3 border border-red-500 hover:bg-red-50 text-red-500 font-semibold rounded"
-              onClick={() => {
-                setWallet(null);
-                setWalletAccounts(null);
-                setAccount(null);
-                // setWalletConnected(false);
-              }}
-            >
-              Disconnect
-            </button>
-          </div>
-        )} */}
       </div>
     </ModalWrapper>
   );

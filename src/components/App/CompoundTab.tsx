@@ -1,6 +1,13 @@
 import { FC, useState, useEffect } from 'react';
 import { TabProps } from '@utils/types';
 import { useAtom } from 'jotai';
+import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
+import _ from 'lodash';
+import moment from 'moment';
+import CountUp from 'react-countup';
+import { useQuery } from '@tanstack/react-query';
+
+// Utils
 import {
   account1Atom,
   mainModalOpenAtom,
@@ -9,19 +16,14 @@ import {
   turingAddressAtom,
   mangataAddressAtom,
 } from '@store/commonAtoms';
-import Tooltip from '@components/Library/Tooltip';
-import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
-import RadioButton from '@components/Library/RadioButton';
-import Button from '@components/Library/Button';
-import _ from 'lodash';
-import moment from 'moment';
-import CountUp from 'react-countup';
-
-// Utils
-import { BN } from 'bn.js';
 import { delay, getDecimalBN } from '@utils/xcm/common/utils';
 import { accountAtom } from '@store/accountAtoms';
 import { formatTokenSymbols, replaceTokenSymbols } from '@utils/farmMethods';
+import { turTotalFees } from '@utils/turTotalFees';
+import { fetchTokenPrices } from '@utils/fetch-prices';
+import Tooltip from '@components/Library/Tooltip';
+import RadioButton from '@components/Library/RadioButton';
+import Button from '@components/Library/Button';
 
 const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
   const [, setOpen] = useAtom(mainModalOpenAtom);
@@ -29,14 +31,12 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
   const [account1] = useAtom(account1Atom);
   const [mangataHelper] = useAtom(mangataHelperAtom);
   const [turingHelper] = useAtom(turingHelperAtom);
-  // We already have current account passed as a param
 
   const [frequency, setFrequency] = useState<number>(1); // default day
   const [duration, setDuration] = useState<number>(7); // default week
   const [gasChoice, setGasChoice] = useState<number>(0); // default 0 == "MGX" / 1 == "TUR"
-
-  const [balance, setBalance] = useState<number>(0);
-  const [gasFees, setGasFees] = useState<number>(0);
+  const [taskId, setTaskId] = useState<string>('');
+  const [totalFees, setTotalFees] = useState<number>(0);
 
   const [mangataAddress] = useAtom(mangataAddressAtom);
   const [turingAddress] = useAtom(turingAddressAtom);
@@ -55,26 +55,47 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
     2
   );
 
-  // TODO: This useEffect shound check if autocompounding is active in the selected pool and set the state accordingly
-  // useEffect(() => {
-  //   setIsAutocompounding(true);
-  // }, []);
+  // Fetching TUR price in Dollar
+  const { isLoading: isTurpriceLoading, data: turprice } = useQuery({
+    queryKey: ['turprice'],
+    queryFn: async () => {
+      const tokenPrices = await fetchTokenPrices();
+      return tokenPrices[2].price;
+    },
+  });
+
+  // Fetch pool Just in time
+  useEffect(() => {
+    (async () => {
+      if (totalFees !== 0) {
+        console.log('fees already fetched');
+        return;
+      }
+      console.log('Fetching fees...');
+      try {
+        const feesInTUR = await turTotalFees(
+          pool,
+          mangataHelper,
+          turingHelper,
+          account,
+          token0,
+          token1,
+          duration,
+          frequency
+        );
+        setTotalFees(feesInTUR as number);
+      } catch (error) {
+        console.log('error', error);
+      }
+    })();
+  }, [frequency, duration, pool]);
 
   // Function which performs Autocompounding
   const handleCompounding = async () => {
     let mangataTransactions = [];
     const { liquidityTokenId } = pool;
-
     // Defining Signer to make trxns
     const signer = account?.wallet?.signer;
-
-    // Address
-    // const mangataAddress = account1.getChainByName(mangataChainName)?.address;
-    // const turingAddress = account1.getChainByName(turingChainName)?.address;
-    // console.log('mangataAddress', mangataAddress);
-    // console.log('turingAddress', turingAddress);
-
-    console.log('acc address', account?.address);
 
     const mgxTurBal = await mangataHelper.mangata.getTokenBalance(
       pool.liquidityTokenId,
@@ -163,23 +184,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
 
     // Create Turing scheduleXcmpTask extrinsic
     console.log('\na) Create the call for scheduleXcmpTask ');
-    // const providedId = `xcmp_automation_test_${(Math.random() + 1).toString(36).substring(7)}`
 
-    // const secPerHour = 3600
-    // const msPerHour = 3600 * 1000
-    // const currentTimestamp = moment().valueOf()
-    // const timestampNextHour = (currentTimestamp - (currentTimestamp % msPerHour)) / 1000 + secPerHour
-    // const timestampTwoHoursLater = (currentTimestamp - (currentTimestamp % msPerHour)) / 1000 + (secPerHour * 2)
-
-    // call from proxy
-    // const xcmpCall = await turingHelper.api.tx.automationTime.scheduleXcmpTask(
-    //   providedId,
-    //   { Fixed: { executionTimes: [timestampNextHour, timestampTwoHoursLater] } },
-    //   mangataHelper.config.paraId,
-    //   0,
-    //   encodedMangataProxyCall,
-    //   parseInt(mangataProxyCallFees.weight.refTime, 10),
-    // )
     const secondsInHour = 3600;
     const millisecondsInHour = 3600 * 1000;
     const currentTimestamp = moment().valueOf();
@@ -235,29 +240,18 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
     const totalFees = executionFee.toNumber() + xcmpFee.toNumber();
     console.log('totalFees', totalFees);
     // TOTAL_FEES / 10^(DECIMAL OF TUR)
-    setGasFees(totalFees / 10 ** 10);
 
     console.log('automationFeeDetails: ', {
       executionFee: executionFee.toHuman(),
       xcmpFee: xcmpFee.toHuman(),
     });
+
+    // Getting (free) TUR balance on Turing Network
     console.log('turingAddress', turingAddress);
 
     const turbal = await turingHelper.getBalance(turingAddress);
     const turfreebal = turbal?.toHuman()?.free;
     console.log('turbal', turfreebal);
-    // return;
-
-    /* Logic for managing the payment of fees
-        if paywithmgx:
-          mangatahelper.buyassettx('mgr','tur',...)//as written in current code (means buy tur with mgx on mangata network)
-          mangatahelper.transfertur()//to turing network
-
-        else if paywithtur:
-          if turfreebal<totalfees:
-            turbalmangata=mangatahelper.getbalance(acc.addr, 'tur')
-            mangatahelper.transfertur()//to turing network
-    */
 
     if (gasChoice === 0) {
       // pay with MGX
@@ -299,18 +293,19 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
         { signer: signer },
         async ({ status }: any) => {
           if (status.isInBlock) {
-            console.log(`Successful with hash ${status.asInBlock.toHex()}`);
+            console.log(
+              `Batch Tx successful with hash ${status.asInBlock.toHex()}`
+            );
             // unsub();
             // resolve();
           } else {
-            console.log(`Status: ${status.type}`);
+            console.log(`Status of Batch Tx: ${status.type}`);
           }
         }
       )
       .catch((error: any) => {
-        console.log('Error in Batch Transaction: ', error);
+        console.log('Error in Batch Tx:', error);
       });
-    console.log('BATCH CALL DONE!');
 
     // Get a TaskId from Turing rpc
     const taskId = await turingHelper.api.rpc.automationTime.generateTaskId(
@@ -340,6 +335,11 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       `\nAfter auto-compound, reserved ${token0}-${token1} is: ${newLiquidityBalance.reserved.toString()} planck ...`
     );
 
+    const liquidityBalance = await mangataHelper.mangata?.getTokenBalance(
+      liquidityTokenId,
+      mangataAddress
+    );
+
     console.log(
       `${account?.name} has compounded ${newLiquidityBalance.reserved
         .sub(liquidityBalance.reserved)
@@ -352,6 +352,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
 
     console.log('Task has been executed!');
     console.log('to cancel', taskId, taskId.toHuman());
+    setTaskId(taskId.toHuman());
 
     const cancelTx = await turingHelper.api.tx.automationTime.cancelTask(
       taskId
@@ -482,14 +483,21 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
         </div>
       </div>
       <div className="flex flex-col gap-y-12 text-base leading-[21.6px] font-bold items-center">
-        <p className="text-[#B9B9B9]">
-          Costs <span className="text-white">{gasFees.toFixed(2)} TUR</span> Gas
-          Fees
-        </p>
+        {isTurpriceLoading && totalFees == 0 ? (
+          <p className="text-[#B9B9B9]">Calculating fees...</p>
+        ) : (
+          <p className="text-[#B9B9B9]">
+            Costs{' '}
+            <span className="text-white">
+              ${(totalFees * turprice).toFixed(3)}{' '}
+            </span>
+            Gas Fees
+          </p>
+        )}
         <div className="inline-flex items-center gap-x-10">
           <RadioButton
             changed={setGasChoice}
-            isSelected={gasChoice == 0}
+            isSelected={gasChoice == 0} 
             label="Pay with MGX"
             value={0}
             className={gasChoice == 0 ? '' : 'opacity-50'}
