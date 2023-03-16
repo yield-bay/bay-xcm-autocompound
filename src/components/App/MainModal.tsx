@@ -1,34 +1,34 @@
+// Library Imports
 import { FC, useEffect, useState } from 'react';
-import ModalWrapper from '../Library/ModalWrapper';
 import { useAtom } from 'jotai';
+import clsx from 'clsx';
+import _ from 'lodash';
+import { type WalletAccount } from '@talismn/connect-wallets';
+import BN from 'bn.js';
+import { useToast } from '@chakra-ui/react';
+
+// Util Imports
 import {
   mainModalOpenAtom,
-  promotedPools,
+  poolsAtom,
   selectedFarmAtom,
   selectedTabModalAtom,
   turingHelperAtom,
   mangataHelperAtom,
-  account1Atom,
   mangataAddressAtom,
-  turingAddressAtom,
+  isInitialisedAtom,
 } from '@store/commonAtoms';
-import clsx from 'clsx';
 import { accountAtom } from '@store/accountAtoms';
 import { FarmType } from '@utils/types';
-import { WalletAccount } from '@talismn/connect-wallets';
+import { delay, getDecimalBN } from '@utils/xcm/common/utils';
+import { formatTokenSymbols, replaceTokenSymbols } from '@utils/farmMethods';
+
+// Component Imports
+import ModalWrapper from '../Library/ModalWrapper';
 import CompoundTab from './CompoundTab';
 import AddLiquidityTab from './AddLiquidityTab';
 import RemoveLiquidityTab from './RemoveLiquidityTab';
-import _ from 'lodash';
-
-// Utils
-import { MangataRococo, TuringStaging } from '@utils/xcm/config';
-import BN from 'bn.js';
-import { delay, getDecimalBN } from '@utils/xcm/common/utils';
-import Account from '@utils/xcm/common/account';
-import MangataHelper from '@utils/xcm/common/mangataHelper';
-import TuringHelper from '@utils/xcm/common/turingHelper';
-import { formatTokenSymbols, replaceTokenSymbols } from '@utils/farmMethods';
+import ToastWrapper from '@components/Library/ToastWrapper';
 
 const tabs = [
   { name: 'Compound', id: 0 },
@@ -46,84 +46,21 @@ interface TabContentProps {
 const MainModal: FC = () => {
   const [open, setOpen] = useAtom(mainModalOpenAtom);
   const [selectedTab, setSelectedTab] = useAtom(selectedTabModalAtom);
-  const [selectedFarm] = useAtom(selectedFarmAtom);
+  const [selectedFarm, setSelectedFarm] = useAtom(selectedFarmAtom);
   const [account] = useAtom(accountAtom);
-  const [, setMangataHelperX] = useAtom(mangataHelperAtom);
-  const [, setTuringHelperX] = useAtom(turingHelperAtom);
-  const [, setAccount1] = useAtom(account1Atom);
-  const [, setMangataAddress] = useAtom(mangataAddressAtom);
-  const [, setTuringAddress] = useAtom(turingAddressAtom);
-  // const [pools, setPools] = useAtom(promotedPools);
+  const [pools] = useAtom(poolsAtom);
+  const [turingHelper] = useAtom(turingHelperAtom);
+  const [mangataHelper] = useAtom(mangataHelperAtom);
+  const [mangataAddress] = useAtom(mangataAddressAtom);
+  const [isInitialised] = useAtom(isInitialisedAtom);
 
   const [pool, setPool] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const toast = useToast();
 
   const initialiseHelperSetup = async () => {
-    if (account?.address == null) return;
-
-    // TODO: Calling it here until i find a way to modularise it
-    // This code should initialise first before doing anything
-    // So, can put it in Layout or App.tsx
-
-    setIsLoading(true);
-
-    const signer = account?.wallet?.signer;
-
-    console.log('Initializing APIs of both chains ...');
-
-    // Helper setup for Mangata and Turing on Rococo Testnet
-    const turingHelper = new TuringHelper(TuringStaging);
-    await turingHelper.initialize();
-    setTuringHelperX(turingHelper);
-
-    const mangataHelper = new MangataHelper(MangataRococo);
-    await mangataHelper.initialize();
-    setMangataHelperX(mangataHelper);
-
-    const turingChainName = turingHelper.config.key;
-    const mangataChainName = mangataHelper.config.key;
-
-    console.log('turing Assets', turingHelper.config.assets);
-    console.log('mangata Assets', mangataHelper.config.assets);
-
-    const turingNativeToken = _.first(turingHelper.config.assets);
-    const mangataNativeToken = _.first(mangataHelper.config.assets);
-
-    console.log(
-      `\nTuring chain name: ${turingChainName}, native token: ${JSON.stringify(
-        turingNativeToken
-      )}`
-    );
-    console.log(
-      `Mangata chain name: ${mangataChainName}, native token: ${JSON.stringify(
-        mangataNativeToken
-      )}\n`
-    );
-
-    console.log('1. Reading token and balance of account ...');
-
-    console.log('account', account);
-
-    // New account instance from connected account
-    const account1 = new Account({
-      address: account?.address,
-      meta: {
-        name: account?.name,
-      },
-    });
-    await account1.init([turingHelper, mangataHelper]);
-    console.log('account1', account1);
-    setAccount1(account1);
-
-    const mangataAddress = account1.getChainByName(mangataChainName)?.address;
-    const turingAddress = account1.getChainByName(turingChainName)?.address;
-    console.log('mangataAddress', mangataAddress);
-    console.log('turingAddress', turingAddress);
-    setMangataAddress(mangataAddress);
-    setTuringAddress(turingAddress);
-
-    const pools = await mangataHelper.getPools({ isPromoted: true });
-    console.log('Promoted Pools', pools);
+    if (pools == null) return;
 
     const tokenNames = formatTokenSymbols(
       replaceTokenSymbols(selectedFarm?.asset.symbol as string)
@@ -143,6 +80,18 @@ const MainModal: FC = () => {
     console.log(`Found a pool of ${poolName}`, pool);
 
     if (_.isUndefined(pool)) {
+      toast({
+        position: 'top',
+        duration: 3000,
+        render: () => (
+          <ToastWrapper
+            title={`Couldn’t find a liquidity pool for ${poolName} ...`}
+            status="error"
+          />
+        ),
+      });
+      setOpen(false);
+      setSelectedFarm(null);
       throw new Error(`Couldn’t find a liquidity pool for ${poolName} ...`);
     }
 
@@ -193,8 +142,12 @@ const MainModal: FC = () => {
   };
 
   useEffect(() => {
-    initialiseHelperSetup();
-  }, [selectedFarm?.id]);
+    console.log('isInitialised', isInitialised);
+    console.log('selectedFarm', selectedFarm);
+    if (isInitialised && selectedFarm != null) {
+      initialiseHelperSetup();
+    }
+  }, [selectedFarm?.id, isInitialised]);
 
   const TabContent = ({ selectedTab, farm, account }: TabContentProps) => {
     switch (selectedTab) {
@@ -240,7 +193,7 @@ const MainModal: FC = () => {
         </div>
       ) : (
         <div className="w-full h-full flex items-center justify-center">
-          initialising...
+          preparing pool...
         </div>
       )}
     </ModalWrapper>

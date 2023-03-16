@@ -1,19 +1,33 @@
+// Library Imports
 import { FC, ReactNode, useEffect } from 'react';
-import { useIsMounted } from '@hooks/useIsMounted';
-import Loading from '@components/Common/Loading';
+import { useAtom } from 'jotai';
 import clsx from 'clsx';
-import { satoshiFont } from '@utils/localFont';
+import _ from 'lodash';
+
+// Component Imports
 import ConnectModal from '@components/Library/ConnectModal';
+import Loading from '@components/Common/Loading';
 import MainModal from '@components/App/MainModal';
 import Header from './Header';
-import { useAtom } from 'jotai';
+import Footer from './Footer';
+
+// Util, Store and Hook Imports
+import { useIsMounted } from '@hooks/useIsMounted';
+import { satoshiFont } from '@utils/localFont';
 import { accountAtom } from '@store/accountAtoms';
+import {
+  mangataHelperAtom,
+  turingHelperAtom,
+  account1Atom,
+  mangataAddressAtom,
+  turingAddressAtom,
+  poolsAtom,
+  isInitialisedAtom,
+} from '@store/commonAtoms';
 import { MangataRococo, TuringStaging } from '@utils/xcm/config';
 import TuringHelper from '@utils/xcm/common/turingHelper';
 import MangataHelper from '@utils/xcm/common/mangataHelper';
 import Account from '@utils/xcm/common/account';
-import _ from 'lodash';
-import Footer from './Footer';
 
 interface Props {
   children: ReactNode;
@@ -22,23 +36,31 @@ interface Props {
 const Layout: FC<Props> = ({ children }) => {
   const { mounted } = useIsMounted();
   const [account] = useAtom(accountAtom);
+  const [, setMangataHelper] = useAtom(mangataHelperAtom);
+  const [, setTuringHelper] = useAtom(turingHelperAtom);
+  const [, setAccount1] = useAtom(account1Atom);
+  const [, setMangataAddress] = useAtom(mangataAddressAtom);
+  const [, setTuringAddress] = useAtom(turingAddressAtom);
+  const [, setPools] = useAtom(poolsAtom);
+  const [, setIsInitialised] = useAtom(isInitialisedAtom);
 
   useEffect(() => {
     (async () => {
-      if (account?.address == null) return;
-
-      // This code should initialise first before doing anything
-      // So, can put it in Layout or App.tsx
-      const signer = account?.wallet?.signer;
+      if (account == null) {
+        console.log('Connect wallet to use App!');
+        return;
+      }
 
       console.log('Initializing APIs of both chains ...');
 
       // Helper setup for Mangata and Turing on Rococo Testnet
       const turingHelper = new TuringHelper(TuringStaging);
       await turingHelper.initialize();
+      setTuringHelper(turingHelper);
 
       const mangataHelper = new MangataHelper(MangataRococo);
       await mangataHelper.initialize();
+      setMangataHelper(mangataHelper);
 
       const turingChainName = turingHelper.config.key;
       const mangataChainName = mangataHelper.config.key;
@@ -73,14 +95,19 @@ const Layout: FC<Props> = ({ children }) => {
       });
       await account1.init([turingHelper, mangataHelper]);
       console.log('account1', account1);
+      setAccount1(account1);
 
       const mangataAddress = account1.getChainByName(mangataChainName)?.address;
       const turingAddress = account1.getChainByName(turingChainName)?.address;
       console.log('mangataAddress', mangataAddress);
       console.log('turingAddress', turingAddress);
+      setMangataAddress(mangataAddress);
+      setTuringAddress(turingAddress);
 
       const pools = await mangataHelper.getPools({ isPromoted: true });
       console.log('Promoted Pools', pools);
+      setPools(pools);
+      setIsInitialised(true);
     })();
   }, [account]);
 

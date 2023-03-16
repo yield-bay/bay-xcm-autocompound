@@ -12,7 +12,17 @@ interface Props {
 
 const ModalWrapper: FC<Props> = ({ open, setOpen, children }) => {
   return (
-    <Transition appear show={open} as={Fragment}>
+    <Transition
+      appear
+      show={open}
+      as={Fragment}
+      enter="transition-opacity duration-75"
+      enterFrom="opacity-0"
+      enterTo="opacity-100"
+      leave="transition-opacity duration-150"
+      leaveFrom="opacity-100"
+      leaveTo="opacity-0"
+    >
       <Dialog as="div" className="relative z-10" onClose={() => setOpen(false)}>
         <Transition.Child
           as={Fragment}

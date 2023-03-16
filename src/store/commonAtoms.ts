@@ -7,10 +7,12 @@ export const mainModalOpenAtom = atom<boolean>(false);
 export const selectedTabModalAtom = atom<number>(0);
 
 export const selectedFarmAtom = atom<FarmType | null>(null);
-export const promotedPools = atom<any | null>(null);
+export const poolsAtom = atom<any | null>(null);
 
 export const mangataHelperAtom = atom<any>(null);
 export const turingHelperAtom = atom<any>(null);
+
+export const isInitialisedAtom = atom<boolean>(false);
 
 export const account1Atom = atom<any>(null);
 export const mangataAddressAtom = atom<string | null>(null);

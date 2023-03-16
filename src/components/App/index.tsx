@@ -26,7 +26,7 @@ const App = () => {
   const [filteredFarms, noFilteredFarms] = useFilteredFarms(farms, searchTerm);
 
   return (
-    <main className="min-w-full bg-baseGrayMid rounded-3xl py-14">
+    <main className="min-w-full min-h-screen bg-baseGrayMid rounded-3xl py-14">
       <div className="max-w-[1138px] mx-auto">
         <div className="items-center w-full justify-center sm:justify-end lg:justify-center">
           <SearchInput term={searchTerm} setTerm={setSearchTerm} />

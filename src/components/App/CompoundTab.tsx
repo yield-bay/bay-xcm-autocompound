@@ -41,7 +41,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
   const [mangataAddress] = useAtom(mangataAddressAtom);
   const [turingAddress] = useAtom(turingAddressAtom);
 
-  const [isAutocompounding, setIsAutocompounding] = useState<boolean>(true);
+  const [isAutocompounding, setIsAutocompounding] = useState<boolean>(false);
   const [verifyStopCompounding, setVerifyStopCompounding] =
     useState<boolean>(false);
 
@@ -483,8 +483,8 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       </div>
       <div className="flex flex-col gap-y-12 text-base leading-[21.6px] font-bold items-center">
         <p className="text-[#B9B9B9]">
-          Costs <span className="text-white">{gasFees.toFixed(2)} TUR</span>{' '}
-          including Gas Fees + 0.5% Comission
+          Costs <span className="text-white">{gasFees.toFixed(2)} TUR</span> Gas
+          Fees
         </p>
         <div className="inline-flex items-center gap-x-10">
           <RadioButton
