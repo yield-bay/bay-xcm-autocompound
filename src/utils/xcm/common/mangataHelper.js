@@ -207,8 +207,11 @@ class MangataHelper {
       pair,
       firstTokenId,
       secondTokenId,
-      firstAmount,
-      expectedSecondAmount
+      // firstAmount,
+      // expectedSecondAmount
+      new BN(BigInt(Math.round(firstTokenAmount * 10 ** firstToken.decimals)).toString(10), 10),
+      new BN(BigInt(Math.round(expectedSecondTokenAmount * 10 ** secondToken.decimals)).toString(10), 10),
+
     );
 
     return fees;
@@ -230,7 +233,8 @@ class MangataHelper {
     return this.api.tx.xyk.burnLiquidity(
       firstTokenId,
       secondTokenId,
-      liquidityAssetAmount
+      // liquidityAssetAmount
+      new BN(BigInt(Math.round(liquidityAssetAmount * 10 ** 18)).toString(10), 10),
     );
   };
 
@@ -247,15 +251,25 @@ class MangataHelper {
     const secondDecimalBN = getDecimalBN(secondToken.decimals);
 
     const amountBN = new BN(firstTokenAmount, 10).mul(firstDecimalBN);
-    const expectedSecondAmountBN = new BN(expectedSecondTokenAmount).mul(
+    const expectedSecondAmountBN = new BN(expectedSecondTokenAmount, 10).mul(
       secondDecimalBN
     );
+
+    console.log("lastmile",
+      new BN(BigInt(Math.round(firstTokenAmount * 10 ** firstToken.decimals)).toString(10), 10),
+      new BN(BigInt(Math.round(expectedSecondTokenAmount * 10 ** secondToken.decimals)).toString(10), 10),
+      firstTokenId,
+      secondTokenId,
+      amountBN,
+      expectedSecondAmountBN,
+      Math.round(firstTokenAmount * 10 ** firstToken.decimals),
+      Math.round(expectedSecondTokenAmount * 10 ** secondToken.decimals));
 
     return this.api.tx.xyk.mintLiquidity(
       firstTokenId,
       secondTokenId,
-      amountBN,
-      expectedSecondAmountBN
+      new BN(BigInt(Math.round(firstTokenAmount * 10 ** firstToken.decimals)).toString(10), 10),
+      new BN(BigInt(Math.round(expectedSecondTokenAmount * 10 ** secondToken.decimals)).toString(10), 10),
     );
   };
 
