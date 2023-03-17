@@ -26,7 +26,7 @@ const ToastWrapper: FC<Props> = ({ title, status }) => {
   return (
     <div
       className={clsx(
-        'w-[500px] py-6 bg-baseGrayMid rounded-lg font-bold text-base text-center leading-[21.6px] text-black font-sans',
+        'w-[500px] py-6 rounded-lg font-bold text-base text-center leading-[21.6px] text-white font-sans',
         toaststatus(status),
         satoshiFont.variable
       )}

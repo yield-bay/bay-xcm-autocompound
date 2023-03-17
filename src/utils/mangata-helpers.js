@@ -1,5 +1,6 @@
 import { BN } from '@mangata-finance/sdk';
 import axios from 'axios';
+import _ from 'lodash';
 
 /* GENERAL HELPERS */
 export async function fetchKSMPrice() {
@@ -73,3 +74,8 @@ export async function getAssets(mangata) {
     liquidity,
   };
 }
+
+export const getDecimalById = async (allAssets, id) => {
+  const token = _.find(allAssets, (token) => token.id === id);
+  return token.decimals;
+};
