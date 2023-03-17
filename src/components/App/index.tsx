@@ -1,14 +1,33 @@
 import { useEffect, useState } from 'react';
 import _ from 'lodash';
 import { useQuery } from '@tanstack/react-query';
-import { fetchFarms } from '@utils/api';
+import { fetchFarms, fetchXcmpTasks } from '@utils/api';
 import { filterMGXFarms } from '@utils/farmMethods';
 import FarmsList from './FarmsList';
 import SearchInput from '@components/Library/SearchInput';
 import useFilteredFarms from '@hooks/useFilteredFarms';
+import { XcmpTaskType } from '@utils/types';
+import { useAtom } from 'jotai';
+import { accountAtom } from '@store/accountAtoms';
 
 const App = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [account] = useAtom(accountAtom);
+
+  const [xcmpTasks, setXcmpTasks] = useState<XcmpTaskType[]>();
+
+  // const { isLoading: isXcmpLoading, data: xcmpTasks } = useQuery({
+  //   queryKey: ['xcmpTasks'],
+  //   queryFn: async () => {
+  //     try {
+  //       const { xcmpTasks } = await fetchXcmpTasks();
+  //       console.log('xcmpTasks', xcmpTasks);
+  //       return xcmpTasks;
+  //     } catch (error) {
+  //       console.log(error);
+  //     }
+  //   },
+  // });
 
   const { isLoading, data: farms } = useQuery({
     queryKey: ['pools'],
@@ -22,6 +41,19 @@ const App = () => {
       }
     },
   });
+
+  useEffect(() => {
+    (async () => {
+      const userAddress = account?.address;
+      try {
+        const { xcmpTasks } = await fetchXcmpTasks(userAddress as string);
+        console.log('xcmpTasks', xcmpTasks);
+        return xcmpTasks;
+      } catch (error) {
+        console.log(error);
+      }
+    })();
+  }, [account?.address]);
 
   const [filteredFarms, noFilteredFarms] = useFilteredFarms(farms, searchTerm);
 

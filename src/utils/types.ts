@@ -29,6 +29,14 @@ export interface FarmType {
   safetyScore: number;
 }
 
+export interface XcmpTaskType {
+  taskId: string;
+  userAddress: string;
+  lpName: string;
+  chain: string;
+  status: string;
+}
+
 export interface TabProps {
   farm: FarmType;
   account: WalletAccount;
