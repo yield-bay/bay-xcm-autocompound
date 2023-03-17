@@ -207,11 +207,8 @@ class MangataHelper {
       pair,
       firstTokenId,
       secondTokenId,
-      // firstAmount,
-      // expectedSecondAmount
-      new BN(BigInt(Math.round(firstTokenAmount * 10 ** firstToken.decimals)).toString(10), 10),
-      new BN(BigInt(Math.round(expectedSecondTokenAmount * 10 ** secondToken.decimals)).toString(10), 10),
-
+      firstAmount,
+      expectedSecondAmount,
     );
 
     return fees;
