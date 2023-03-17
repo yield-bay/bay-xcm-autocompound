@@ -1099,7 +1099,7 @@
     "@jridgewell/resolve-uri" "^3.0.3"
     "@jridgewell/sourcemap-codec" "^1.4.10"
 
-"@mangata-finance/sdk@^1.14.2":
+"@mangata-finance/sdk@^1.16.1":
   version "1.16.1"
   resolved "https://registry.yarnpkg.com/@mangata-finance/sdk/-/sdk-1.16.1.tgz#a62478d2a545967ac32b0affe2994dca30ba2ed1"
   integrity sha512-Ru4X6bH4AJDwxvETRenkjozO+VuOlk3j9dALsZjaUQa1mj6ZbKZDJMaHE/Ms0NZHbtXmgf8tPUEWYMOxNTWkQg==
