@@ -6,6 +6,7 @@ import _ from 'lodash';
 import moment from 'moment';
 import CountUp from 'react-countup';
 import { useQuery } from '@tanstack/react-query';
+import { useToast } from '@chakra-ui/react';
 
 // Utils
 import {
@@ -24,6 +25,9 @@ import { fetchTokenPrices } from '@utils/fetch-prices';
 import Tooltip from '@components/Library/Tooltip';
 import RadioButton from '@components/Library/RadioButton';
 import Button from '@components/Library/Button';
+import ProcessStepper from '@components/Library/ProcessStepper';
+import ToastWrapper from '@components/Library/ToastWrapper';
+import Loader from '@components/Library/Loader';
 
 const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
   const [, setOpen] = useAtom(mainModalOpenAtom);
@@ -34,16 +38,26 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
 
   const [frequency, setFrequency] = useState<number>(1); // default day
   const [duration, setDuration] = useState<number>(7); // default week
+  const [percentage, setPercentage] = useState<number>(10); // default 10%
+
   const [gasChoice, setGasChoice] = useState<number>(0); // default 0 == "MGX" / 1 == "TUR"
   const [taskId, setTaskId] = useState<string>('');
   const [totalFees, setTotalFees] = useState<number>(0);
 
+  const [lpBalance, setLpBalance] = useState<number>(0);
   const [mangataAddress] = useAtom(mangataAddressAtom);
   const [turingAddress] = useAtom(turingAddressAtom);
+
+  // Process States
+  const [isInProcess, setIsInProcess] = useState(false);
+  const [isSigning, setIsSigning] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const [isAutocompounding, setIsAutocompounding] = useState<boolean>(false);
   const [verifyStopCompounding, setVerifyStopCompounding] =
     useState<boolean>(false);
+
+  const toast = useToast();
 
   const [token0, token1] = formatTokenSymbols(
     replaceTokenSymbols(farm?.asset.symbol)
@@ -88,10 +102,16 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
         console.log('error', error);
       }
     })();
-  }, [frequency, duration, pool]);
+  }, [frequency, duration]);
 
   // Function which performs Autocompounding
   const handleCompounding = async () => {
+    console.log('frequency', frequency);
+    console.log('duration', duration);
+    console.log('percentage', percentage);
+
+    setIsInProcess(true);
+
     let mangataTransactions = [];
     const { liquidityTokenId } = pool;
     // Defining Signer to make trxns
@@ -105,8 +125,10 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
     console.log('mgxTurBal', mgxTurBal);
     const decimal = mangataHelper.getDecimalsBySymbol(`${token0}-${token1}`);
     console.log('decimal', decimal);
+
+    // tokenAmount is the amount of locked liquidity token which are to be activated
     const tokenAmount = BigInt(mgxTurBal.reserved).toString(10) / 10 ** decimal;
-    setBalance(tokenAmount);
+    setLpBalance(tokenAmount);
 
     let activateLiquidityTxn = await mangataHelper.activateLiquidityV2(
       liquidityTokenId,
@@ -166,7 +188,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
     console.log('\n4. Start to schedule an auto-compound call via XCM ...');
     const proxyExtrinsic = mangataHelper.api.tx.xyk.compoundRewards(
       liquidityTokenId,
-      10
+      (1000 * percentage) / 100 // permille ie. 100% of rewards
     );
     const mangataProxyCall = await mangataHelper.createProxyCall(
       account?.address,
@@ -284,9 +306,13 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       console.log("gasChoice doesn't exist");
     }
 
-    const mangataBatchTx = await mangataHelper.api.tx.utility.batchAll(
-      mangataTransactions
-    );
+    // BUG: NEED TO REMOVE await
+    // const mangataBatchTx = await mangataHelper.api.tx.utility.batchAll(
+    //   mangataTransactions
+    // );
+    setIsSigning(true);
+    const mangataBatchTx =
+      mangataHelper.api.tx.utility.batchAll(mangataTransactions);
     await mangataBatchTx
       .signAndSend(
         account1.address,
@@ -294,10 +320,15 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
         async ({ status }: any) => {
           if (status.isInBlock) {
             console.log(
-              `Batch Tx successful with hash ${status.asInBlock.toHex()}`
+              `Batch Tx is in block with hash ${status.asInBlock.toHex()}`
             );
-            // unsub();
-            // resolve();
+          } else if (status.isFinalized) {
+            console.log(
+              `Batch Tx finalized with hash ${status.asFinalized.toHex()}`
+            );
+            setIsInProcess(false);
+            setIsSigning(false);
+            setIsSuccess(true);
           } else {
             console.log(`Status of Batch Tx: ${status.type}`);
           }
@@ -305,6 +336,15 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       )
       .catch((error: any) => {
         console.log('Error in Batch Tx:', error);
+        setIsSuccess(false);
+        setIsSigning(false);
+        toast({
+          position: 'top',
+          duration: 3000,
+          render: () => (
+            <ToastWrapper title="Error in Batch Tx" status="error" />
+          ),
+        });
       });
 
     // Get a TaskId from Turing rpc
@@ -315,12 +355,17 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
     console.log('TaskId:', taskId.toHuman());
 
     // Send extrinsic
+    setIsSigning(true);
     console.log('\nc) Sign and send scheduleXcmpTask call ...');
     await turingHelper.sendXcmExtrinsic(
       xcmpCall,
       account?.address,
       signer,
-      taskId
+      taskId,
+      setIsSigning,
+      setIsInProcess,
+      setIsSuccess,
+      toast
     );
 
     console.log('\nWaiting 20 seconds before reading new chain states ...');
@@ -345,14 +390,16 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
         .sub(liquidityBalance.reserved)
         .toString()} planck more ${token0}-${token1} ...`
     );
-
-    // remove liquidity
-    // 1. turingHelper-> canceltask
-    // 2. mangataHelper -> burnLiquidity
-
     console.log('Task has been executed!');
     console.log('to cancel', taskId, taskId.toHuman());
     setTaskId(taskId.toHuman());
+
+    // TODO: Call a post request to update the current autocompounding task
+    // with task id, pool tokens -- see in schema
+    return;
+    // remove liquidity
+    // 1. turingHelper-> canceltask
+    // 2. mangataHelper -> burnLiquidity
 
     const cancelTx = await turingHelper.api.tx.automationTime.cancelTask(
       taskId
@@ -461,6 +508,40 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
           />
         </div>
       </div>
+      <div>
+        <p className="inline-flex items-center mb-8">
+          Percentage
+          <Tooltip label="Percentage of Auto-compounding">
+            <QuestionMarkCircleIcon className="h-5 w-5 opacity-50 ml-3" />
+          </Tooltip>
+        </p>
+        <div className="flex flex-row gap-x-8">
+          <RadioButton
+            changed={setPercentage}
+            isSelected={percentage === 10}
+            label="10%"
+            value={10}
+          />
+          <RadioButton
+            changed={setPercentage}
+            isSelected={percentage === 25}
+            label="25%"
+            value={25}
+          />
+          <RadioButton
+            changed={setPercentage}
+            isSelected={percentage === 50}
+            label="50%"
+            value={50}
+          />
+          <RadioButton
+            changed={setPercentage}
+            isSelected={percentage === 100}
+            label="complete"
+            value={100}
+          />
+        </div>
+      </div>
       {/* Card box to show current and effective APY */}
       <div className="inline-flex justify-between w-full rounded-lg bg-[#1C1C1C] py-6 px-9">
         <div className="flex flex-col items-center gap-y-3">
@@ -489,7 +570,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
           <p className="text-[#B9B9B9]">
             Costs{' '}
             <span className="text-white">
-              ${(totalFees * turprice).toFixed(3)}{' '}
+              ${(totalFees * turprice).toFixed(2)}{' '}
             </span>
             Gas Fees
           </p>
@@ -497,7 +578,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
         <div className="inline-flex items-center gap-x-10">
           <RadioButton
             changed={setGasChoice}
-            isSelected={gasChoice == 0} 
+            isSelected={gasChoice == 0}
             label="Pay with MGX"
             value={0}
             className={gasChoice == 0 ? '' : 'opacity-50'}
@@ -511,6 +592,18 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
           />
         </div>
       </div>
+      {/* STEPPER */}
+      {isInProcess && (
+        <ProcessStepper
+          activeStep={isSuccess ? 3 : isSigning ? 2 : 1}
+          steps={[
+            { label: 'Confirm' },
+            { label: 'Sign' },
+            { label: 'Complete' },
+          ]}
+        />
+      )}
+      {/* BUTTONS */}
       {isAutocompounding ? (
         <div className="flex flex-col gap-y-2">
           <Button text="Save Changes" type="disabled" onClick={() => {}} />
@@ -536,6 +629,26 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
               setOpen(false);
             }}
           />
+        </div>
+      )}
+      {isInProcess && (
+        <div className="flex flex-row px-4 items-center justify-center text-base leading-[21.6px] bg-baseGray rounded-lg py-10 text-center">
+          {isSigning && !isSuccess && <Loader size="md" />}
+          {isSigning && (
+            <span className="ml-6">
+              Please sign the transaction on{' '}
+              {gasChoice == 0 ? 'Mangata' : 'Turing'} in your wallet.
+            </span>
+          )}
+          {isSuccess && (
+            <p>
+              Autocompound Setup Successful!
+              {/* View your hash{' '}
+              <a href="#" className="underline underline-offset-4">
+                here
+              </a> */}
+            </p>
+          )}
         </div>
       )}
     </div>

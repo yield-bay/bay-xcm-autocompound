@@ -2,7 +2,7 @@ import _ from 'lodash';
 import { rpc, types, runtime } from '@oak-network/types';
 import { ApiPromise, WsProvider } from '@polkadot/api';
 import Keyring from '@polkadot/keyring';
-
+import ToastWrapper from '@components/Library/ToastWrapper';
 import { getProxies, getProxyAccount } from './utils';
 
 class TuringHelper {
@@ -65,7 +65,16 @@ class TuringHelper {
     return await this.api.rpc.automationTime.queryFeeDetails(xcmpCall);
   };
 
-  sendXcmExtrinsic = async (xcmpCall, keyPair, signer, taskId) =>
+  sendXcmExtrinsic = async (
+    xcmpCall,
+    keyPair,
+    signer,
+    taskId,
+    setIsSigning,
+    setIsInProcess,
+    setIsSuccess,
+    toast
+  ) =>
     new Promise((resolve) => {
       const send = async () => {
         const unsub = await xcmpCall
@@ -75,25 +84,42 @@ class TuringHelper {
             async ({ status }) => {
               if (status.isInBlock) {
                 console.log(`Successful with hash ${status.asInBlock.toHex()}`);
-
                 console.log('kpaddr', keyPair, 'task', taskId);
-
                 // Get Task
                 const task = await this.api.query.automationTime.accountTasks(
                   keyPair,
                   taskId
                 );
                 console.log('Task:', task.toHuman());
-
                 unsub();
                 resolve();
+              } else if (status.isFinalized) {
+                console.log(
+                  `Finalized block hash ${status.asFinalized.toHex()}`
+                );
+                setIsInProcess(false);
+                setIsSigning(false);
+                setIsSuccess(true);
               } else {
                 console.log(`Status: ${status.type}`);
               }
             }
           )
           .catch((err) => {
-            console.log("sendXcmExtrinsic Err --\n", err);
+            console.log('sendXcmExtrinsic Err --\n', err);
+            setIsSigning(false);
+            setIsSuccess(false);
+            setIsInProcess(false);
+            toast({
+              position: 'top',
+              duration: 3000,
+              render: () => (
+                <ToastWrapper
+                  title="Error while scheduling XCMP automation task."
+                  status="error"
+                />
+              ),
+            });
           });
       };
       send();

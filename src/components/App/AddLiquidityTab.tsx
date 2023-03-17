@@ -191,7 +191,7 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
             `Mint liquidity trxn successful with hash ${status.asInBlock.toHex()}`
           );
         } else if (status.isFinalised) {
-          console.log('Finalized');
+          console.log('Mint liquidity trxn finalised.');
           setIsInProcess(false);
           setIsSigning(false);
           setIsSuccess(true);
