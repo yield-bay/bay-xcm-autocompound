@@ -240,7 +240,7 @@ class MangataHelper {
       // )
       new BN(
         BigInt(
-          Math.round((percentage/100)*liquidityAssetAmount * 10 ** 18)
+          Math.round((percentage / 100) * liquidityAssetAmount * 10 ** 18)
         ).toString(10),
         10
       ),
@@ -426,17 +426,32 @@ class MangataHelper {
     sellSymbol,
     buySymbol,
     boughtAssetAmount,
-    maxAmountIn = '1000000000000'
+    maxAmountIn
   ) => {
     const soldAssetId = this.getTokenIdBySymbol(sellSymbol);
     const boughtAssetId = this.getTokenIdBySymbol(buySymbol);
+    console.log("soldAssetId",soldAssetId,"boughtAssetId",boughtAssetId);
     return this.api.tx.xyk.buyAsset(
       soldAssetId,
       boughtAssetId,
-      boughtAssetAmount,
-      maxAmountIn
-    );
-  };
+      // boughtAssetAmount,
+      // maxAmountIn
+      new BN(BigInt(Math.round((boughtAssetAmount * 10 ** 10))).toString(10), 10),
+      new BN(BigInt(Math.round((maxAmountIn * 10 ** 18))).toString(10), 10)
+      // new BN(
+      //   BigInt(
+      //     boughtAssetAmount * 10 ** 10
+      //   ).toString(10),
+      //   10
+      // ),
+      // new BN(
+      //   BigInt(
+      //    maxAmountIn * 10 ** 18
+      //   ).toString(10),
+      //   10
+      // ),
+    )
+  }
 
   /**
    *

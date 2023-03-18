@@ -134,7 +134,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       liquidityTokenId,
       tokenAmount
     );
-    mangataTransactions.push(activateLiquidityTxn);
+    // mangataTransactions.push(activateLiquidityTxn);
     // activateLiquidityTxn.signAndSend(account1.address, { signer: signer });
 
     console.log(
@@ -177,7 +177,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       );
       const aptx = await mangataHelper.addProxyTx(proxyAddress, proxyType);
       // await aptx.signAndSend(account1.address, { signer: signer });
-      mangataTransactions.push(aptx);
+      // mangataTransactions.push(aptx);
 
       // const addProxyTx = api.tx.proxy.addProxy(proxyAccount, proxyType, 0)
     }
@@ -273,20 +273,23 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
 
     const turbal = await turingHelper.getBalance(turingAddress);
     const turfreebal = turbal?.toHuman()?.free;
-    console.log('turbal', turfreebal);
+    console.log('turbal', turfreebal, "exefee", executionFee.toNumber(), "xcmfee", xcmpFee.toNumber());
 
     if (gasChoice === 0) {
       // pay with MGX
       const baTx = await mangataHelper.buyAssetTx(
         'MGR',
         'TUR',
-        totalFees,
-        '100000000000000000000'
+        // 0.1,
+        totalFees / 10 ** 10,
+        10000000
       );
+      // await baTx.signAndSend(account1.address, { signer: signer });
       mangataTransactions.push(baTx);
 
       console.log('Before TUR Transfer', totalFees);
       const transferTurTx = await mangataHelper.transferTur(
+        // 0.1*10**10,
         totalFees,
         turingAddress
       );
@@ -579,7 +582,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       {/* BUTTONS */}
       {isAutocompounding ? (
         <div className="flex flex-col gap-y-2">
-          <Button text="Save Changes" type="disabled" onClick={() => {}} />
+          <Button text="Save Changes" type="disabled" onClick={() => { }} />
           <Button
             text="Stop Autocompounding"
             type="warning"
