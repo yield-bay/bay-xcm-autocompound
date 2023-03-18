@@ -71,11 +71,14 @@ const RemoveLiquidityTab = ({ farm, pool }: TabProps) => {
 
     const signer = account?.wallet?.signer;
     setIsSigning(true);
+    const lpd=BigInt(lpBalance.reserved).toString(10);
+    console.log("lpBalance.reserved",lpBalance.reserved, parseFloat(lpd)/10**18, "percentage", percentage);
 
     const bltx = await mangataHelper.burnLiquidityTx(
       pool.firstTokenId,
       pool.secondTokenId,
-      lpBalance.reserved,
+      // lpBalance.reserved,
+      parseFloat(lpd)/10**18,
       percentage
     );
     await bltx

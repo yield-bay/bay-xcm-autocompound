@@ -232,12 +232,18 @@ class MangataHelper {
       firstTokenId,
       secondTokenId,
       // liquidityAssetAmount
+      // new BN(
+      //   BigInt(
+      //     (Math.round(liquidityAssetAmount * 10 ** 18) * percentage) / 100
+      //   ).toString(10),
+      //   10
+      // )
       new BN(
         BigInt(
-          (Math.round(liquidityAssetAmount * 10 ** 18) * percentage) / 100
+          Math.round((percentage/100)*liquidityAssetAmount * 10 ** 18)
         ).toString(10),
         10
-      )
+      ),
     );
   };
 
