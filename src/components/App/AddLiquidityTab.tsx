@@ -321,16 +321,17 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
           <Button type="disabled" text="Insufficient Balance" />
         ) : (
           <Button
-            type={
-              firstTokenAmount == null ||
-              secondTokenAmount == null ||
-              parseFloat(firstTokenAmount) <= 0 ||
-              parseFloat(secondTokenAmount) <= 0 ||
-              parseFloat(firstTokenAmount) > (firstTokenBalance as number) ||
-              parseFloat(secondTokenAmount) > (secondTokenBalance as number)
-                ? 'disabled'
-                : 'primary'
-            }
+            // type={
+            //   firstTokenAmount == null ||
+            //   secondTokenAmount == null ||
+            //   parseFloat(firstTokenAmount) <= 0 ||
+            //   parseFloat(secondTokenAmount) <= 0 ||
+            //   parseFloat(firstTokenAmount) > (firstTokenBalance as number) ||
+            //   parseFloat(secondTokenAmount) > (secondTokenBalance as number)
+            //     ? 'disabled'
+            //     : 'primary'
+            // }
+            type="primary"
             text="Confirm"
             onClick={handleAddLiquidity}
           />
