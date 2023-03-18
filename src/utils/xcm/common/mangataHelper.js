@@ -208,7 +208,7 @@ class MangataHelper {
       firstTokenId,
       secondTokenId,
       firstAmount,
-      expectedSecondAmount,
+      expectedSecondAmount
     );
 
     return fees;
@@ -216,7 +216,8 @@ class MangataHelper {
   burnLiquidityTx = async (
     firstTokenId,
     secondTokenId,
-    liquidityAssetAmount
+    liquidityAssetAmount,
+    percentage
   ) => {
     // const firstToken = _.find(this.assets, { id: firstTokenId });
     // const firstDecimalBN = getDecimalBN(firstToken.decimals);
@@ -231,7 +232,12 @@ class MangataHelper {
       firstTokenId,
       secondTokenId,
       // liquidityAssetAmount
-      new BN(BigInt(Math.round(liquidityAssetAmount * 10 ** 18)).toString(10), 10),
+      new BN(
+        BigInt(
+          (Math.round(liquidityAssetAmount * 10 ** 18) * percentage) / 100
+        ).toString(10),
+        10
+      )
     );
   };
 
@@ -252,21 +258,43 @@ class MangataHelper {
       secondDecimalBN
     );
 
-    console.log("lastmile",
-      new BN(BigInt(Math.round(firstTokenAmount * 10 ** firstToken.decimals)).toString(10), 10),
-      new BN(BigInt(Math.round(expectedSecondTokenAmount * 10 ** secondToken.decimals)).toString(10), 10),
+    console.log(
+      'lastmile',
+      new BN(
+        BigInt(
+          Math.round(firstTokenAmount * 10 ** firstToken.decimals)
+        ).toString(10),
+        10
+      ),
+      new BN(
+        BigInt(
+          Math.round(expectedSecondTokenAmount * 10 ** secondToken.decimals)
+        ).toString(10),
+        10
+      ),
       firstTokenId,
       secondTokenId,
       amountBN,
       expectedSecondAmountBN,
       Math.round(firstTokenAmount * 10 ** firstToken.decimals),
-      Math.round(expectedSecondTokenAmount * 10 ** secondToken.decimals));
+      Math.round(expectedSecondTokenAmount * 10 ** secondToken.decimals)
+    );
 
     return this.api.tx.xyk.mintLiquidity(
       firstTokenId,
       secondTokenId,
-      new BN(BigInt(Math.round(firstTokenAmount * 10 ** firstToken.decimals)).toString(10), 10),
-      new BN(BigInt(Math.round(expectedSecondTokenAmount * 10 ** secondToken.decimals)).toString(10), 10),
+      new BN(
+        BigInt(
+          Math.round(firstTokenAmount * 10 ** firstToken.decimals)
+        ).toString(10),
+        10
+      ),
+      new BN(
+        BigInt(
+          Math.round(expectedSecondTokenAmount * 10 ** secondToken.decimals)
+        ).toString(10),
+        10
+      )
     );
   };
 

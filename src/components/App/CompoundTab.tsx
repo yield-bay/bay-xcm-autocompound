@@ -117,17 +117,17 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
     // Defining Signer to make trxns
     const signer = account?.wallet?.signer;
 
-    const mgxTurBal = await mangataHelper.mangata.getTokenBalance(
+    const lpBalance = await mangataHelper.mangata.getTokenBalance(
       pool.liquidityTokenId,
       account?.address
-    ); //mgx-tur
+    ); // token0-token1
 
-    console.log('mgxTurBal', mgxTurBal);
+    console.log('lpBalance', lpBalance);
     const decimal = mangataHelper.getDecimalsBySymbol(`${token0}-${token1}`);
     console.log('decimal', decimal);
 
     // tokenAmount is the amount of locked liquidity token which are to be activated
-    const tokenAmount = BigInt(mgxTurBal.reserved).toString(10) / 10 ** decimal;
+    const tokenAmount = BigInt(lpBalance.reserved).toString(10) / 10 ** decimal;
     setLpBalance(tokenAmount);
 
     let activateLiquidityTxn = await mangataHelper.activateLiquidityV2(
@@ -410,33 +410,6 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       signer,
       taskId
     );
-
-    const bltx = await mangataHelper.burnLiquidityTx(
-      pool.firstTokenId,
-      pool.secondTokenId,
-      newLiquidityBalance.reserved
-    );
-    await bltx
-      .signAndSend(
-        account1?.address,
-        { signer: signer },
-        async ({ status }: any) => {
-          if (status.isInBlock) {
-            console.log(
-              `Burn Liquidity Successfully for ${pool.firstTokenId} & ${
-                pool.secondTokenId
-              } with hash ${status.asInBlock.toHex()}`
-            );
-            // unsub();
-            // resolve();
-          } else {
-            console.log(`Status: ${status.type}`);
-          }
-        }
-      )
-      .catch((e: any) => {
-        console.log('Error in burnLiquidityTx', e);
-      });
   };
 
   return verifyStopCompounding ? (
