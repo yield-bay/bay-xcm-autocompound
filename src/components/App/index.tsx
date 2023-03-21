@@ -42,18 +42,20 @@ const App = () => {
     },
   });
 
+  const getXcmpTasks = async () => {
+    if (account == null) return;
+    try {
+      const { xcmpTasks } = await fetchXcmpTasks(account?.address);
+      console.log('fetched xcmpTasks', xcmpTasks);
+      setXcmpTasks(xcmpTasks);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   useEffect(() => {
-    (async () => {
-      const userAddress = account?.address;
-      try {
-        const { xcmpTasks } = await fetchXcmpTasks(userAddress as string);
-        console.log('xcmpTasks', xcmpTasks);
-        return xcmpTasks;
-      } catch (error) {
-        console.log(error);
-      }
-    })();
-  }, [account?.address]);
+    getXcmpTasks();
+  }, [account]);
 
   const [filteredFarms, noFilteredFarms] = useFilteredFarms(farms, searchTerm);
 

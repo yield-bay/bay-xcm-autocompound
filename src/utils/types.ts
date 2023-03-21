@@ -1,4 +1,4 @@
-import { WalletAccount } from "@talismn/connect-wallets";
+import { WalletAccount } from '@talismn/connect-wallets';
 
 export interface FarmType {
   id: number;

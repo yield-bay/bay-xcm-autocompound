@@ -8,11 +8,14 @@ const client = createClient({
 });
 
 export const fetchFarms = async () => {
+  const chainName = 'Mangata Kusama';
+  const protocolName = 'Mangata X';
+
   const farmObj = await client
     .query(
       gql`
-        query Farms {
-          farms(chain: "Mangata Kusama", protocol: "Mangata X") {
+        query getFarms($chain: String!, $protocol: String!) {
+          farms(chain: $chain, protocol: $protocol) {
             id
             chef
             chain
@@ -42,7 +45,10 @@ export const fetchFarms = async () => {
           }
         }
       `,
-      {} // variables
+      {
+        chain: chainName,
+        protocol: protocolName,
+      }
     )
     .toPromise();
 
@@ -53,12 +59,11 @@ export const fetchFarms = async () => {
 };
 
 export const fetchXcmpTasks = async (userAddress: string) => {
-  console.log('Passed address', userAddress);
   const xcmpTaskObj = await client
     .query(
       gql`
-        query XcmpTasks {
-          xcmpTasks(userAddress: "${userAddress}") {
+        query getXcmpTasks($userAddress: String!) {
+          xcmpTasks(userAddress: $userAddress, chain: ROCOCO) {
             taskId
             userAddress
             lpName
@@ -67,11 +72,13 @@ export const fetchXcmpTasks = async (userAddress: string) => {
           }
         }
       `,
-      {} // variables
+      {
+        userAddress,
+      }
     )
     .toPromise();
 
-  const xcmpTasks: XcmpTaskType[] = xcmpTaskObj?.data?.farms;
+  const xcmpTasks: XcmpTaskType[] = xcmpTaskObj?.data?.xcmpTasks;
   return {
     xcmpTasks,
   };
