@@ -97,7 +97,8 @@ class MangataHelper {
       currencyId,
       amount,
       dest,
-      null
+      amt
+      // null
     );
     return extrinsic;
     // await sendExtrinsic(this.api, extrinsic, keyring);
@@ -180,9 +181,35 @@ class MangataHelper {
   activateLiquidityV2 = async (tokenId, amount) => {
     const token = _.find(this.assets, { id: tokenId });
     const decimalBN = getDecimalBN(token.decimals);
-    const amountBN = new BN(amount).mul(decimalBN);
+    const amountBN = new BN(amount, 10).mul(decimalBN);
+    // console.log("albn", amountBN, amountBN.toNumber() ?? -1);
 
-    return this.api.tx.xyk.activateLiquidityV2(tokenId, amountBN, undefined);
+    return this.api.tx.xyk.activateLiquidityV2(
+      tokenId,
+      new BN(
+        BigInt(
+          Math.round(amount * 10 ** 18)
+        ).toString(10),
+        10
+      ),
+      undefined);
+  };
+
+  deactivateLiquidityV2 = async (tokenId, amount) => {
+    const token = _.find(this.assets, { id: tokenId });
+    const decimalBN = getDecimalBN(token.decimals);
+    const amountBN = new BN(amount, 10).mul(decimalBN);
+    // console.log("albn", amountBN, amountBN.toNumber() ?? -1);
+
+    return this.api.tx.xyk.deactivateLiquidityV2(
+      tokenId,
+      new BN(
+        BigInt(
+          Math.round(amount * 10 ** 18)
+        ).toString(10),
+        10
+      )
+    );
   };
 
   getMintLiquidityFee = async ({
@@ -430,7 +457,7 @@ class MangataHelper {
   ) => {
     const soldAssetId = this.getTokenIdBySymbol(sellSymbol);
     const boughtAssetId = this.getTokenIdBySymbol(buySymbol);
-    console.log("soldAssetId",soldAssetId,"boughtAssetId",boughtAssetId);
+    console.log("soldAssetId", soldAssetId, "boughtAssetId", boughtAssetId);
     return this.api.tx.xyk.buyAsset(
       soldAssetId,
       boughtAssetId,

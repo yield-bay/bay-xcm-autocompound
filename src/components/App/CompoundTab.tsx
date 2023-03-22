@@ -127,15 +127,37 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
     console.log('decimal', decimal);
 
     // tokenAmount is the amount of locked liquidity token which are to be activated
-    const tokenAmount = BigInt(lpBalance.reserved).toString(10) / 10 ** decimal;
-    setLpBalance(tokenAmount);
+    let tokenAmount = BigInt(lpBalance.free).toString(10) / 10 ** decimal;
+    // edge case: if some amount was activated and some was not
+    if (tokenAmount !== 0) {
+      // let freeTokenAmount = BigInt(lpBalance.free).toString(10) / 10 ** decimal;
 
-    let activateLiquidityTxn = await mangataHelper.activateLiquidityV2(
-      liquidityTokenId,
-      tokenAmount
-    );
-    // mangataTransactions.push(activateLiquidityTxn);
-    // activateLiquidityTxn.signAndSend(account1.address, { signer: signer });
+      let activateLiquidityTxn = await mangataHelper.activateLiquidityV2(
+        liquidityTokenId,
+        tokenAmount
+      );
+      mangataTransactions.push(activateLiquidityTxn);
+      // activateLiquidityTxn.signAndSend(account1.address, { signer: signer });
+      // activateLiquidityTxn.signAndSend(account1.address, { signer: signer }, ({ status }: any) => {
+      //   if (status.isInBlock) {
+      //     console.log(`included in ${status.asInBlock}`);
+      //     console.log(
+      //       `al Tx is in block with hash ${status.asInBlock.toHex()}`
+      //     );
+      //   }else if (status.isFinalized) {
+      //     console.log(
+      //       `al Tx finalized with hash ${status.asFinalized.toHex()}`
+      //     );
+      //   } else {
+      //     console.log(`Status of Batch Tx: ${status.type}`);
+      //   }
+      // });
+    }
+    tokenAmount = BigInt(lpBalance.free).toString(10) / 10 ** decimal + BigInt(lpBalance.reserved).toString(10) / 10 ** decimal;
+    setLpBalance(tokenAmount);
+    console.log("tokenAmount", tokenAmount, "liquidityTokenId", liquidityTokenId);
+
+
 
     console.log(
       '\n2. Add a proxy on Mangata for paraId 2114, or skip this step if that exists ...'
@@ -145,6 +167,8 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       account?.address, // mangataAddress,
       turingHelper.config.paraId
     );
+    console.log("proxyAddress", proxyAddress);
+
     const proxiesResponse = await mangataHelper.api.query.proxy.proxies(
       account?.address
     );
@@ -177,7 +201,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       );
       const aptx = await mangataHelper.addProxyTx(proxyAddress, proxyType);
       // await aptx.signAndSend(account1.address, { signer: signer });
-      // mangataTransactions.push(aptx);
+      mangataTransactions.push(aptx);
 
       // const addProxyTx = api.tx.proxy.addProxy(proxyAccount, proxyType, 0)
     }
@@ -285,30 +309,34 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
         10000000
       );
       // await baTx.signAndSend(account1.address, { signer: signer });
-      mangataTransactions.push(baTx);
+      // mangataTransactions.push(baTx);
 
       console.log('Before TUR Transfer', totalFees);
       const transferTurTx = await mangataHelper.transferTur(
-        // 0.1*10**10,
+        // 1 * 10 ** 10,
         totalFees,
         turingAddress
       );
       // Transfer to Turing network
       mangataTransactions.push(transferTurTx);
+      // await transferTurTx.signAndSend(account1.address, { signer: signer });
     } else if (gasChoice === 1) {
       // pay with TUR
       if (turfreebal < totalFees) {
         console.log('Before TUR Transfer', totalFees);
         const transferTurTx = await mangataHelper.transferTur(
+          // 1 * 10 ** 10,
           totalFees,
           turingAddress
         );
+        // await transferTurTx.signAndSend(account1.address, { signer: signer });
         mangataTransactions.push(transferTurTx);
       }
     } else {
       console.log("gasChoice doesn't exist");
     }
-
+    console.log("gasChoice", gasChoice, "mangataTransactions", mangataTransactions);
+    // return;
     // BUG: NEED TO REMOVE await
     // const mangataBatchTx = await mangataHelper.api.tx.utility.batchAll(
     //   mangataTransactions
