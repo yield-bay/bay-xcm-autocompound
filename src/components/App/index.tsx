@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import _ from 'lodash';
 import { useQuery } from '@tanstack/react-query';
+import MetaTags from '@components/Common/metaTags/MetaTags';
 import { fetchFarms, fetchXcmpTasks } from '@utils/api';
 import { filterMGXFarms } from '@utils/farmMethods';
 import FarmsList from './FarmsList';
@@ -61,6 +62,7 @@ const App = () => {
 
   return (
     <main className="min-w-full min-h-screen bg-baseGrayMid rounded-3xl py-14">
+      <MetaTags />
       <div className="max-w-[1138px] mx-auto">
         <div className="items-center w-full justify-center sm:justify-end lg:justify-center">
           <SearchInput term={searchTerm} setTerm={setSearchTerm} />

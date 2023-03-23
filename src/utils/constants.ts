@@ -6,10 +6,10 @@ export const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
 
 // APPLICATION
 export const SITE_NAME = ''; // TODO
-export const APP_NAME = 'yieldbay';
-export const DESCRIPTION = '';
-export const DOMAIN = '';
-export const IMAGE = '';
+export const APP_NAME = 'Yieldbay Auto-compounder';
+export const DESCRIPTION = 'Explore and auto-compound liquidity pools on MangataX';
+export const DOMAIN = `https://${SITE_NAME}`;
+export const IMAGE = `${DOMAIN}/twitter-cover.png`;
 export const USERNAME = 'yield_bay';
 export const YIELDBAY_LANDING = 'https://yieldbay.io';
 
