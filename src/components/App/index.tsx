@@ -29,7 +29,7 @@ const App = () => {
     query: XcmpTasksQuery,
     variables: {
       // userAddress: account?.address,
-      userAddress: '67qEhopwu1mE43vzPMR7cvrA3GaTsbKT6ktf22CXy8pbsob5',
+      userAddress: '67qEhopwu1mE43vzPMR7cvrA3GaTsbKT6ktf22CXy8pbsob5', // Jack Sparrow's Turing Address
       chain: 'ROCOCO',
     },
     pause: account == null,
@@ -45,14 +45,14 @@ const App = () => {
         setDummyXcmp([
           {
             taskId: '123',
-            userAddress: '5GVpo5GAXgzH43by4CCzbqv7mwUd1zJg3mqiZ3zHLL6UWAtB',
+            userAddress: '67qEhopwu1mE43vzPMR7cvrA3GaTsbKT6ktf22CXy8pbsob5',
             lpName: 'MGR-TUR',
             chain: 'ROCOCO', // ROCOCO
             status: 'RUNNING', // RUNNING
           },
           {
             taskId: '242',
-            userAddress: '5GVpo5GAXgzH43by4CCzbqv7mwUd1zJg3mqiZ3zHLL6UWAtB',
+            userAddress: '67qEhopwu1mE43vzPMR7cvrA3GaTsbKT6ktf22CXy8pbsob5',
             lpName: 'MGR-IMBU',
             chain: 'ROCOCO', // ROCOCO
             status: 'FINISHED', // FINISHED
@@ -60,7 +60,7 @@ const App = () => {
         ]);
       }
     }
-  }, [xcmpTasksFetching]);
+  }, [xcmpTasksData]);
 
   const [filteredFarms, noFilteredFarms] = useFilteredFarms(
     filterMGXFarms(farmsData?.farms),

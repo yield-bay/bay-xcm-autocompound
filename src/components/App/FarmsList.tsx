@@ -2,6 +2,7 @@ import { FC } from 'react';
 import { FarmType, XcmpTaskType } from '@utils/types';
 import Loader from '@components/Library/Loader';
 import FarmCard from './FarmCard';
+import { formatTokenSymbols, replaceTokenSymbols } from '@utils/farmMethods';
 
 interface Props {
   farms: FarmType[];
@@ -19,7 +20,15 @@ const FarmsList: FC<Props> = ({ farms, noFarms, isLoading, xcmpTasks }) => {
           <p>loading pools...</p>
         </>
       ) : !noFarms ? (
-        farms.map((farm, index) => <FarmCard farm={farm} key={index} />)
+        farms.map((farm, index) => {
+          const [token0, token1] = formatTokenSymbols(
+            replaceTokenSymbols(farm?.asset.symbol)
+          );
+          const xcmpTask = xcmpTasks.find(
+            (task) => task.lpName == `${token0}-${token1}`
+          );
+          return <FarmCard farm={farm} key={index} xcmpTask={xcmpTask} />;
+        })
       ) : (
         <div className="flex items-center justify-center">
           <p>No Results. Try searching for something else.</p>

@@ -17,3 +17,5 @@ export const isInitialisedAtom = atom<boolean>(false);
 export const account1Atom = atom<any>(null);
 export const mangataAddressAtom = atom<string | null>(null);
 export const turingAddressAtom = atom<string | null>(null);
+
+export const viewPositionsAtom = atom<boolean>(false);

@@ -17,7 +17,7 @@ const Footer: FC = () => {
       link: 'https://list.yieldbay.io/',
     },
     {
-      title: 'XCM Autocompounder',
+      title: 'Auto-compounder',
       link: '#',
     },
   ];

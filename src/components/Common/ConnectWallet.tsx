@@ -4,7 +4,7 @@ import Image from 'next/image';
 import clsx from 'clsx';
 import { useAtom } from 'jotai';
 import { accountAtom, walletAccountsAtom } from '@store/accountAtoms';
-import { walletModalOpenAtom } from '@store/commonAtoms';
+import { walletModalOpenAtom, viewPositionsAtom } from '@store/commonAtoms';
 import { walletAtom } from '@store/walletAtoms';
 import { CheckCircleIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 
@@ -175,14 +175,23 @@ const ConnectWalletButton: FC = () => {
 
 const ConnectWallet: FC = () => {
   const [account] = useAtom(accountAtom);
+  const [viewPositions, setViewPositions] = useAtom(viewPositionsAtom);
   return (
     <>
       {account == null ? (
         <ConnectWalletButton />
       ) : (
-        <SelectAccountMenu>
-          <ConnectWalletButton />
-        </SelectAccountMenu>
+        <div className="flex flex-col gap-y-4">
+          <SelectAccountMenu>
+            <ConnectWalletButton />
+          </SelectAccountMenu>
+          <button
+            className="text-sm leading-[19px] w-full rounded-lg py-[10px] bg-baseGray"
+            onClick={() => setViewPositions(!viewPositions)}
+          >
+            {viewPositions ? 'Show all pools' : 'View my positions'}
+          </button>
+        </div>
       )}
     </>
   );

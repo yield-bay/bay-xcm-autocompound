@@ -50,13 +50,13 @@ const Providers: FC<Props> = ({ children }) => {
   }, [wallet]);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <UrqlProvider value={urqlClient}>
-        <ChakraProvider>
+    <ChakraProvider>
+      <QueryClientProvider client={queryClient}>
+        <UrqlProvider value={urqlClient}>
           <Layout>{children}</Layout>
-        </ChakraProvider>
-      </UrqlProvider>
-    </QueryClientProvider>
+        </UrqlProvider>
+      </QueryClientProvider>
+    </ChakraProvider>
   );
 };
 
