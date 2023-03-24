@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import _ from 'lodash';
-import { useQuery } from '@tanstack/react-query';
 import MetaTags from '@components/Common/metaTags/MetaTags';
-import { fetchFarms, fetchXcmpTasks } from '@utils/api';
+import { FarmsQuery, XcmpTasksQuery } from '@utils/api';
+import { useQuery } from 'urql';
 import { filterMGXFarms } from '@utils/farmMethods';
 import FarmsList from './FarmsList';
 import SearchInput from '@components/Library/SearchInput';
@@ -14,51 +14,58 @@ import { accountAtom } from '@store/accountAtoms';
 const App = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [account] = useAtom(accountAtom);
+  const [dummyXcmp, setDummyXcmp] = useState<XcmpTaskType[]>([]);
 
-  const [xcmpTasks, setXcmpTasks] = useState<XcmpTaskType[]>();
-
-  // const { isLoading: isXcmpLoading, data: xcmpTasks } = useQuery({
-  //   queryKey: ['xcmpTasks'],
-  //   queryFn: async () => {
-  //     try {
-  //       const { xcmpTasks } = await fetchXcmpTasks();
-  //       console.log('xcmpTasks', xcmpTasks);
-  //       return xcmpTasks;
-  //     } catch (error) {
-  //       console.log(error);
-  //     }
-  //   },
-  // });
-
-  const { isLoading, data: farms } = useQuery({
-    queryKey: ['pools'],
-    queryFn: async () => {
-      try {
-        const { farms } = await fetchFarms();
-        const filteredMGXFarms = filterMGXFarms(farms); // Filter farms with MGX token
-        return filteredMGXFarms;
-      } catch (error) {
-        console.log(error);
-      }
+  const [farmsResult, reexecuteQuery] = useQuery({
+    query: FarmsQuery,
+    variables: {
+      chain: 'Mangata Kusama',
+      protocol: 'Mangata X',
     },
   });
+  const { data: farmsData, fetching: farmsFetching, error } = farmsResult;
 
-  const getXcmpTasks = async () => {
-    if (account == null) return;
-    try {
-      const { xcmpTasks } = await fetchXcmpTasks(account?.address);
-      console.log('fetched xcmpTasks', xcmpTasks);
-      setXcmpTasks(xcmpTasks);
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  const [xcmpTasksResult, reexecuteXcmpTasksQuery] = useQuery({
+    query: XcmpTasksQuery,
+    variables: {
+      // userAddress: account?.address,
+      userAddress: '67qEhopwu1mE43vzPMR7cvrA3GaTsbKT6ktf22CXy8pbsob5',
+      chain: 'ROCOCO',
+    },
+    pause: account == null,
+  });
+  const { data: xcmpTasksData, fetching: xcmpTasksFetching } = xcmpTasksResult;
 
   useEffect(() => {
-    getXcmpTasks();
-  }, [account]);
+    if (xcmpTasksFetching == false) {
+      if (xcmpTasksData?.xcmpTasks.length > 0) {
+        console.log('xcmpTasksData', xcmpTasksData.xcmpTasks);
+      } else {
+        // If no xcmp tasks, then set dummy data
+        setDummyXcmp([
+          {
+            taskId: '123',
+            userAddress: '5GVpo5GAXgzH43by4CCzbqv7mwUd1zJg3mqiZ3zHLL6UWAtB',
+            lpName: 'MGR-TUR',
+            chain: 'ROCOCO', // ROCOCO
+            status: 'RUNNING', // RUNNING
+          },
+          {
+            taskId: '242',
+            userAddress: '5GVpo5GAXgzH43by4CCzbqv7mwUd1zJg3mqiZ3zHLL6UWAtB',
+            lpName: 'MGR-IMBU',
+            chain: 'ROCOCO', // ROCOCO
+            status: 'FINISHED', // FINISHED
+          },
+        ]);
+      }
+    }
+  }, [xcmpTasksFetching]);
 
-  const [filteredFarms, noFilteredFarms] = useFilteredFarms(farms, searchTerm);
+  const [filteredFarms, noFilteredFarms] = useFilteredFarms(
+    filterMGXFarms(farmsData?.farms),
+    searchTerm
+  );
 
   return (
     <main className="min-w-full min-h-screen bg-baseGrayMid rounded-3xl py-14">
@@ -70,7 +77,8 @@ const App = () => {
         <FarmsList
           farms={filteredFarms}
           noFarms={noFilteredFarms}
-          isLoading={isLoading}
+          isLoading={farmsFetching}
+          xcmpTasks={dummyXcmp}
         />
       </div>
     </main>

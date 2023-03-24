@@ -8,10 +8,10 @@ import { FarmType } from '@utils/types';
  * @returns Filtered farms list according to search term
  */
 export default function useFilteredFarms(
-  farms: FarmType[] | undefined,
+  farms: FarmType[],
   search: string
 ): [FarmType[], boolean] {
-  if (!farms || farms == undefined) return [[], true];
+  if (!farms) return [[], true];
   if (search === '') return [farms, false];
   const searchTerm = search.trim().toUpperCase();
   const filtered = farms.filter((farm: any) => {

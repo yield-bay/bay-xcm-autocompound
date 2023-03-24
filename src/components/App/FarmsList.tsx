@@ -1,6 +1,5 @@
 import { FC } from 'react';
-import { motion } from 'framer-motion';
-import { FarmType } from '@utils/types';
+import { FarmType, XcmpTaskType } from '@utils/types';
 import Loader from '@components/Library/Loader';
 import FarmCard from './FarmCard';
 
@@ -8,9 +7,10 @@ interface Props {
   farms: FarmType[];
   noFarms: boolean;
   isLoading: boolean;
+  xcmpTasks: XcmpTaskType[];
 }
 
-const FarmsList: FC<Props> = ({ farms, noFarms, isLoading }) => {
+const FarmsList: FC<Props> = ({ farms, noFarms, isLoading, xcmpTasks }) => {
   return (
     <div className="flex flex-col items-center gap-y-[25px] my-16">
       {isLoading ? (

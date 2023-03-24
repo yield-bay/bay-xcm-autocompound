@@ -7,6 +7,8 @@ import { walletAccountsAtom } from '@store/accountAtoms';
 import { walletsAtom, walletAtom } from '@store/walletAtoms';
 import { getWallets } from '@talismn/connect-wallets';
 import { pullWalletAccounts } from '@utils/polkadotMethods';
+import { createClient, defaultExchanges, Provider as UrqlProvider } from 'urql';
+import { API_URL } from '@utils/constants';
 
 interface Props {
   children: ReactNode;
@@ -18,6 +20,12 @@ const Providers: FC<Props> = ({ children }) => {
   const [wallet] = useAtom(walletAtom);
 
   const queryClient = new QueryClient();
+
+  const urqlClient = createClient({
+    url: API_URL,
+    exchanges: defaultExchanges,
+    requestPolicy: 'cache-and-network',
+  });
 
   useEffect(() => {
     let unmounted = false;
@@ -43,9 +51,11 @@ const Providers: FC<Props> = ({ children }) => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ChakraProvider>
-        <Layout>{children}</Layout>
-      </ChakraProvider>
+      <UrqlProvider value={urqlClient}>
+        <ChakraProvider>
+          <Layout>{children}</Layout>
+        </ChakraProvider>
+      </UrqlProvider>
     </QueryClientProvider>
   );
 };

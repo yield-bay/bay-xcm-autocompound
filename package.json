@@ -43,7 +43,8 @@
     "react-countup": "^6.4.2",
     "react-dom": "18.2.0",
     "react-form-stepper": "^2.0.3",
-    "sharp": "^0.31.3"
+    "sharp": "^0.31.3",
+    "urql": "^3.0.4"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.191",

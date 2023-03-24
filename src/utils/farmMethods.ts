@@ -20,7 +20,8 @@ export function formatFarmType(farmType: string): string {
 }
 
 // Filter farms with MGX token and return them
-export const filterMGXFarms = (farms: FarmType[]): FarmType[] => {
+export const filterMGXFarms = (farms: FarmType[] | undefined): FarmType[] => {
+  if (farms == undefined) return [];
   const filteredFarms = farms.filter((farm) => {
     const tokens = formatTokenSymbols(farm.asset.symbol);
     return tokens.includes('MGX');
