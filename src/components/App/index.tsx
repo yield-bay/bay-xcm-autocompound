@@ -1,8 +1,13 @@
 import { useEffect, useState } from 'react';
 import _ from 'lodash';
 import MetaTags from '@components/Common/metaTags/MetaTags';
-import { FarmsQuery, XcmpTasksQuery } from '@utils/api';
-import { useQuery } from 'urql';
+import {
+  FarmsQuery,
+  XcmpTasksQuery,
+  AddXcmpTaskMutation,
+  UpdateXcmpTaskMutation,
+} from '@utils/api';
+import { useMutation, useQuery } from 'urql';
 import { filterMGXFarms } from '@utils/farmMethods';
 import FarmsList from './FarmsList';
 import SearchInput from '@components/Library/SearchInput';
@@ -14,7 +19,6 @@ import { accountAtom } from '@store/accountAtoms';
 const App = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [account] = useAtom(accountAtom);
-  const [dummyXcmp, setDummyXcmp] = useState<XcmpTaskType[]>([]);
 
   const [farmsResult, reexecuteQuery] = useQuery({
     query: FarmsQuery,
@@ -36,29 +40,44 @@ const App = () => {
   });
   const { data: xcmpTasksData, fetching: xcmpTasksFetching } = xcmpTasksResult;
 
+  // ADD NEW TASK
+  const [addXcmpTaskResult, addXcmpTask] = useMutation(AddXcmpTaskMutation);
+  const addXcmpTaskHandler = async (
+    taskId: string,
+    userAddress: string,
+    lpName: string,
+    chain: string
+  ) => {
+    const variables = { taskId, userAddress, lpName, chain };
+    console.log('Adding new task...');
+    addXcmpTask(variables).then((result) => {
+      console.log('addxcmptask result', result);
+    });
+  };
+
+  // UPDATE TASK
+  const [updateXcmpTaskResult, updateXcmpTask] = useMutation(
+    UpdateXcmpTaskMutation
+  );
+  const updateXcmpTaskHandler = async (
+    taskId: string,
+    userAddress: string,
+    lpName: string,
+    chain: string,
+    newStatus: string
+  ) => {
+    const variables = { taskId, userAddress, lpName, chain, newStatus };
+    console.log('Updating task...');
+    updateXcmpTask(variables).then((result) => {
+      console.log('updateXcmpTask result', result);
+    });
+  };
+
   useEffect(() => {
     if (xcmpTasksFetching == false) {
-      if (xcmpTasksData?.xcmpTasks.length > 0) {
-        console.log('xcmpTasksData', xcmpTasksData.xcmpTasks);
-      } else {
-        // If no xcmp tasks, then set dummy data
-        setDummyXcmp([
-          {
-            taskId: '123',
-            userAddress: '67qEhopwu1mE43vzPMR7cvrA3GaTsbKT6ktf22CXy8pbsob5',
-            lpName: 'MGR-TUR',
-            chain: 'ROCOCO', // ROCOCO
-            status: 'RUNNING', // RUNNING
-          },
-          {
-            taskId: '242',
-            userAddress: '67qEhopwu1mE43vzPMR7cvrA3GaTsbKT6ktf22CXy8pbsob5',
-            lpName: 'MGR-IMBU',
-            chain: 'ROCOCO', // ROCOCO
-            status: 'FINISHED', // FINISHED
-          },
-        ]);
-      }
+      console.log('xcmpTasksData', xcmpTasksData?.xcmpTasks);
+    } else {
+      console.log('xcmpTasksFetching', xcmpTasksFetching);
     }
   }, [xcmpTasksData]);
 
@@ -71,14 +90,30 @@ const App = () => {
     <main className="min-w-full min-h-screen bg-baseGrayMid rounded-3xl py-14">
       <MetaTags />
       <div className="max-w-[1138px] mx-auto">
+        {/* <Button
+          bgColor="white"
+          textColor="black"
+          size="lg"
+          onClick={() =>
+            updateXcmpTaskHandler(
+              '321', // taskId
+              '67qEhopwu1mE43vzPMR7cvrA3GaTsbKT6ktf22CXy8pbsob5', // userAddress
+              'MGR-IMBU', // lpName
+              'ROCOCO', // chain
+              'CANCELLED' // status
+            )
+          }
+        >
+          Update task
+        </Button> */}
         <div className="items-center w-full justify-center sm:justify-end lg:justify-center">
           <SearchInput term={searchTerm} setTerm={setSearchTerm} />
         </div>
         <FarmsList
           farms={filteredFarms}
           noFarms={noFilteredFarms}
-          isLoading={farmsFetching}
-          xcmpTasks={dummyXcmp}
+          isLoading={farmsFetching || xcmpTasksFetching}
+          xcmpTasks={xcmpTasksData?.xcmpTasks ?? []}
         />
       </div>
     </main>

@@ -1,11 +1,11 @@
 import { createClient, defaultExchanges, gql } from '@urql/core';
-import { API_URL } from './constants';
-import { FarmType, XcmpTaskType } from './types';
+// import { API_URL } from './constants';
+// import { FarmType, XcmpTaskType } from './types';
 
-const client = createClient({
-  url: API_URL,
-  exchanges: defaultExchanges,
-});
+// const client = createClient({
+//   url: API_URL,
+//   exchanges: defaultExchanges,
+// });
 
 // FARM METHODS
 
@@ -42,19 +42,19 @@ export const FarmsQuery = gql`
   }
 `;
 
-export const fetchFarms = async () => {
-  const farmObj = await client
-    .query(FarmsQuery, {
-      chain: 'Mangata Kusama',
-      protocol: 'Mangata X',
-    })
-    .toPromise();
+// export const fetchFarms = async () => {
+//   const farmObj = await client
+//     .query(FarmsQuery, {
+//       chain: 'Mangata Kusama',
+//       protocol: 'Mangata X',
+//     })
+//     .toPromise();
 
-  const farms: FarmType[] = farmObj?.data?.farms;
-  return {
-    farms,
-  };
-};
+//   const farms: FarmType[] = farmObj?.data?.farms;
+//   return {
+//     farms,
+//   };
+// };
 
 // XCMP TASKS METHODS
 
@@ -70,22 +70,62 @@ export const XcmpTasksQuery = gql`
   }
 `;
 
-export const fetchXcmpTasks = async (userAddress: string) => {
-  const xcmpTaskObj = await client
-    .query(XcmpTasksQuery, {
-      userAddress,
-      chain: 'ROCOCO',
-    })
-    .toPromise();
+export const AddXcmpTaskMutation = gql`
+  mutation addXcmpTask(
+    $taskId: String!
+    $userAddress: String!
+    $lpName: String!
+    $chain: XCMPTaskChain!
+  ) {
+    addTask(
+      taskId: $taskId
+      userAddress: $userAddress
+      lpName: $lpName
+      chain: $chain
+    ) {
+      taskId
+      userAddress
+      lpName
+      chain
+      status
+    }
+  }
+`;
 
-  const xcmpTasks: XcmpTaskType[] = xcmpTaskObj?.data?.xcmpTasks;
-  return {
-    xcmpTasks,
-  };
-};
+export const UpdateXcmpTaskMutation = gql`
+  mutation updateXcmpTask(
+    $taskId: String!
+    $userAddress: String!
+    $lpName: String!
+    $chain: XCMPTaskChain!
+    $newStatus: String!
+  ) {
+    updateTaskStatus(
+      taskId: $taskId
+      userAddress: $userAddress
+      lpName: $lpName
+      chain: $chain
+      newStatus: $newStatus
+    )
+  }
+`;
 
-export const addXcmpTask = async (args: any) => {
-  const xcmpTaskObj = await client.mutation(XcmpTasksQuery, {
-    userAddress: args.userAddress,
-  });
-};
+// export const fetchXcmpTasks = async (userAddress: string) => {
+//   const xcmpTaskObj = await client
+//     .query(XcmpTasksQuery, {
+//       userAddress,
+//       chain: 'ROCOCO',
+//     })
+//     .toPromise();
+
+//   const xcmpTasks: XcmpTaskType[] = xcmpTaskObj?.data?.xcmpTasks;
+//   return {
+//     xcmpTasks,
+//   };
+// };
+
+// export const addXcmpTask = async (args: any) => {
+//   const xcmpTaskObj = await client.mutation(XcmpTasksQuery, {
+//     userAddress: args.userAddress,
+//   });
+// };

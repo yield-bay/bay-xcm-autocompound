@@ -1,4 +1,4 @@
-import { FarmType } from '@utils/types';
+import { FarmType, XcmpTaskType } from '@utils/types';
 import { atom } from 'jotai';
 
 export const walletModalOpenAtom = atom<boolean>(false);
@@ -7,6 +7,7 @@ export const mainModalOpenAtom = atom<boolean>(false);
 export const selectedTabModalAtom = atom<number>(0);
 
 export const selectedFarmAtom = atom<FarmType | null>(null);
+export const selectedTaskAtom = atom<XcmpTaskType | undefined>(undefined);
 export const poolsAtom = atom<any | null>(null);
 
 export const mangataHelperAtom = atom<any>(null);
