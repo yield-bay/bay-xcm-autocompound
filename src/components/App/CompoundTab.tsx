@@ -16,6 +16,8 @@ import {
   turingHelperAtom,
   turingAddressAtom,
   mangataAddressAtom,
+  selectedTaskAtom,
+  stopCompModalOpenAtom,
 } from '@store/commonAtoms';
 import { delay, getDecimalBN } from '@utils/xcm/common/utils';
 import { accountAtom } from '@store/accountAtoms';
@@ -28,6 +30,7 @@ import Button from '@components/Library/Button';
 import ProcessStepper from '@components/Library/ProcessStepper';
 import ToastWrapper from '@components/Library/ToastWrapper';
 import Loader from '@components/Library/Loader';
+import { getDecimalById } from '@utils/mangata-helpers';
 
 const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
   const [, setOpen] = useAtom(mainModalOpenAtom);
@@ -35,6 +38,8 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
   const [account1] = useAtom(account1Atom);
   const [mangataHelper] = useAtom(mangataHelperAtom);
   const [turingHelper] = useAtom(turingHelperAtom);
+  const [selectedTask] = useAtom(selectedTaskAtom);
+  const [, setStopModalOpen] = useAtom(stopCompModalOpenAtom);
 
   const [frequency, setFrequency] = useState<number>(1); // default day
   const [duration, setDuration] = useState<number>(7); // default week
@@ -45,6 +50,9 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
   const [totalFees, setTotalFees] = useState<number>(0);
 
   const [lpBalance, setLpBalance] = useState<number>(0);
+  const [mgxBalance, setMgxBalance] = useState<number>(0);
+  const [turBalance, setTurBalance] = useState<number>(0);
+
   const [mangataAddress] = useAtom(mangataAddressAtom);
   const [turingAddress] = useAtom(turingAddressAtom);
 
@@ -53,11 +61,12 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
   const [isSigning, setIsSigning] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const [isAutocompounding, setIsAutocompounding] = useState<boolean>(false);
-  const [verifyStopCompounding, setVerifyStopCompounding] =
-    useState<boolean>(false);
+  // const [isAutocompounding, setIsAutocompounding] = useState<boolean>(false);
+  // const [verifyStopCompounding, setVerifyStopCompounding] =
+  //   useState<boolean>(false);
 
   const toast = useToast();
+  const isAutocompounding = selectedTask?.status == 'RUNNING' ? true : false;
 
   const [token0, token1] = formatTokenSymbols(
     replaceTokenSymbols(farm?.asset.symbol)
@@ -69,12 +78,49 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
     2
   );
 
+  useEffect(() => {
+    // Fetching MGX and TUR balance of connect account on Mangata Chain
+    (async () => {
+      if (account1) {
+        const mgrBalance = await mangataHelper.mangata?.getTokenBalance(
+          '0', // MGR TokenId
+          account1.address
+        );
+
+        const turBalance = await mangataHelper.mangata?.getTokenBalance(
+          '7', // TUR TokenId
+          account1.address
+        );
+
+        const mgrBalanceFree = mgrBalance.free
+          .div(getDecimalBN(18)) // MGR decimals = 18
+          .toNumber();
+        setMgxBalance(mgrBalanceFree);
+        const turBalanceFree = turBalance.free
+          .div(getDecimalBN(10)) // TUR decimals = 10
+          .toNumber();
+        setTurBalance(turBalanceFree);
+      }
+    })();
+  }, [account1]);
+
   // Fetching TUR price in Dollar
   const { isLoading: isTurpriceLoading, data: turprice } = useQuery({
     queryKey: ['turprice'],
     queryFn: async () => {
-      const tokenPrices = await fetchTokenPrices();
-      return tokenPrices[2].price; // TUR price in Dollar
+      try {
+        const tokenPrices = await fetchTokenPrices();
+        return tokenPrices[2].price; // TUR price in Dollar
+      } catch (error) {
+        console.log('error: fetching turprice', error);
+        toast({
+          position: 'top',
+          duration: 3000,
+          render: () => (
+            <ToastWrapper title="Unable to fetch TUR price." status="error" />
+          ),
+        });
+      }
     },
   });
 
@@ -99,7 +145,14 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
         );
         setTotalFees(feesInTUR as number);
       } catch (error) {
-        console.log('error', error);
+        console.log('error: Fetching fees', error);
+        toast({
+          position: 'top',
+          duration: 3000,
+          render: () => (
+            <ToastWrapper title="Unable to fetch Fees." status="error" />
+          ),
+        });
       }
     })();
   }, [frequency, duration]);
@@ -153,11 +206,16 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       //   }
       // });
     }
-    tokenAmount = BigInt(lpBalance.free).toString(10) / 10 ** decimal + BigInt(lpBalance.reserved).toString(10) / 10 ** decimal;
+    tokenAmount =
+      BigInt(lpBalance.free).toString(10) / 10 ** decimal +
+      BigInt(lpBalance.reserved).toString(10) / 10 ** decimal;
     setLpBalance(tokenAmount);
-    console.log("tokenAmount", tokenAmount, "liquidityTokenId", liquidityTokenId);
-
-
+    console.log(
+      'tokenAmount',
+      tokenAmount,
+      'liquidityTokenId',
+      liquidityTokenId
+    );
 
     console.log(
       '\n2. Add a proxy on Mangata for paraId 2114, or skip this step if that exists ...'
@@ -167,7 +225,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       account?.address, // mangataAddress,
       turingHelper.config.paraId
     );
-    console.log("proxyAddress", proxyAddress);
+    console.log('proxyAddress', proxyAddress);
 
     const proxiesResponse = await mangataHelper.api.query.proxy.proxies(
       account?.address
@@ -297,10 +355,17 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
 
     const turbal = await turingHelper.getBalance(turingAddress);
     const turfreebal = turbal?.toHuman()?.free;
-    console.log('turbal', turfreebal, "exefee", executionFee.toNumber(), "xcmfee", xcmpFee.toNumber());
+    console.log(
+      'turbal',
+      turfreebal,
+      'exefee',
+      executionFee.toNumber(),
+      'xcmfee',
+      xcmpFee.toNumber()
+    );
 
     if (gasChoice === 0) {
-      // pay with MGX
+      // pay with MGX // MGR on Rococo
       const baTx = await mangataHelper.buyAssetTx(
         'MGR',
         'TUR',
@@ -335,7 +400,12 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
     } else {
       console.log("gasChoice doesn't exist");
     }
-    console.log("gasChoice", gasChoice, "mangataTransactions", mangataTransactions);
+    console.log(
+      'gasChoice',
+      gasChoice,
+      'mangataTransactions',
+      mangataTransactions
+    );
     // return;
     // BUG: NEED TO REMOVE await
     // const mangataBatchTx = await mangataHelper.api.tx.utility.batchAll(
@@ -426,41 +496,28 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
     setTaskId(taskId.toHuman());
 
     // TODO: Call a post request to update the current autocompounding task
-    // with task id, pool tokens -- see in schema
-    return;
-    // remove liquidity
-    // 1. turingHelper-> canceltask
-    // 2. mangataHelper -> burnLiquidity
-
-    const cancelTx = await turingHelper.api.tx.automationTime.cancelTask(
-      taskId
-    );
-    await turingHelper.sendXcmExtrinsic(
-      cancelTx,
-      account?.address,
-      signer,
-      taskId
-    );
+    // @params taskId, userAddress, lpName, chain
   };
 
-  return verifyStopCompounding ? (
-    <div className="w-full flex flex-col gap-y-12 mt-10">
-      <p className="text-base leading-[21.6px] text-[#B9B9B9] text-center w-full px-24">
-        Are you sure you want to remove of stop Autocompounding?
-      </p>
-      <div className="inline-flex gap-x-2 w-full">
-        <Button type="warning" text="Stop Autocompounding" className="w-3/5" />
-        <Button
-          type="secondary"
-          text="Go Back"
-          className="w-2/5"
-          onClick={() => {
-            setVerifyStopCompounding(false);
-          }}
-        />
-      </div>
-    </div>
-  ) : (
+  // return verifyStopCompounding ? (
+  //   <div className="w-full flex flex-col gap-y-12 mt-10">
+  //     <p className="text-base leading-[21.6px] text-[#B9B9B9] text-center w-full px-24">
+  //       Are you sure you want to remove of stop Autocompounding?
+  //     </p>
+  //     <div className="inline-flex gap-x-2 w-full">
+  //       <Button type="warning" text="Stop Autocompounding" className="w-3/5" />
+  //       <Button
+  //         type="secondary"
+  //         text="Go Back"
+  //         className="w-2/5"
+  //         onClick={() => {
+  //           setVerifyStopCompounding(false);
+  //         }}
+  //       />
+  //     </div>
+  //   </div>
+  // ) :
+  return (
     <div className="w-full flex flex-col gap-y-10 mt-10 text-xl leading-[27px]">
       <div>
         <p className="inline-flex items-center mb-8">
@@ -583,7 +640,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
           <RadioButton
             changed={setGasChoice}
             isSelected={gasChoice == 0}
-            label="Pay with MGX"
+            label="Pay with MGR"
             value={0}
             className={gasChoice == 0 ? '' : 'opacity-50'}
           />
@@ -594,6 +651,17 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
             value={1}
             className={gasChoice == 1 ? '' : 'opacity-50'}
           />
+        </div>
+        <div className="inline-flex gap-x-2 rounded-lg bg-[#232323] py-4 px-6 select-none">
+          <span className="text-primaryGreen">Balance:</span>
+          {gasChoice == 0 ? (
+            <span>{mgxBalance ?? 'loading...'} MGR</span>
+          ) : (
+            <span>
+              {turBalance ?? 'loading...'} {gasChoice == 0 ? 'MGR' : 'TUR'}
+            </span>
+          )}
+          {/* <span className="text-[#8A8A8A]">$1000</span> */}
         </div>
       </div>
       {/* STEPPER */}
@@ -610,12 +678,13 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       {/* BUTTONS */}
       {isAutocompounding ? (
         <div className="flex flex-col gap-y-2">
-          <Button text="Save Changes" type="disabled" onClick={() => { }} />
+          <Button text="Save Changes" type="disabled" onClick={() => {}} />
           <Button
             text="Stop Autocompounding"
             type="warning"
             onClick={() => {
-              setVerifyStopCompounding(true);
+              setOpen(false);
+              setStopModalOpen(true);
             }}
           />
         </div>

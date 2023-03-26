@@ -10,15 +10,15 @@ interface Props {
 const toaststatus = (status: 'success' | 'error' | 'warning' | 'info') => {
   switch (status) {
     case 'success':
-      return 'bg-[##43B8A1]';
+      return 'border-[#43B8A1]';
     case 'warning':
-      return 'bg-[#E8744F]';
+      return 'border-[#FF916F]';
     case 'error':
-      return 'bg-[#D46969]';
+      return 'border-[#D56969]';
     case 'info':
-      return 'bg-[#D8C76D]';
+      return 'border-[#D8C76D]';
     default:
-      return 'bg-[##D8C76D]';
+      return 'border-[#D8C76D]';
   }
 };
 
@@ -26,7 +26,7 @@ const ToastWrapper: FC<Props> = ({ title, status }) => {
   return (
     <div
       className={clsx(
-        'w-[500px] py-6 rounded-lg font-bold text-base text-center leading-[21.6px] text-white font-sans',
+        'w-[471px] py-3 px-6 rounded-lg font-bold border text-base text-left bg-black leading-[21.6px] text-white font-sans',
         toaststatus(status),
         satoshiFont.variable
       )}

@@ -18,6 +18,7 @@ import {
   mainModalOpenAtom,
   selectedFarmAtom,
   selectedTabModalAtom,
+  selectedTaskAtom,
   viewPositionsAtom,
 } from '@store/commonAtoms';
 import Tooltip from '@components/Library/Tooltip';
@@ -31,6 +32,7 @@ const FarmCard: FC<Props> = ({ farm, xcmpTask }) => {
   const [, setOpen] = useAtom(mainModalOpenAtom);
   const [, setSelectedTab] = useAtom(selectedTabModalAtom);
   const [, setSelectedFarm] = useAtom(selectedFarmAtom);
+  const [, setSelectedTask] = useAtom(selectedTaskAtom);
   const [account] = useAtom(accountAtom);
   const [viewPositions] = useAtom(viewPositionsAtom);
 
@@ -146,6 +148,7 @@ const FarmCard: FC<Props> = ({ farm, xcmpTask }) => {
                   setSelectedTab(1);
                   setOpen(true);
                   setSelectedFarm(farm);
+                  setSelectedTask(xcmpTask);
                 }
               }}
             >
@@ -178,6 +181,7 @@ const FarmCard: FC<Props> = ({ farm, xcmpTask }) => {
                 setSelectedTab(0);
                 setOpen(true);
                 setSelectedFarm(farm);
+                setSelectedTask(xcmpTask);
               }
             }}
           >

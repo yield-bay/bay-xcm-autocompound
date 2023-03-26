@@ -28,6 +28,7 @@ import { MangataRococo, TuringStaging } from '@utils/xcm/config';
 import TuringHelper from '@utils/xcm/common/turingHelper';
 import MangataHelper from '@utils/xcm/common/mangataHelper';
 import Account from '@utils/xcm/common/account';
+import StopCompoundingModal from '@components/App/StopCompoundingModal';
 
 interface Props {
   children: ReactNode;
@@ -129,6 +130,7 @@ const Layout: FC<Props> = ({ children }) => {
     >
       <ConnectModal />
       <MainModal />
+      <StopCompoundingModal />
       <div className="flex flex-col flex-1">
         <Header />
         {children}
