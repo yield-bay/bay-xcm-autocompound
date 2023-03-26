@@ -7,9 +7,16 @@ import { accountAtom, walletAccountsAtom } from '@store/accountAtoms';
 import { walletModalOpenAtom, viewPositionsAtom } from '@store/commonAtoms';
 import { walletAtom } from '@store/walletAtoms';
 import { CheckCircleIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
+import ModalWrapper from '@components/Library/ModalWrapper';
+import Button from '@components/Library/Button';
 
 interface SelectAccountMenuProps {
   children: React.ReactNode;
+}
+
+interface DisconnectModalProps {
+  open: boolean;
+  setOpen: (value: boolean) => void;
 }
 
 const SelectAccountMenu: FC<SelectAccountMenuProps> = ({ children }) => {
@@ -94,10 +101,10 @@ const SelectAccountMenu: FC<SelectAccountMenuProps> = ({ children }) => {
 
 const ConnectWalletButton: FC = () => {
   const [, setIsOpen] = useAtom(walletModalOpenAtom);
-  const [, setWallet] = useAtom(walletAtom); // selected wallet
-  const [, setWalletAccounts] = useAtom(walletAccountsAtom); // connected accounts in selected wallet
-  const [account, setAccount] = useAtom(accountAtom); // selected account
+  const [account] = useAtom(accountAtom); // selected account
 
+  const [disconnectModalOpen, setDisconnectModalOpen] =
+    useState<boolean>(false);
   const [isCopied, setIsCopied] = useState(false); // copied address to clipboard
   const timerRef = useRef<null | ReturnType<typeof setTimeout>>(null);
 
@@ -153,10 +160,7 @@ const ConnectWalletButton: FC = () => {
             <div
               className="cursor-pointer"
               onClick={() => {
-                // Clear all states to disconnect wallet
-                setWallet(null);
-                setWalletAccounts(null);
-                setAccount(null);
+                setDisconnectModalOpen(true);
               }}
             >
               <Image
@@ -169,6 +173,10 @@ const ConnectWalletButton: FC = () => {
           </div>
         </div>
       )}
+      <DisconnectAccountModal
+        open={disconnectModalOpen}
+        setOpen={setDisconnectModalOpen}
+      />
     </div>
   );
 };
@@ -194,6 +202,45 @@ const ConnectWallet: FC = () => {
         </div>
       )}
     </>
+  );
+};
+
+const DisconnectAccountModal: FC<DisconnectModalProps> = ({
+  open,
+  setOpen,
+}) => {
+  const [, setWallet] = useAtom(walletAtom); // selected wallet
+  const [, setWalletAccounts] = useAtom(walletAccountsAtom); // connected accounts in selected wallet
+  const [, setAccount] = useAtom(accountAtom); // selected account
+  return (
+    <ModalWrapper open={open} setOpen={setOpen}>
+      <div className="flex flex-col gap-y-14">
+        <p className="text-base leading-[21.6px] text-[#B9B9B9] text-center w-full px-24">
+          Are you Sure you want to Disconnect?
+        </p>
+        <div className="inline-flex gap-x-2 w-full">
+          <Button
+            type="warning"
+            text="Disconnect"
+            className="w-3/5"
+            onClick={() => {
+              // Clear all states to disconnect wallet
+              setWallet(null);
+              setWalletAccounts(null);
+              setAccount(null);
+            }}
+          />
+          <Button
+            type="secondary"
+            text="Go Back"
+            className="w-2/5"
+            onClick={() => {
+              setOpen(false);
+            }}
+          />
+        </div>
+      </div>
+    </ModalWrapper>
   );
 };
 
