@@ -60,7 +60,7 @@ const RemoveLiquidityTab = ({ farm, pool }: TabProps) => {
       console.log('decimal', decimal);
 
       const lpBalanceNum =
-        BigInt(lpBalance.reserved).toString(10) / 10 ** decimal + BigInt(lpBalance.free).toString(10) / 10 ** decimal;
+        parseFloat(BigInt(lpBalance.reserved).toString(10)) / 10 ** decimal + parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** decimal;
       console.log('LP Balance lpBalanceNum: ', lpBalanceNum);
       setLpBalanceNum(lpBalanceNum);
     })();
