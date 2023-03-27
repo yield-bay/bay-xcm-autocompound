@@ -1,6 +1,6 @@
-import { FC } from "react";
-import BasicTags from "./Tags/BasicTags";
-import SEOTags from "./Tags/SEOTags";
+import { FC } from 'react';
+import BasicTags from './Tags/BasicTags';
+import SEOTags from './Tags/SEOTags';
 
 interface Props {
   title?: string | undefined;
