@@ -47,9 +47,14 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
   const [duration, setDuration] = useState<number>(7); // default week
   const [percentage, setPercentage] = useState<number>(10); // default 10%
 
-  const [gasChoice, setGasChoice] = useState<number>(0); // default 0 == "MGX" / 1 == "TUR"
-  const [taskId, setTaskId] = useState<string>('');
+  const [gasChoice, setGasChoice] = useState<number>(1); // default 0 == "MGX" / 1 == "TUR"
+  const [taskId, setTaskId] = useState<any>('');
   const [totalFees, setTotalFees] = useState<number>(0);
+  const [mangataProxyCallFees, setMangataProxyCallFees] = useState<any>(null);
+  const [encodedMangataProxyCall, setEncodedMangataProxyCall] =
+    useState<any>(null);
+  const [executionTimes, setExecutionTimes] = useState<any>(null);
+  const [providedId, setProvidedId] = useState<string>();
 
   const [lpBalance, setLpBalance] = useState<number>(0);
   const [mgxBalance, setMgxBalance] = useState<number>(0);
@@ -62,6 +67,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
   const [isInProcess, setIsInProcess] = useState(false);
   const [isSigning, setIsSigning] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [batchTxDone, setBatchTxDone] = useState(false);
 
   // const [isAutocompounding, setIsAutocompounding] = useState<boolean>(false);
   // const [verifyStopCompounding, setVerifyStopCompounding] =
@@ -316,6 +322,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
     const providedId = `xcmp_automation_test_${(Math.random() + 1)
       .toString(36)
       .substring(7)}`;
+    setProvidedId(providedId);
 
     // frequency
     const executionTimes = [];
@@ -323,9 +330,12 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
 
     for (let index = frequency; index < duration; index += frequency) {
       console.log('idx', index);
-
       executionTimes.push(et + secondsInHour * 24 * index);
     }
+
+    setExecutionTimes(executionTimes);
+    setEncodedMangataProxyCall(encodedMangataProxyCall);
+    setMangataProxyCallFees(mangataProxyCallFees);
 
     console.log('providedId', providedId);
     console.log('executionTimes', executionTimes);
@@ -349,14 +359,12 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       encodedMangataProxyCall,
       parseInt(mangataProxyCallFees.weight.refTime, 10)
     );
-    // await (xcmpCall).signAndSend(account1.address, {signer:signer})
     console.log('xcmpCall: ', xcmpCall);
 
     // Query automationTime fee IN TUR
     console.log('\nb) Query automationTime fee details ');
     const { executionFee, xcmpFee } =
       await turingHelper.api.rpc.automationTime.queryFeeDetails(xcmpCall);
-    // const { executionFee, xcmpFee } = await turingHelper.queryFeeDetails(xcmpCall)
     console.log('executionFee', executionFee, 'xcmpFee', xcmpFee);
 
     const totalFees = executionFee.toNumber() + xcmpFee.toNumber();
@@ -429,7 +437,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
     // const mangataBatchTx = await mangataHelper.api.tx.utility.batchAll(
     //   mangataTransactions
     // );
-    setIsSigning(true);
+    setIsSigning(true); // Batch Trxn happening
     const mangataBatchTx =
       mangataHelper.api.tx.utility.batchAll(mangataTransactions);
     await mangataBatchTx
@@ -447,7 +455,8 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
             );
             setIsInProcess(false);
             setIsSigning(false);
-            setIsSuccess(true);
+            setBatchTxDone(true);
+            // setIsSuccess(true);
           } else {
             console.log(`Status of Batch Tx: ${status.type}`);
           }
@@ -457,6 +466,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
         console.log('Error in Batch Tx:', error);
         setIsSuccess(false);
         setIsSigning(false);
+        setIsInProcess(false);
         toast({
           position: 'top',
           duration: 3000,
@@ -472,6 +482,30 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       providedId
     );
     console.log('TaskId:', taskId.toHuman());
+    setTaskId(taskId.toHuman());
+  };
+
+  const handleXcmpScheduling = async () => {
+    setIsInProcess(true);
+
+    const signer = account?.wallet?.signer;
+    const { liquidityTokenId } = pool;
+
+    const xcmpCall = await turingHelper.api.tx.automationTime.scheduleXcmpTask(
+      providedId,
+      // {
+      //   Recurring: {
+      //     frequency: secondsInHour * 24 * frequency,
+      //     nextExecutionTime: executionTime,
+      //   },
+      // },
+      { Fixed: { executionTimes: executionTimes } },
+      mangataHelper.config.paraId,
+      0,
+      encodedMangataProxyCall,
+      parseInt(mangataProxyCallFees.weight.refTime, 10)
+    );
+    console.log('xcmpCall: ', xcmpCall);
 
     // Send extrinsic
     setIsSigning(true);
@@ -488,7 +522,10 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
     );
 
     console.log('\nWaiting 20 seconds before reading new chain states ...');
-    await delay(20000);
+    await delay(20000); // This is not how delay works
+
+    setIsInProcess(false);
+    setIsSigning(false);
 
     // Account’s reserved LP token after auto-compound
     const newLiquidityBalance = await mangataHelper.mangata.getTokenBalance(
@@ -511,33 +548,11 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
     );
     console.log('Task has been executed!');
     console.log('to cancel', taskId, taskId.toHuman());
-    setTaskId(taskId.toHuman());
 
     // Adding Xcmp Task of the completed compounding
     addXcmpTaskHandler(taskId, turingAddress as string, lpName, 'ROCOCO');
-
-    // TODO: Call a post request to update the current autocompounding task
-    // @params taskId, userAddress, lpName, chain
   };
 
-  // return verifyStopCompounding ? (
-  //   <div className="w-full flex flex-col gap-y-12 mt-10">
-  //     <p className="text-base leading-[21.6px] text-[#B9B9B9] text-center w-full px-24">
-  //       Are you sure you want to remove of stop Autocompounding?
-  //     </p>
-  //     <div className="inline-flex gap-x-2 w-full">
-  //       <Button type="warning" text="Stop Autocompounding" className="w-3/5" />
-  //       <Button
-  //         type="secondary"
-  //         text="Go Back"
-  //         className="w-2/5"
-  //         onClick={() => {
-  //           setVerifyStopCompounding(false);
-  //         }}
-  //       />
-  //     </div>
-  //   </div>
-  // ) :
   return (
     <div className="w-full flex flex-col gap-y-10 mt-10 text-xl leading-[27px]">
       <div>
@@ -711,11 +726,23 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
         </div>
       ) : (
         <div className="flex flex-col gap-y-2">
-          <Button
-            text="Autocompound"
-            type="primary"
-            onClick={handleCompounding}
-          />
+          {!batchTxDone ? (
+            <Button
+              text={
+                isInProcess
+                  ? 'Activating Liquidity & proxy setup...'
+                  : 'Autocompound'
+              }
+              type={isInProcess ? 'disabled' : 'primary'}
+              onClick={handleCompounding}
+            />
+          ) : (
+            <Button
+              text={isInProcess ? 'Scheduling...' : 'Schedule Autocompounding'}
+              type={isInProcess ? 'disabled' : 'primary'}
+              onClick={handleXcmpScheduling}
+            />
+          )}
           <Button
             text="Cancel"
             type="secondary"

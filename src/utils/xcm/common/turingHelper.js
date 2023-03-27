@@ -77,6 +77,7 @@ class TuringHelper {
   ) =>
     new Promise((resolve) => {
       const send = async () => {
+        setIsInProcess(true);
         const unsub = await xcmpCall
           .signAndSend(
             keyPair,
