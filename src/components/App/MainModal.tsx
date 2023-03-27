@@ -61,15 +61,12 @@ const MainModal: FC = () => {
 
   const initialiseHelperSetup = async () => {
     if (pools == null) return;
-
-    const tokenNames = formatTokenSymbols(
+    const [token0, token1] = formatTokenSymbols(
       replaceTokenSymbols(selectedFarm?.asset.symbol as string)
     );
-    // const poolName = `${mgxToken.symbol}-${turToken.symbol}`
-    const poolName = `${tokenNames[0]}-${tokenNames[1]}`;
+
+    const poolName = `${token0}-${token1}`;
     console.log('poolname', poolName);
-    const token0 = tokenNames[0];
-    const token1 = tokenNames[1];
 
     // Make a state for this
     const pool = _.find(pools, {

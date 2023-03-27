@@ -31,6 +31,8 @@ import ProcessStepper from '@components/Library/ProcessStepper';
 import ToastWrapper from '@components/Library/ToastWrapper';
 import Loader from '@components/Library/Loader';
 import { getDecimalById } from '@utils/mangata-helpers';
+import { useMutation } from 'urql';
+import { AddXcmpTaskMutation } from '@utils/api';
 
 const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
   const [, setOpen] = useAtom(mainModalOpenAtom);
@@ -71,12 +73,28 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
   const [token0, token1] = formatTokenSymbols(
     replaceTokenSymbols(farm?.asset.symbol)
   );
+  const lpName = `${token0}-${token1}`;
 
   const APY = farm?.apr.base + farm?.apr.reward;
   const period = duration / frequency;
   const effectiveAPY = (((1 + APY / 100 / period) ** period - 1) * 100).toFixed(
     2
   );
+
+  // ADD NEW TASK
+  const [addXcmpTaskResult, addXcmpTask] = useMutation(AddXcmpTaskMutation);
+  const addXcmpTaskHandler = async (
+    taskId: string,
+    userAddress: string,
+    lpName: string,
+    chain: string
+  ) => {
+    const variables = { taskId, userAddress, lpName, chain };
+    console.log('Adding new task...');
+    addXcmpTask(variables).then((result) => {
+      console.log('addxcmptask result', result);
+    });
+  };
 
   useEffect(() => {
     // Fetching MGX and TUR balance of connect account on Mangata Chain
@@ -494,6 +512,9 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
     console.log('Task has been executed!');
     console.log('to cancel', taskId, taskId.toHuman());
     setTaskId(taskId.toHuman());
+
+    // Adding Xcmp Task of the completed compounding
+    addXcmpTaskHandler(taskId, turingAddress as string, lpName, 'ROCOCO');
 
     // TODO: Call a post request to update the current autocompounding task
     // @params taskId, userAddress, lpName, chain

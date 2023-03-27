@@ -15,10 +15,14 @@ import useFilteredFarms from '@hooks/useFilteredFarms';
 import { XcmpTaskType } from '@utils/types';
 import { useAtom } from 'jotai';
 import { accountAtom } from '@store/accountAtoms';
+import { turingAddressAtom } from '@store/commonAtoms';
 
 const App = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [account] = useAtom(accountAtom);
+  const [turingAddress] = useAtom(turingAddressAtom);
+
+  console.log('turing address', turingAddress);
 
   const [farmsResult, reexecuteQuery] = useQuery({
     query: FarmsQuery,
@@ -33,45 +37,12 @@ const App = () => {
     query: XcmpTasksQuery,
     variables: {
       // userAddress: account?.address,
-      userAddress: '67qEhopwu1mE43vzPMR7cvrA3GaTsbKT6ktf22CXy8pbsob5', // Jack Sparrow's Turing Address
+      userAddress: turingAddress,
       chain: 'ROCOCO',
     },
     pause: account == null,
   });
   const { data: xcmpTasksData, fetching: xcmpTasksFetching } = xcmpTasksResult;
-
-  // ADD NEW TASK
-  const [addXcmpTaskResult, addXcmpTask] = useMutation(AddXcmpTaskMutation);
-  const addXcmpTaskHandler = async (
-    taskId: string,
-    userAddress: string,
-    lpName: string,
-    chain: string
-  ) => {
-    const variables = { taskId, userAddress, lpName, chain };
-    console.log('Adding new task...');
-    addXcmpTask(variables).then((result) => {
-      console.log('addxcmptask result', result);
-    });
-  };
-
-  // UPDATE TASK
-  const [updateXcmpTaskResult, updateXcmpTask] = useMutation(
-    UpdateXcmpTaskMutation
-  );
-  const updateXcmpTaskHandler = async (
-    taskId: string,
-    userAddress: string,
-    lpName: string,
-    chain: string,
-    newStatus: string
-  ) => {
-    const variables = { taskId, userAddress, lpName, chain, newStatus };
-    console.log('Updating task...');
-    updateXcmpTask(variables).then((result) => {
-      console.log('updateXcmpTask result', result);
-    });
-  };
 
   useEffect(() => {
     if (xcmpTasksFetching == false) {

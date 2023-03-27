@@ -60,7 +60,8 @@ const RemoveLiquidityTab = ({ farm, pool }: TabProps) => {
       console.log('decimal', decimal);
 
       const lpBalanceNum =
-        parseFloat(BigInt(lpBalance.reserved).toString(10)) / 10 ** decimal + parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** decimal;
+        parseFloat(BigInt(lpBalance.reserved).toString(10)) / 10 ** decimal +
+        parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** decimal;
       console.log('LP Balance lpBalanceNum: ', lpBalanceNum);
       setLpBalanceNum(lpBalanceNum);
     })();
@@ -72,89 +73,107 @@ const RemoveLiquidityTab = ({ farm, pool }: TabProps) => {
     const signer = account?.wallet?.signer;
     setIsSigning(true);
     const lpd = BigInt(lpBalance.reserved).toString(10);
-    console.log("lpBalance.reserved", lpBalance.reserved, parseFloat(lpd) / 10 ** 18, "percentage", percentage);
+    console.log(
+      'lpBalance.reserved',
+      lpBalance.reserved,
+      parseFloat(lpd) / 10 ** 18,
+      'percentage',
+      percentage
+    );
 
-    let txns = []
+    let txns = [];
 
     const deactx = await mangataHelper.deactivateLiquidityV2(
       pool.liquidityTokenId,
+      parseFloat(lpd) / 10 ** 18
+    );
+    txns.push(deactx);
+    console.log(
+      'res',
       parseFloat(lpd) / 10 ** 18,
-    )
-    txns.push(deactx)
-    console.log("res", parseFloat(lpd) / 10 ** 18, "free", (parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** 18), "free+res", parseFloat(lpd) / 10 ** 18 + (parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** 18));
+      'free',
+      parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** 18,
+      'free+res',
+      parseFloat(lpd) / 10 ** 18 +
+        parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** 18
+    );
 
     const bltx = await mangataHelper.burnLiquidityTx(
       pool.firstTokenId,
       pool.secondTokenId,
       // lpBalance.reserved,
-      parseFloat(lpd) / 10 ** 18 + (parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** 18),
+      parseFloat(lpd) / 10 ** 18 +
+        parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** 18,
       percentage
     );
-    txns.push(bltx)
+    txns.push(bltx);
 
-    const removeLiqBatchTx =
-      mangataHelper.api.tx.utility.batchAll(txns);
+    const removeLiqBatchTx = mangataHelper.api.tx.utility.batchAll(txns);
 
-    await removeLiqBatchTx.signAndSend(
-      account1?.address,
-      { signer: signer },
-      async ({ status }: any) => {
-        if (status.isInBlock) {
-          setIsSigning(false);
-          console.log(
-            `Burn Liquidity in block for ${pool.firstTokenId} & ${pool.secondTokenId
-            } with hash ${status.asInBlock.toHex()}`
-          );
-          toast({
-            position: 'top',
-            duration: 3000,
-            render: () => (
-              <ToastWrapper
-                title={`Burn Liquidity in block for ${pool.firstTokenId}-${pool.secondTokenId}}`}
-                status="info"
-              />
-            ),
-          });
-          // unsub();
-          // resolve();
-        } else if (status.isFinalized) {
-          console.log(
-            `Burn Liquidity Successfully for Pool ${pool.firstTokenId}-${pool.secondTokenId
-            } with hash ${status.asFinalized.toHex()}`
-          );
+    await removeLiqBatchTx
+      .signAndSend(
+        account1?.address,
+        { signer: signer },
+        async ({ status }: any) => {
+          if (status.isInBlock) {
+            setIsSigning(false);
+            console.log(
+              `Burn Liquidity in block for ${pool.firstTokenId} & ${
+                pool.secondTokenId
+              } with hash ${status.asInBlock.toHex()}`
+            );
+            toast({
+              position: 'top',
+              duration: 3000,
+              render: () => (
+                <ToastWrapper
+                  title={`Burn Liquidity in block for ${pool.firstTokenId}-${pool.secondTokenId}}`}
+                  status="info"
+                />
+              ),
+            });
+            // unsub();
+            // resolve();
+          } else if (status.isFinalized) {
+            console.log(
+              `Burn Liquidity Successfully for Pool ${pool.firstTokenId}-${
+                pool.secondTokenId
+              } with hash ${status.asFinalized.toHex()}`
+            );
 
-          toast({
-            position: 'top',
-            duration: 3000,
-            render: () => (
-              <ToastWrapper
-                title={`Burn Liquidity Successfully for Pool ${pool.firstTokenId}-${pool.secondTokenId}`}
-                status="success"
-              />
-            ),
-          });
-          setIsProcessing(false);
-          setIsSigning(false);
-          setIsSuccess(true);
-          // unsub();
-          // resolve();
-        } else {
-          console.log(`Status: ${status.type}`);
+            toast({
+              position: 'top',
+              duration: 3000,
+              render: () => (
+                <ToastWrapper
+                  title={`Burn Liquidity Successfully for Pool ${pool.firstTokenId}-${pool.secondTokenId}`}
+                  status="success"
+                />
+              ),
+            });
+            setIsProcessing(false);
+            setIsSigning(false);
+            setIsSuccess(true);
+            // unsub();
+            // resolve();
+          } else {
+            console.log(`Status: ${status.type}`);
+          }
         }
-      }
-    ).catch((e: any) => {
-      console.log('Error in burnLiquidityTx', e);
-      setIsProcessing(false);
-      setIsSigning(false);
-      setIsSuccess(false);
-      toast({
-        position: 'top',
-        duration: 3000,
-        render: () => (
-          <ToastWrapper title={`Error in burnLiquidityTx`} status="error" />
-        ),
+      )
+      .catch((e: any) => {
+        console.log('Error in burnLiquidityTx', e);
+        setIsProcessing(false);
+        setIsSigning(false);
+        setIsSuccess(false);
+        toast({
+          position: 'top',
+          duration: 3000,
+          render: () => (
+            <ToastWrapper title={`Error in burnLiquidityTx`} status="error" />
+          ),
+        });
       });
-    });
     // await bltx
     //   .signAndSend(
     //     account1?.address,

@@ -31,6 +31,7 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
   // Amount States
   const [firstTokenAmount, setFirstTokenAmount] = useState('');
   const [secondTokenAmount, setSecondTokenAmount] = useState('');
+
   // Process States
   const [isInProcess, setIsInProcess] = useState(false);
   const [isSigning, setIsSigning] = useState(false);
@@ -42,9 +43,11 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
   const [secondTokenBalance, setSecondTokenBalance] = useState<number | null>(
     null
   ); // temperory amount
+  const [lpBalance, setLpBalance] = useState<any>(null);
+  const [lpBalanceNum, setLpBalanceNum] = useState<number | null>(null);
   const isInsufficientBalance = false; // firstTokenBalance < parseFloat(firstTokenAmount);
 
-  const MAX_SLIPPAGE = 0.08; // 4% slippage; can’t be too large
+  const MAX_SLIPPAGE = 0.08; // 8% slippage; can’t be too large
   const [fees, setFees] = useState<number | null>(null);
   const toast = useToast();
 
@@ -71,6 +74,23 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
     console.log('fees:', fees, parseFloat(fees));
     setFees(parseFloat(fees));
   };
+
+  // Fetch LP balance from mangataHelper
+  useEffect(() => {
+    (async () => {
+      const lpBalance = await mangataHelper.mangata.getTokenBalance(
+        pool.liquidityTokenId,
+        account?.address
+      );
+      setLpBalance(lpBalance);
+      const decimal = mangataHelper.getDecimalsBySymbol(`${token0}-${token1}`);
+
+      const lpBalanceNum =
+        BigInt(lpBalance.reserved).toString(10) / 10 ** decimal +
+        BigInt(lpBalance.free).toString(10) / 10 ** decimal;
+      setLpBalanceNum(lpBalanceNum);
+    })();
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -105,11 +125,6 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
           .div(getDecimalBN(token1Decimal))
           .toNumber();
         setSecondTokenBalance(token1BalanceFree);
-
-        // const bal1 = new BN(mgxBal.free).toString(10) / 10 ** (assetsInfo['0']['decimals']);
-        // const bal2 = BigInt(mgxBal.free).toString(10) / 10 ** (assetsInfo[‘0’][‘decimals’]);
-        // console.log('freebal1', token1Bal.free.toNumber());
-        // console.log('freebal2', token2Bal.free.toNumber());
       } else {
         toast({
           position: 'top',
@@ -216,6 +231,15 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
 
   return (
     <div className="w-full flex flex-col gap-y-10 mt-10">
+      <div className="w-full text-[#C5C5C5] py-3 text-base leading-[21.6px] text-center rounded-lg border border-black bg-[#0C0C0C]">
+        {lpBalanceNum == null ? (
+          <p>fetching your LP balance...</p>
+        ) : (
+          <p>
+            You Hold {lpBalanceNum.toFixed(2)} {token0}-{token1} LP tokens
+          </p>
+        )}
+      </div>
       {/* MGX Container */}
       <div className="flex flex-row justify-between p-4 border border-primaryGreen rounded-lg">
         <div className="flex flex-row gap-x-5 items-center">

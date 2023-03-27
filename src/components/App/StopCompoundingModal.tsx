@@ -7,8 +7,11 @@ import {
   mainModalOpenAtom,
   selectedTaskAtom,
   stopCompModalOpenAtom,
+  turingAddressAtom,
   turingHelperAtom,
 } from '@store/commonAtoms';
+import { useMutation } from 'urql';
+import { UpdateXcmpTaskMutation } from '@utils/api';
 
 const StopCompoundingModal: FC = () => {
   const [account] = useAtom(accountAtom); // selected account
@@ -16,9 +19,29 @@ const StopCompoundingModal: FC = () => {
   const [currentTask] = useAtom(selectedTaskAtom);
   const [openStopComp, setOpenStopComp] = useAtom(stopCompModalOpenAtom);
   const [, setOpenMainModal] = useAtom(mainModalOpenAtom);
+  const [turingAddress] = useAtom(turingAddressAtom);
+
+  // UPDATE TASK
+  const [updateXcmpTaskResult, updateXcmpTask] = useMutation(
+    UpdateXcmpTaskMutation
+  );
+  const updateXcmpTaskHandler = async (
+    taskId: string,
+    userAddress: string,
+    lpName: string,
+    chain: string,
+    newStatus: string
+  ) => {
+    const variables = { taskId, userAddress, lpName, chain, newStatus };
+    console.log('Updating task...');
+    updateXcmpTask(variables).then((result) => {
+      console.log('updateXcmpTask result', result);
+    });
+  };
 
   const handleStopCompounding = async () => {
     const signer = account?.wallet?.signer;
+    console.log('Canceling task with taskid', currentTask?.taskId);
 
     // remove liquidity
     // 1. turingHelper-> canceltask
@@ -32,6 +55,15 @@ const StopCompoundingModal: FC = () => {
       signer,
       currentTask?.taskId
     );
+
+    updateXcmpTaskHandler(
+      currentTask?.taskId as string,
+      turingAddress as string,
+      currentTask?.lpName as string,
+      currentTask?.chain as string,
+      'CANCELLED'
+    );
+    console.log(`Task cancelled withtaskId ${currentTask?.taskId}`);
   };
 
   return (
