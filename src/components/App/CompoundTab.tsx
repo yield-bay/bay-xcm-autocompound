@@ -56,7 +56,8 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
   const [executionTimes, setExecutionTimes] = useState<any>(null);
   const [providedId, setProvidedId] = useState<string>();
 
-  const [lpBalance, setLpBalance] = useState<number>(0);
+  const [lpBalance, setLpBalance] = useState<any>();
+  const [lpBalanceNum, setLpBalanceNum] = useState<number>(0);
   const [mgxBalance, setMgxBalance] = useState<number>(0);
   const [turBalance, setTurBalance] = useState<number>(0);
 
@@ -181,6 +182,23 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
     })();
   }, [frequency, duration]);
 
+  useEffect(() => {
+    (async () => {
+      const lpBalance = await mangataHelper.mangata.getTokenBalance(
+        pool.liquidityTokenId,
+        account?.address
+      );
+      setLpBalance(lpBalance);
+      const decimal = mangataHelper.getDecimalsBySymbol(`${token0}-${token1}`);
+      const tokenAmount =
+        parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** decimal +
+        parseFloat(BigInt(lpBalance.reserved).toString(10)) / 10 ** decimal;
+      console.log('tokenAmount total', tokenAmount);
+      // setLpBalance(tokenAmount);
+      setLpBalanceNum(tokenAmount);
+    })();
+  }, []);
+
   // Function which performs Autocompounding
   const handleCompounding = async () => {
     console.log('frequency', frequency);
@@ -194,49 +212,40 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
     // Defining Signer to make trxns
     const signer = account?.wallet?.signer;
 
+    /*
     const lpBalance = await mangataHelper.mangata.getTokenBalance(
       pool.liquidityTokenId,
       account?.address
     ); // token0-token1
 
     console.log('lpBalance', lpBalance);
+    */
     const decimal = mangataHelper.getDecimalsBySymbol(`${token0}-${token1}`);
-    console.log('decimal', decimal);
 
     // tokenAmount is the amount of locked liquidity token which are to be activated
-    let tokenAmount = BigInt(lpBalance.free).toString(10) / 10 ** decimal;
-    // edge case: if some amount was activated and some was not
-    if (tokenAmount !== 0) {
-      // let freeTokenAmount = BigInt(lpBalance.free).toString(10) / 10 ** decimal;
+    let lockedTokenAmount =
+      parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** decimal;
 
+    // edge case: if some amount was activated and some was not
+    if (lockedTokenAmount !== 0) {
       let activateLiquidityTxn = await mangataHelper.activateLiquidityV2(
         liquidityTokenId,
-        tokenAmount
+        lockedTokenAmount
       );
       mangataTransactions.push(activateLiquidityTxn);
-      // activateLiquidityTxn.signAndSend(account1.address, { signer: signer });
-      // activateLiquidityTxn.signAndSend(account1.address, { signer: signer }, ({ status }: any) => {
-      //   if (status.isInBlock) {
-      //     console.log(`included in ${status.asInBlock}`);
-      //     console.log(
-      //       `al Tx is in block with hash ${status.asInBlock.toHex()}`
-      //     );
-      //   }else if (status.isFinalized) {
-      //     console.log(
-      //       `al Tx finalized with hash ${status.asFinalized.toHex()}`
-      //     );
-      //   } else {
-      //     console.log(`Status of Batch Tx: ${status.type}`);
-      //   }
-      // });
     }
+
+    // Now as liquidity is activated, tokenAmoumt is total amount of liquidity
+    /*
     tokenAmount =
-      BigInt(lpBalance.free).toString(10) / 10 ** decimal +
-      BigInt(lpBalance.reserved).toString(10) / 10 ** decimal;
+      parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** decimal +
+      parseFloat(BigInt(lpBalance.reserved).toString(10)) / 10 ** decimal;
     setLpBalance(tokenAmount);
+    */
+
     console.log(
       'tokenAmount',
-      tokenAmount,
+      lpBalanceNum,
       'liquidityTokenId',
       liquidityTokenId
     );
@@ -453,11 +462,11 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
             console.log(
               `Batch Tx finalized with hash ${status.asFinalized.toHex()}`
             );
-            setIsInProcess(false);
-            setIsSigning(false);
+            setIsInProcess(false); // Process will be done when ScheduleXCMP Txn is done
             setBatchTxDone(true);
             // setIsSuccess(true);
           } else {
+            setIsSigning(false); // Reaching here means the trxn is signed
             console.log(`Status of Batch Tx: ${status.type}`);
           }
         }
@@ -634,7 +643,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
           <RadioButton
             changed={setPercentage}
             isSelected={percentage === 100}
-            label="complete"
+            label="100%"
             value={100}
           />
         </div>
@@ -679,6 +688,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
             label="Pay with MGR"
             value={0}
             className={gasChoice == 0 ? '' : 'opacity-50'}
+            disabled
           />
           <RadioButton
             changed={setGasChoice}
@@ -731,9 +741,11 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
               text={
                 isInProcess
                   ? 'Activating Liquidity & proxy setup...'
+                  : lpBalanceNum == 0
+                  ? 'No balance, Please add liquidity'
                   : 'Autocompound'
               }
-              type={isInProcess ? 'disabled' : 'primary'}
+              type={isInProcess || lpBalanceNum == 0 ? 'disabled' : 'primary'}
               onClick={handleCompounding}
             />
           ) : (
@@ -754,22 +766,14 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       )}
       {isInProcess && (
         <div className="flex flex-row px-4 items-center justify-center text-base leading-[21.6px] bg-baseGray rounded-lg py-10 text-center">
-          {isSigning && !isSuccess && <Loader size="md" />}
+          {!isSuccess && <Loader size="md" />}
           {isSigning && (
             <span className="ml-6">
               Please sign the transaction on{' '}
               {gasChoice == 0 ? 'Mangata' : 'Turing'} in your wallet.
             </span>
           )}
-          {isSuccess && (
-            <p>
-              Autocompound Setup Successful!
-              {/* View your hash{' '}
-              <a href="#" className="underline underline-offset-4">
-                here
-              </a> */}
-            </p>
-          )}
+          {isSuccess && <p>Autocompound Setup Successful!</p>}
         </div>
       )}
     </div>

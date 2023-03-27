@@ -7,6 +7,7 @@ interface Props {
   label: string;
   value: number;
   className?: string;
+  disabled?: boolean;
 }
 
 const RadioButton: FC<Props> = ({
@@ -15,12 +16,14 @@ const RadioButton: FC<Props> = ({
   label,
   value,
   className,
+  disabled,
 }) => {
   return (
     <div
       className={clsx(
         'flex flex-col gap-y-3 justify-start cursor-pointer',
-        className
+        className,
+        disabled && 'pointer-events-none select-none opacity-50'
       )}
       onClick={() => changed(value)}
     >
