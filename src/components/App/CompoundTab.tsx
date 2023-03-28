@@ -182,6 +182,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
     })();
   }, [frequency, duration]);
 
+  // Calculate LP balance
   useEffect(() => {
     (async () => {
       const lpBalance = await mangataHelper.mangata.getTokenBalance(

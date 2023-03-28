@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { useToast } from '@chakra-ui/react';
 import Image from 'next/image';
 import clsx from 'clsx';
@@ -16,12 +16,15 @@ import { FarmType, XcmpTaskType } from '@utils/types';
 import { accountAtom } from '@store/accountAtoms';
 import {
   mainModalOpenAtom,
+  mangataHelperAtom,
+  poolsAtom,
   selectedFarmAtom,
   selectedTabModalAtom,
   selectedTaskAtom,
   viewPositionsAtom,
 } from '@store/commonAtoms';
 import Tooltip from '@components/Library/Tooltip';
+import _ from 'lodash';
 
 interface Props {
   farm: FarmType;
@@ -35,13 +38,45 @@ const FarmCard: FC<Props> = ({ farm, xcmpTask }) => {
   const [, setSelectedTask] = useAtom(selectedTaskAtom);
   const [account] = useAtom(accountAtom);
   const [viewPositions] = useAtom(viewPositionsAtom);
+  const [mangataHelper] = useAtom(mangataHelperAtom);
+  const [pools] = useAtom(poolsAtom);
+
+  const [lpBalanceNum, setLpBalanceNum] = useState(0);
 
   const tokenNames = formatTokenSymbols(
     replaceTokenSymbols(farm?.asset.symbol)
   );
+  const [token0, token1] = tokenNames;
   const isCompounding = xcmpTask?.status == 'RUNNING' ? true : false;
 
   const toast = useToast();
+
+  // Calculate LP balance
+  useEffect(() => {
+    (async () => {
+      if (pools == null) return;
+      const poolName = `${token0}-${token1}`;
+
+      if (token0 == 'ZLK') return;
+
+      // Make a state for this
+      const pool = _.find(pools, {
+        firstTokenId: mangataHelper.getTokenIdBySymbol(token0),
+        secondTokenId: mangataHelper.getTokenIdBySymbol(token1),
+      });
+
+      const lpBalance = await mangataHelper.mangata.getTokenBalance(
+        pool.liquidityTokenId,
+        account?.address
+      );
+
+      const decimal = mangataHelper.getDecimalsBySymbol(`${token0}-${token1}`);
+      const tokenAmount =
+        parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** decimal +
+        parseFloat(BigInt(lpBalance.reserved).toString(10)) / 10 ** decimal;
+      setLpBalanceNum(tokenAmount);
+    })();
+  }, [pools]);
 
   return (
     <div
@@ -129,7 +164,7 @@ const FarmCard: FC<Props> = ({ farm, xcmpTask }) => {
               <span>Autocompounding</span>
             </div>
           )}
-          {!isCompounding ? (
+          {lpBalanceNum == 0 ? (
             <button
               className="bg-baseGray py-4 px-5 text-white text-base leading-5 hover:ring-1 ring-baseGrayLow rounded-lg transition duration-200"
               onClick={() => {
@@ -160,7 +195,9 @@ const FarmCard: FC<Props> = ({ farm, xcmpTask }) => {
               <p className="text-[#868686] font-medium text-base leading-[#21.6px]">
                 You Deposited
               </p>
-              <p className="text-2xl leading-8 text-white">$100K</p>
+              <p className="text-2xl leading-8 text-white">
+                {lpBalanceNum.toFixed(2)} LP
+              </p>
             </button>
           )}
           <button
@@ -185,7 +222,7 @@ const FarmCard: FC<Props> = ({ farm, xcmpTask }) => {
               }
             }}
           >
-            {!isCompounding ? 'Autocompound' : 'Manage'}
+            {lpBalanceNum == 0 ? 'Autocompound' : 'Manage'}
           </button>
         </div>
       </div>

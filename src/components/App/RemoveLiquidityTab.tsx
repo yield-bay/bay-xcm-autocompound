@@ -260,7 +260,7 @@ const RemoveLiquidityTab = ({ farm, pool }: TabProps) => {
               onChange={handlePercChange}
               type="number"
             />
-            <div className="inline-flex justify-start gap-x-6">
+            {/* <div className="inline-flex justify-start gap-x-6">
               <button className="text-left text-base leading-[21.6px]">
                 Percentage
               </button>
@@ -276,12 +276,12 @@ const RemoveLiquidityTab = ({ farm, pool }: TabProps) => {
               >
                 USD
               </button>
-            </div>
+            </div> */}
             <div className="absolute right-4 top-[21px] bottom-0 text-base leading-[21.6px] text-[#727272]">
               %
             </div>
           </div>
-          <div className="flex flex-col gap-y-5 text-xl leading-[27px]">
+          {/* <div className="flex flex-col gap-y-5 text-xl leading-[27px]">
             <div className="inline-flex w-full justify-between items-center">
               <p className="inline-flex items-center">
                 <Image
@@ -315,7 +315,7 @@ const RemoveLiquidityTab = ({ farm, pool }: TabProps) => {
               </p>
               <span>{'15.8083'} MGX</span>
             </div>
-          </div>
+          </div> */}
           <div className="flex flex-col gap-y-2">
             <Button
               type="primary"
