@@ -97,8 +97,8 @@ class MangataHelper {
       currencyId,
       amount,
       dest,
-      amt
-      // null
+      // amt
+      null
     );
     return extrinsic;
     // await sendExtrinsic(this.api, extrinsic, keyring);

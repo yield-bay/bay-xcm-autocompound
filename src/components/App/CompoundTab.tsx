@@ -390,7 +390,8 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
     console.log('turingAddress', turingAddress);
 
     const turbal = await turingHelper.getBalance(turingAddress);
-    const turfreebal = turbal?.toHuman()?.free;
+    let turfreebal = turbal?.toHuman()?.free;
+    turfreebal=parseFloat(turfreebal)
     console.log(
       'turbal',
       turfreebal,
@@ -491,8 +492,8 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       turingAddress,
       providedId
     );
-    console.log('TaskId:', taskId.toHuman());
-    setTaskId(taskId.toHuman());
+    console.log('TaskId:', taskId);
+    setTaskId(taskId?.toHuman() ?? taskId);
   };
 
   const handleXcmpScheduling = async () => {
@@ -557,7 +558,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
         .toString()} planck more ${token0}-${token1} ...`
     );
     console.log('Task has been executed!');
-    console.log('to cancel', taskId, taskId.toHuman());
+    console.log('to cancel', taskId);
 
     // Adding Xcmp Task of the completed compounding
     addXcmpTaskHandler(taskId, turingAddress as string, lpName, 'ROCOCO');

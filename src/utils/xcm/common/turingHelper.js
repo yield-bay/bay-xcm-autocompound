@@ -91,7 +91,7 @@ class TuringHelper {
                   keyPair,
                   taskId
                 );
-                console.log('Task:', task.toHuman());
+                console.log('Task:', task);
                 unsub();
                 resolve();
               } else if (status.isFinalized) {
