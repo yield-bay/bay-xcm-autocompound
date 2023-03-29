@@ -41,7 +41,7 @@ const FarmCard: FC<Props> = ({ farm, xcmpTask }) => {
   const [mangataHelper] = useAtom(mangataHelperAtom);
   const [pools] = useAtom(poolsAtom);
 
-  const [lpBalanceNum, setLpBalanceNum] = useState(0);
+  const [lpBalanceNum, setLpBalanceNum] = useState(0.0);
 
   const tokenNames = formatTokenSymbols(
     replaceTokenSymbols(farm?.asset.symbol)
@@ -81,7 +81,7 @@ const FarmCard: FC<Props> = ({ farm, xcmpTask }) => {
   return (
     <div
       className={clsx(
-        viewPositions ? (isCompounding ? 'flex' : 'hidden') : 'flex',
+        viewPositions ? (lpBalanceNum > 0.0 ? 'flex' : 'hidden') : 'flex',
         'flex-row w-full bg-baseGrayDark hover:ring-[1px] transition duration-20 ring-primaryGreen rounded-lg'
       )}
       // initial={{ opacity: '0' }}

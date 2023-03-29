@@ -391,7 +391,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
 
     const turbal = await turingHelper.getBalance(turingAddress);
     let turfreebal = turbal?.toHuman()?.free;
-    turfreebal=parseFloat(turfreebal)
+    turfreebal = parseFloat(turfreebal);
     console.log(
       'turbal',
       turfreebal,
@@ -466,7 +466,6 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
             );
             setIsInProcess(false); // Process will be done when ScheduleXCMP Txn is done
             setBatchTxDone(true);
-            // setIsSuccess(true);
           } else {
             setIsSigning(false); // Reaching here means the trxn is signed
             console.log(`Status of Batch Tx: ${status.type}`);
@@ -691,6 +690,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
             value={0}
             className={gasChoice == 0 ? '' : 'opacity-50'}
             disabled
+            tooltip="Coming Soon"
           />
           <RadioButton
             changed={setGasChoice}
@@ -724,7 +724,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
         />
       )}
       {/* BUTTONS */}
-      {isAutocompounding ? (
+      {isAutocompounding || (!isInProcess && isSuccess) ? (
         <div className="flex flex-col gap-y-2">
           <Button text="Save Changes" type="disabled" onClick={() => {}} />
           <Button

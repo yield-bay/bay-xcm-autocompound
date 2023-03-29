@@ -92,6 +92,7 @@ class TuringHelper {
                   taskId
                 );
                 console.log('Task:', task);
+                setIsSuccess(true);
                 unsub();
                 resolve();
               } else if (status.isFinalized) {
