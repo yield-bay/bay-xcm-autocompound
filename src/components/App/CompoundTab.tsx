@@ -1,5 +1,5 @@
 import { FC, useState, useEffect, useRef } from 'react';
-import { TabProps } from '@utils/types';
+import { TabProps, TokenType } from '@utils/types';
 import { useAtom } from 'jotai';
 import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
 import _ from 'lodash';
@@ -33,8 +33,10 @@ import ToastWrapper from '@components/Library/ToastWrapper';
 import Loader from '@components/Library/Loader';
 import { getDecimalById } from '@utils/mangata-helpers';
 import { useMutation } from 'urql';
-import { AddXcmpTaskMutation } from '@utils/api';
-import Image from 'next/image';
+import {
+  AddXcmpTaskMutation,
+  createAutocompoundEventMutation,
+} from '@utils/api';
 
 const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
   const [, setOpen] = useAtom(mainModalOpenAtom);
@@ -51,6 +53,8 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
 
   const [gasChoice, setGasChoice] = useState<number>(1); // default 0 == "MGX" / 1 == "TUR"
   const [taskId, setTaskId] = useState<any>('');
+  const [executionFee, setExecutionFee] = useState<number>(0);
+  const [xcmpFee, setXcmpFee] = useState<number>(0);
   const [totalFees, setTotalFees] = useState<number>(0);
   const [mangataProxyCallFees, setMangataProxyCallFees] = useState<any>(null);
   const [encodedMangataProxyCall, setEncodedMangataProxyCall] =
@@ -102,6 +106,41 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
     console.log('Adding new task...');
     addXcmpTask(variables).then((result) => {
       console.log('addxcmptask result', result);
+    });
+  };
+
+  const [createAutocompoundingResult, createAutocompoundingEvent] = useMutation(
+    createAutocompoundEventMutation
+  );
+  const createAutocompoundingHandler = async (
+    userAddress: string,
+    chain: string,
+    taskId: string,
+    lp: TokenType,
+    duration: number,
+    frequency: number,
+    timestamp: string,
+    executionFee: number,
+    xcmpFee: number,
+    status: string,
+    eventType: string
+  ) => {
+    const variables = {
+      userAddress,
+      chain,
+      taskId,
+      lp,
+      duration,
+      frequency,
+      timestamp,
+      executionFee,
+      xcmpFee,
+      status,
+      eventType,
+    };
+    console.log('Creating a new autocompounding event');
+    createAutocompoundingEvent(variables).then((result) => {
+      console.log('createAutocompounding Result', result);
     });
   };
 
@@ -403,6 +442,9 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       xcmpFee.toNumber()
     );
 
+    setExecutionFee(executionFee.toNumber());
+    setXcmpFee(xcmpFee.toNumber());
+
     if (gasChoice === 0) {
       // pay with MGX // MGR on Rococo
       const baTx = await mangataHelper.buyAssetTx(
@@ -563,6 +605,20 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
 
     // Adding Xcmp Task of the completed compounding
     addXcmpTaskHandler(taskId, turingAddress as string, lpName, 'ROCOCO');
+    // Creating Autocompounding Event
+    createAutocompoundingHandler(
+      turingAddress as string,
+      'ROCOCO',
+      taskId,
+      { symbol: lpName, amount: lpBalanceNum },
+      duration,
+      frequency,
+      new Date().getTime().toString(), // Timestamp
+      executionFee,
+      xcmpFee,
+      'RUNNING',
+      'CREATE'
+    );
   };
 
   // const [offsetHeight, setOffsetHeight] = useState(0);

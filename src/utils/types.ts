@@ -42,3 +42,8 @@ export interface TabProps {
   account: WalletAccount;
   pool: any | undefined;
 }
+
+export type TokenType = {
+  symbol: string;
+  amount: number;
+};
