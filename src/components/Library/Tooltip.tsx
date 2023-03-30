@@ -4,14 +4,16 @@ import { FC } from 'react';
 interface Props {
   label: string;
   children: JSX.Element;
+  placement?: 'top' | 'bottom' | 'left' | 'right' | 'auto';
 }
 
 /**
  * Tooltips display informative text when users hover, focus on, or tap an element.
  * @param label - The text to be displayed in the tooltip
  * @param children - The element to be wrapped by the tooltip
+ * @param placement - top, bottom, left, right and auto
  */
-const Tooltip: FC<Props> = ({ label, children }) => {
+const Tooltip: FC<Props> = ({ label, children, placement = 'right' }) => {
   return (
     <TooltipChakra
       label={label}
@@ -23,7 +25,7 @@ const Tooltip: FC<Props> = ({ label, children }) => {
       lineHeight="21.6px"
       fontWeight="medium"
       hasArrow={true}
-      placement="right"
+      placement={placement}
       bg="#242424"
     >
       {children}

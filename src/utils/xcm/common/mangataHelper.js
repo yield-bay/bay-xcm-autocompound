@@ -47,9 +47,9 @@ class MangataHelper {
   };
 
   getTokenIdBySymbol(symbol) {
-    console.log('getTokenIdBySymbol.symbol', symbol, this.assets);
+    // console.log('getTokenIdBySymbol.symbol', symbol, this.assets);
     const token = _.find(this.assets, { symbol });
-    console.log('getTokenIdBySymbol.token', token);
+    // console.log('getTokenIdBySymbol.token', token);
     return token.id;
   }
 

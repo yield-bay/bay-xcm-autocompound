@@ -1,4 +1,12 @@
-import { APP_NAME } from '@utils/constants';
+import {
+  APP_NAME,
+  YIELDBAY_DISCORD,
+  YIELDBAY_DOCS,
+  YIELDBAY_GITHUB,
+  YIELDBAY_LANDING,
+  YIELDBAY_LIST_LANDING,
+  YIELDBAY_TWITTER,
+} from '@utils/constants';
 import type { FC } from 'react';
 
 type LinkProps = {
@@ -10,11 +18,11 @@ const Footer: FC = () => {
   const ecosystem: LinkProps[] = [
     {
       title: 'Home',
-      link: 'https://www.yieldbay.io/',
+      link: YIELDBAY_LANDING,
     },
     {
       title: 'Farms List',
-      link: 'https://list.yieldbay.io/',
+      link: YIELDBAY_LIST_LANDING,
     },
     {
       title: 'Auto-compounder',
@@ -25,25 +33,25 @@ const Footer: FC = () => {
   const community: LinkProps[] = [
     {
       title: 'Twitter',
-      link: 'https://twitter.com/yield_bay',
+      link: YIELDBAY_TWITTER,
     },
     {
       title: 'Discord',
-      link: 'https://discord.gg/AKHuvbz7q4',
+      link: YIELDBAY_DISCORD,
     },
     {
       title: 'Docs',
-      link: 'https://docs.yieldbay.io/',
+      link: YIELDBAY_DOCS,
     },
     {
       title: 'Github',
-      link: 'https://github.com/yield-bay/',
+      link: YIELDBAY_GITHUB,
     },
   ];
 
   return (
     <footer className="text-white" aria-labelledby="footer-heading">
-      <div className="max-w-6xl p-9 sm:py-12 sm:px-6 md:px-20 lg:py-14 lg:px-[121px]">
+      <div className="max-w-7xl border px-auto p-9 sm:py-12 sm:px-6 md:px-20 lg:py-14 lg:px-[121px]">
         <div className="lg:grid lg:grid-cols-2 lg:gap-16">
           {/* LEFT SIDE */}
           <div className="sm:p-[10px] sm:pl-0">

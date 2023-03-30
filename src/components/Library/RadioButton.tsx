@@ -32,12 +32,12 @@ const RadioButton: FC<Props> = ({
   tooltip = '',
 }) => {
   return (
-    <Tooltip label={tooltip}>
+    <Tooltip label={tooltip} placement="auto">
       <div
         className={clsx(
           'flex flex-col gap-y-3 justify-start cursor-pointer',
           className,
-          disabled && 'cursor-auto select-none opacity-50'
+          disabled && 'cursor-default select-none opacity-50'
         )}
         onClick={disabled ? () => {} : () => changed(value)}
       >

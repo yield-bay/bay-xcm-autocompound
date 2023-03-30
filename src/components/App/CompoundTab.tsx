@@ -596,7 +596,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       <div>
         <p className="inline-flex items-center mb-8">
           Duration
-          <Tooltip label="Duration of auto-compounding">
+          <Tooltip label="Time period for which the task will run">
             <QuestionMarkCircleIcon className="h-5 w-5 opacity-50 ml-3" />
           </Tooltip>
         </p>
@@ -618,7 +618,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       <div>
         <p className="inline-flex items-center mb-8">
           Percentage
-          <Tooltip label="Percentage of Auto-compounding">
+          <Tooltip label="Percentage of yield to be compounded">
             <QuestionMarkCircleIcon className="h-5 w-5 opacity-50 ml-3" />
           </Tooltip>
         </p>
@@ -651,35 +651,39 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       </div>
       {/* Card box to show current and effective APY */}
       <div className="inline-flex justify-between w-full rounded-lg bg-[#1C1C1C] py-6 px-9">
-        <div className="flex flex-col items-center gap-y-3">
-          <p className="text-xl font-medium opacity-60">Current APY</p>
-          <p className="text-2xl">{APY.toFixed(2)}%</p>
-        </div>
-        <div className="flex flex-col items-center gap-y-3">
-          <p className="text-xl font-medium opacity-60">Effective APY</p>
-          <p className="text-2xl">
-            <CountUp
-              start={0}
-              end={parseFloat(effectiveAPY)}
-              decimals={2}
-              decimal="."
-              suffix="%"
-              duration={0.75}
-              delay={0}
-            />
-          </p>
-        </div>
+        <Tooltip label="Without auto-compounding" placement="top">
+          <div className="flex flex-col items-center gap-y-3">
+            <p className="text-xl font-medium opacity-60">Current APY</p>
+            <p className="text-2xl">{APY.toFixed(2)}%</p>
+          </div>
+        </Tooltip>
+        <Tooltip label="With auto-compounding" placement="top">
+          <div className="flex flex-col items-center gap-y-3">
+            <p className="text-xl font-medium opacity-60">Effective APY</p>
+            <p className="text-2xl">
+              <CountUp
+                start={0}
+                end={parseFloat(effectiveAPY)}
+                decimals={2}
+                decimal="."
+                suffix="%"
+                duration={0.75}
+                delay={0}
+              />
+            </p>
+          </div>
+        </Tooltip>
       </div>
       <div className="flex flex-col gap-y-12 text-base leading-[21.6px] font-bold items-center">
         {isTurpriceLoading && totalFees == 0 ? (
           <p className="text-[#B9B9B9]">Calculating fees...</p>
         ) : (
           <p className="text-[#B9B9B9]">
-            Costs{' '}
+            Estimated Costs{' '}
             <span className="text-white">
               ${(totalFees * turprice).toFixed(2)}{' '}
             </span>
-            Gas Fees
+            including Gas Fees
           </p>
         )}
         <div className="inline-flex items-center gap-x-10">

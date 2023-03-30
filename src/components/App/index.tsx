@@ -36,7 +36,6 @@ const App = () => {
   const [xcmpTasksResult, reexecuteXcmpTasksQuery] = useQuery({
     query: XcmpTasksQuery,
     variables: {
-      // userAddress: account?.address,
       userAddress: turingAddress,
       chain: 'ROCOCO',
     },
@@ -45,11 +44,7 @@ const App = () => {
   const { data: xcmpTasksData, fetching: xcmpTasksFetching } = xcmpTasksResult;
 
   useEffect(() => {
-    if (xcmpTasksFetching == false) {
-      console.log('xcmpTasksData', xcmpTasksData?.xcmpTasks);
-    } else {
-      console.log('xcmpTasksFetching', xcmpTasksFetching);
-    }
+    console.log('xcmpTasksData', xcmpTasksData?.xcmpTasks);
   }, [xcmpTasksData]);
 
   const [filteredFarms, noFilteredFarms] = useFilteredFarms(
@@ -61,29 +56,13 @@ const App = () => {
     <main className="min-w-full min-h-screen bg-baseGrayMid rounded-3xl py-14">
       <MetaTags />
       <div className="max-w-[1138px] mx-auto">
-        {/* <Button
-          bgColor="white"
-          textColor="black"
-          size="lg"
-          onClick={() =>
-            updateXcmpTaskHandler(
-              '321', // taskId
-              '67qEhopwu1mE43vzPMR7cvrA3GaTsbKT6ktf22CXy8pbsob5', // userAddress
-              'MGR-IMBU', // lpName
-              'ROCOCO', // chain
-              'CANCELLED' // status
-            )
-          }
-        >
-          Update task
-        </Button> */}
         <div className="items-center w-full justify-center sm:justify-end lg:justify-center">
           <SearchInput term={searchTerm} setTerm={setSearchTerm} />
         </div>
         <FarmsList
           farms={filteredFarms}
           noFarms={noFilteredFarms}
-          isLoading={farmsFetching || xcmpTasksFetching}
+          isLoading={farmsFetching || xcmpTasksData?.xcmpTasks == undefined}
           xcmpTasks={xcmpTasksData?.xcmpTasks ?? []}
         />
       </div>
