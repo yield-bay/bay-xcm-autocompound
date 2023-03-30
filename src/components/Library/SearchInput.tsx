@@ -42,7 +42,7 @@ const SearchInput: FC<Props> = ({ term, setTerm, disabled = false }) => {
         onFocus={() => setInputFocus(true)}
         onBlur={() => setInputFocus(false)}
         className={clsx(
-          'block w-full pl-20 sm:pl-12 lg:pl-[84px] pr-4 py-6 sm:py-[14px] focus:outline-none focus:ring-primaryGreen focus:ring-[1px] ring-opacity-50 placeholder:text-white placeholder:focus:text-opacity-60 text-sm sm:text-base leading-[17px] sm:leading-5 font-semibold bg-bgBlack border-none text-center outline-none sm:rounded-lg transition duration-200',
+          'block w-full pl-20 sm:pl-12 pr-12 py-6 sm:py-[14px] focus:outline-none focus:ring-primaryGreen focus:ring-[1px] ring-opacity-50 placeholder:text-white placeholder:focus:text-opacity-60 text-sm sm:text-base leading-[17px] sm:leading-5 font-semibold bg-bgBlack border-none text-center outline-none sm:rounded-lg transition duration-200',
           disabled ? 'opacity-50' : 'opacity-100'
         )}
         placeholder="Search by tokens"
