@@ -2,7 +2,7 @@ import { Tooltip as TooltipChakra } from '@chakra-ui/react';
 import { FC } from 'react';
 
 interface Props {
-  label: string;
+  label: React.ReactNode;
   children: JSX.Element;
   placement?: 'top' | 'bottom' | 'left' | 'right' | 'auto';
 }

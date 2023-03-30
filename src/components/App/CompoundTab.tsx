@@ -1,4 +1,4 @@
-import { FC, useState, useEffect } from 'react';
+import { FC, useState, useEffect, useRef } from 'react';
 import { TabProps } from '@utils/types';
 import { useAtom } from 'jotai';
 import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
@@ -7,6 +7,7 @@ import moment from 'moment';
 import CountUp from 'react-countup';
 import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@chakra-ui/react';
+// import DownSignal from '@components/Library/DownSignal';
 
 // Utils
 import {
@@ -33,6 +34,7 @@ import Loader from '@components/Library/Loader';
 import { getDecimalById } from '@utils/mangata-helpers';
 import { useMutation } from 'urql';
 import { AddXcmpTaskMutation } from '@utils/api';
+import Image from 'next/image';
 
 const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
   const [, setOpen] = useAtom(mainModalOpenAtom);
@@ -563,8 +565,26 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
     addXcmpTaskHandler(taskId, turingAddress as string, lpName, 'ROCOCO');
   };
 
+  // const [offsetHeight, setOffsetHeight] = useState(0);
+
+  // const mainmodalRef = useRef<HTMLDivElement>(null);
+
+  // const handleScrollEffect = (event: any) => {
+  //   console.log('scrolling', event);
+  // };
+
+  // useEffect(() => {
+  //   mainmodalRef.current?.addEventListener('scroll', handleScrollEffect);
+  //   const offsetHeight = mainmodalRef.current?.offsetHeight;
+  //   console.log('compound height', offsetHeight);
+  //   setOffsetHeight(offsetHeight ?? 0);
+  // }, []);
+
   return (
-    <div className="w-full flex flex-col gap-y-10 mt-10 text-xl leading-[27px]">
+    <div
+      className="w-full relative flex flex-col gap-y-10 mt-10 text-xl leading-[27px]"
+      // ref={mainmodalRef}
+    >
       <div>
         <p className="inline-flex items-center mb-8">
           Frequency
@@ -777,6 +797,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
           {isSuccess && <p>Autocompound Setup Successful!</p>}
         </div>
       )}
+      {/* <DownSignal /> */}
     </div>
   );
 };

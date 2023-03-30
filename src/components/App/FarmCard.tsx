@@ -55,9 +55,8 @@ const FarmCard: FC<Props> = ({ farm, xcmpTask }) => {
   useEffect(() => {
     (async () => {
       if (pools == null) return;
-      const poolName = `${token0}-${token1}`;
-
       if (token0 == 'ZLK') return;
+      if (account == null) return;
 
       // Make a state for this
       const pool = _.find(pools, {
@@ -95,7 +94,7 @@ const FarmCard: FC<Props> = ({ farm, xcmpTask }) => {
         <div className="flex flex-col gap-y-[10px]">
           <div className="flex flex-row gap-x-3">
             <FarmAssets logos={farm?.asset.logos} />
-            <div className="py-[9px] select-none px-4 bg-white text-[10px] leading-[13.5px] text-black rounded-full">
+            <div className="py-[9px] select-none px-4 bg-white text-xs text-black rounded-full">
               {formatFarmType(farm?.farmType)}
             </div>
           </div>

@@ -15,12 +15,14 @@ import useFilteredFarms from '@hooks/useFilteredFarms';
 import { XcmpTaskType } from '@utils/types';
 import { useAtom } from 'jotai';
 import { accountAtom } from '@store/accountAtoms';
-import { turingAddressAtom } from '@store/commonAtoms';
+import { turingAddressAtom, viewPositionsAtom } from '@store/commonAtoms';
+import clsx from 'clsx';
 
 const App = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [account] = useAtom(accountAtom);
   const [turingAddress] = useAtom(turingAddressAtom);
+  const [viewPositions] = useAtom(viewPositionsAtom);
 
   console.log('turing address', turingAddress);
 
@@ -53,16 +55,31 @@ const App = () => {
   );
 
   return (
-    <main className="min-w-full min-h-screen bg-baseGrayMid rounded-3xl py-14">
+    <main
+      className={clsx(
+        'min-w-full bg-baseGrayMid rounded-3xl py-14',
+        farmsFetching || xcmpTasksData?.xcmpTasks == undefined
+          ? 'min-h-screen'
+          : 'min-h-fit'
+      )}
+    >
       <MetaTags />
       <div className="max-w-[1138px] mx-auto">
         <div className="items-center w-full justify-center sm:justify-end lg:justify-center">
-          <SearchInput term={searchTerm} setTerm={setSearchTerm} />
+          <SearchInput
+            term={searchTerm}
+            setTerm={setSearchTerm}
+            disabled={viewPositions}
+          />
         </div>
         <FarmsList
           farms={filteredFarms}
           noFarms={noFilteredFarms}
-          isLoading={farmsFetching || xcmpTasksData?.xcmpTasks == undefined}
+          isLoading={
+            account
+              ? farmsFetching || xcmpTasksData?.xcmpTasks == undefined
+              : farmsFetching
+          }
           xcmpTasks={xcmpTasksData?.xcmpTasks ?? []}
         />
       </div>
