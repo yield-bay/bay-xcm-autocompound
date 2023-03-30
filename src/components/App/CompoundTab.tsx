@@ -45,7 +45,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
 
   const [frequency, setFrequency] = useState<number>(1); // default day
   const [duration, setDuration] = useState<number>(7); // default week
-  const [percentage, setPercentage] = useState<number>(10); // default 10%
+  const [percentage, setPercentage] = useState<number>(25); // default 25%
 
   const [gasChoice, setGasChoice] = useState<number>(1); // default 0 == "MGX" / 1 == "TUR"
   const [taskId, setTaskId] = useState<any>('');
@@ -625,12 +625,6 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
         <div className="flex flex-row gap-x-8">
           <RadioButton
             changed={setPercentage}
-            isSelected={percentage === 10}
-            label="10%"
-            value={10}
-          />
-          <RadioButton
-            changed={setPercentage}
             isSelected={percentage === 25}
             label="25%"
             value={25}
@@ -679,10 +673,11 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
           <p className="text-[#B9B9B9]">Calculating fees...</p>
         ) : (
           <p className="text-[#B9B9B9]">
-            Estimated Costs{' '}
+            Costs{' '}
             <span className="text-white">
-              ${(totalFees * turprice).toFixed(2)}{' '}
-            </span>
+              ${(totalFees * turprice).toFixed(2)}
+            </span>{' '}
+            <span className="text-white">({turprice?.toFixed(2)} TUR)</span>{' '}
             including Gas Fees
           </p>
         )}
