@@ -84,6 +84,7 @@ class TuringHelper {
             { signer: signer, nonce: -1 },
             async ({ status }) => {
               if (status.isInBlock) {
+                console.log('Transaction is in Block now!');
                 console.log(`Successful with hash ${status.asInBlock.toHex()}`);
                 console.log('kpaddr', keyPair, 'task', taskId);
                 // Get Task
@@ -92,10 +93,11 @@ class TuringHelper {
                   taskId
                 );
                 console.log('Task:', task);
-                setIsSuccess(true);
+                // setIsSuccess(true);
                 unsub();
                 resolve();
               } else if (status.isFinalized) {
+                consnole,log('Transaction is Finalized!');
                 console.log(
                   `Finalized block hash ${status.asFinalized.toHex()}`
                 );
@@ -103,6 +105,7 @@ class TuringHelper {
                 setIsSigning(false);
                 setIsSuccess(true);
               } else {
+                setIsSigning(false); // Reaching here means the trxn is signed
                 console.log(`Status: ${status.type}`);
               }
             }
@@ -117,7 +120,7 @@ class TuringHelper {
               duration: 3000,
               render: () => (
                 <ToastWrapper
-                  title="Error while scheduling XCMP automation task."
+                  title="Error while handling automation task."
                   status="error"
                 />
               ),

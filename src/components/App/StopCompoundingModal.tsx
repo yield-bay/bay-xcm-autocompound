@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import { useAtom } from 'jotai';
 import Button from '@components/Library/Button';
 import ModalWrapper from '@components/Library/ModalWrapper';
@@ -12,6 +12,8 @@ import {
 } from '@store/commonAtoms';
 import { useMutation } from 'urql';
 import { UpdateXcmpTaskMutation } from '@utils/api';
+import Loader from '@components/Library/Loader';
+import { useToast } from '@chakra-ui/react';
 
 const StopCompoundingModal: FC = () => {
   const [account] = useAtom(accountAtom); // selected account
@@ -20,6 +22,13 @@ const StopCompoundingModal: FC = () => {
   const [openStopComp, setOpenStopComp] = useAtom(stopCompModalOpenAtom);
   const [, setOpenMainModal] = useAtom(mainModalOpenAtom);
   const [turingAddress] = useAtom(turingAddressAtom);
+
+  // Process States
+  const [isInProcess, setIsInProcess] = useState(false);
+  const [isSigning, setIsSigning] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  const toast = useToast();
 
   // UPDATE TASK
   const [updateXcmpTaskResult, updateXcmpTask] = useMutation(
@@ -42,6 +51,8 @@ const StopCompoundingModal: FC = () => {
   const handleStopCompounding = async () => {
     const signer = account?.wallet?.signer;
     console.log('Canceling task with taskid', currentTask?.taskId);
+    setIsInProcess(true);
+    setIsSigning(true);
 
     // remove liquidity
     // 1. turingHelper-> canceltask
@@ -49,12 +60,20 @@ const StopCompoundingModal: FC = () => {
     const cancelTx = await turingHelper.api.tx.automationTime.cancelTask(
       currentTask?.taskId
     );
+
     await turingHelper.sendXcmExtrinsic(
       cancelTx,
       account?.address,
       signer,
-      currentTask?.taskId
+      currentTask?.taskId,
+      setIsSigning,
+      setIsInProcess,
+      setIsSuccess,
+      toast
     );
+
+    setIsInProcess(false);
+    setIsSigning(false);
 
     updateXcmpTaskHandler(
       currentTask?.taskId as string,
@@ -74,8 +93,11 @@ const StopCompoundingModal: FC = () => {
         </p>
         <div className="inline-flex gap-x-2 w-full">
           <Button
-            type="warning"
-            text="Stop Autocompounding"
+            type={'warning'}
+            text={
+              isInProcess ? 'Stopping the process...' : 'Stop Autocompounding'
+            }
+            disabled={isInProcess || isSuccess}
             className="w-3/5"
             onClick={() => {
               handleStopCompounding();
@@ -86,12 +108,29 @@ const StopCompoundingModal: FC = () => {
             type="secondary"
             text="Go Back"
             className="w-2/5"
+            disabled={isInProcess || isSuccess}
             onClick={() => {
               setOpenMainModal(true);
               setOpenStopComp(false);
             }}
           />
         </div>
+        {isInProcess && (
+          <div className="flex flex-row px-4 items-center justify-center text-base leading-[21.6px] bg-baseGray rounded-lg py-10 text-center">
+            {!isSuccess && <Loader size="md" />}
+            {isSigning && (
+              <span className="ml-6">
+                Please sign the transaction in your wallet.
+              </span>
+            )}
+          </div>
+        )}
+        {isSuccess && (
+          <div className="flex flex-col gap-2 px-4 items-center justify-center text-base leading-[21.6px] bg-baseGray rounded-lg py-10 text-center">
+            <p>Successful stopped Autocompounding!</p>
+            <p>Close modal & Refresh to update.</p>
+          </div>
+        )}
       </div>
     </ModalWrapper>
   );

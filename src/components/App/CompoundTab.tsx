@@ -745,7 +745,6 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       {/* BUTTONS */}
       {isAutocompounding || (!isInProcess && isSuccess) ? (
         <div className="flex flex-col gap-y-2">
-          <Button text="Save Changes" type="disabled" onClick={() => {}} />
           <Button
             text="Stop Autocompounding"
             type="warning"
@@ -766,13 +765,15 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
                   ? 'No balance, Please add liquidity'
                   : 'Autocompound'
               }
-              type={isInProcess || lpBalanceNum == 0 ? 'disabled' : 'primary'}
+              type="primary"
+              disabled={isInProcess || lpBalanceNum == 0}
               onClick={handleCompounding}
             />
           ) : (
             <Button
               text={isInProcess ? 'Scheduling...' : 'Schedule Autocompounding'}
-              type={isInProcess ? 'disabled' : 'primary'}
+              type="primary"
+              disabled={isInProcess}
               onClick={handleXcmpScheduling}
             />
           )}
@@ -782,6 +783,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
             onClick={() => {
               setOpen(false);
             }}
+            disabled={isInProcess}
           />
         </div>
       )}
