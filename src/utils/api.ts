@@ -122,6 +122,27 @@ export const createLiquidityEventMutation = gql`
   }
 `;
 
+export const autocompoundEventsQuery = gql`
+  query getAutocompoundEvents($userAddress: String!, $chain: XCMPTaskChain!) {
+    autocompoundEvents(userAddress: $userAddress, chain: $chain) {
+      userAddress
+      chain
+      # taskId
+      lp {
+        symbol
+        amount
+      }
+      duration
+      frequency
+      timestamp
+      executionFee
+      xcmpFee
+      status
+      eventType
+    }
+  }
+`;
+
 export const createAutocompoundEventMutation = gql`
   mutation createAutocompound(
     $userAddress: String!

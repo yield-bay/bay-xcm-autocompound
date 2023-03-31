@@ -12,12 +12,13 @@ import toDollarUnits, {
   formatTokenSymbols,
   replaceTokenSymbols,
 } from '@utils/farmMethods';
-import { FarmType, XcmpTaskType } from '@utils/types';
+import { AutocompoundEventType, FarmType, XcmpTaskType } from '@utils/types';
 import { accountAtom } from '@store/accountAtoms';
 import {
   mainModalOpenAtom,
   mangataHelperAtom,
   poolsAtom,
+  selectedEventAtom,
   selectedFarmAtom,
   selectedTabModalAtom,
   selectedTaskAtom,
@@ -29,13 +30,15 @@ import _ from 'lodash';
 interface Props {
   farm: FarmType;
   xcmpTask: XcmpTaskType | undefined;
+  autocompoundEvent: AutocompoundEventType | undefined;
 }
 
-const FarmCard: FC<Props> = ({ farm, xcmpTask }) => {
+const FarmCard: FC<Props> = ({ farm, xcmpTask, autocompoundEvent }) => {
   const [, setOpen] = useAtom(mainModalOpenAtom);
   const [, setSelectedTab] = useAtom(selectedTabModalAtom);
   const [, setSelectedFarm] = useAtom(selectedFarmAtom);
   const [, setSelectedTask] = useAtom(selectedTaskAtom);
+  const [, setSelectedEvent] = useAtom(selectedEventAtom);
   const [account] = useAtom(accountAtom);
   const [viewPositions] = useAtom(viewPositionsAtom);
   const [mangataHelper] = useAtom(mangataHelperAtom);
@@ -48,8 +51,13 @@ const FarmCard: FC<Props> = ({ farm, xcmpTask }) => {
   );
   const [token0, token1] = tokenNames;
   const isCompounding = xcmpTask?.status == 'RUNNING' ? true : false;
+  const hasEvent = autocompoundEvent != undefined ? true : false;
 
   const toast = useToast();
+
+  useEffect(() => {
+    console.log(`event in ${token0}-${token1}:`, hasEvent);
+  }, [hasEvent]);
 
   // Calculate LP balance
   useEffect(() => {
@@ -183,6 +191,7 @@ const FarmCard: FC<Props> = ({ farm, xcmpTask }) => {
                   setOpen(true);
                   setSelectedFarm(farm);
                   setSelectedTask(xcmpTask);
+                  setSelectedEvent(autocompoundEvent);
                 }
               }}
             >
@@ -218,6 +227,7 @@ const FarmCard: FC<Props> = ({ farm, xcmpTask }) => {
                 setOpen(true);
                 setSelectedFarm(farm);
                 setSelectedTask(xcmpTask);
+                setSelectedEvent(autocompoundEvent);
               }
             }}
           >

@@ -37,13 +37,26 @@ export interface XcmpTaskType {
   status: string;
 }
 
+export type TokenType = {
+  symbol: string;
+  amount: number;
+};
+
+export interface AutocompoundEventType {
+  userAddress: string;
+  chain: string;
+  lp: TokenType;
+  duration: number;
+  frequency: number;
+  timestamp: string;
+  executionFee: number;
+  xcmpFee: number;
+  status: string;
+  eventType: string;
+}
+
 export interface TabProps {
   farm: FarmType;
   account: WalletAccount;
   pool: any | undefined;
 }
-
-export type TokenType = {
-  symbol: string;
-  amount: number;
-};

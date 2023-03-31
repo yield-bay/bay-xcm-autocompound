@@ -1,6 +1,6 @@
 import { FC } from 'react';
 import { useAtom } from 'jotai';
-import { FarmType, XcmpTaskType } from '@utils/types';
+import { AutocompoundEventType, FarmType, XcmpTaskType } from '@utils/types';
 import Loader from '@components/Library/Loader';
 import FarmCard from './FarmCard';
 import { formatTokenSymbols, replaceTokenSymbols } from '@utils/farmMethods';
@@ -11,9 +11,16 @@ interface Props {
   noFarms: boolean;
   isLoading: boolean;
   xcmpTasks: XcmpTaskType[];
+  autocompoundEvents: AutocompoundEventType[];
 }
 
-const FarmsList: FC<Props> = ({ farms, noFarms, isLoading, xcmpTasks }) => {
+const FarmsList: FC<Props> = ({
+  farms,
+  noFarms,
+  isLoading,
+  xcmpTasks,
+  autocompoundEvents,
+}) => {
   const [viewPositions] = useAtom(viewPositionsAtom);
   const noXcmpTasks =
     xcmpTasks !== undefined ? (xcmpTasks.length == 0 ? true : false) : true;
@@ -33,7 +40,17 @@ const FarmsList: FC<Props> = ({ farms, noFarms, isLoading, xcmpTasks }) => {
           const xcmpTask = xcmpTasks.find(
             (task) => task.lpName == `${token0}-${token1}`
           );
-          return <FarmCard farm={farm} key={index} xcmpTask={xcmpTask} />;
+          const autocompoundEvent = autocompoundEvents.find(
+            (event) => event.lp.symbol == `${token0}-${token1}`
+          );
+          return (
+            <FarmCard
+              farm={farm}
+              key={index}
+              xcmpTask={xcmpTask}
+              autocompoundEvent={autocompoundEvent}
+            />
+          );
         })
       ) : (
         <div className="flex items-center justify-center">

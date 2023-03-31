@@ -11,9 +11,13 @@ import {
   turingHelperAtom,
 } from '@store/commonAtoms';
 import { useMutation } from 'urql';
-import { UpdateXcmpTaskMutation } from '@utils/api';
+import {
+  updateAutocompoundEventStatusMutation,
+  UpdateXcmpTaskMutation,
+} from '@utils/api';
 import Loader from '@components/Library/Loader';
 import { useToast } from '@chakra-ui/react';
+import { TokenType } from '@utils/types';
 
 const StopCompoundingModal: FC = () => {
   const [account] = useAtom(accountAtom); // selected account
@@ -45,6 +49,29 @@ const StopCompoundingModal: FC = () => {
     console.log('Updating task...');
     updateXcmpTask(variables).then((result) => {
       console.log('updateXcmpTask result', result);
+    });
+  };
+
+  const [updateAutocompoundEventResult, updateAutocompoundEvent] = useMutation(
+    updateAutocompoundEventStatusMutation
+  );
+  const updateAutocompoundingHandler = async (
+    userAddress: string,
+    chain: string,
+    taskId: string,
+    lp: TokenType,
+    newStatus: string
+  ) => {
+    const variables = {
+      userAddress,
+      chain,
+      taskId,
+      lp,
+      newStatus,
+    };
+    console.log('Updating the autocompounding event...');
+    updateAutocompoundEvent(variables).then((result) => {
+      console.log('updateAutocompounding Result', result);
     });
   };
 
@@ -80,6 +107,18 @@ const StopCompoundingModal: FC = () => {
       turingAddress as string,
       currentTask?.lpName as string,
       currentTask?.chain as string,
+      'CANCELLED'
+    );
+
+    // Update Autocompounding Event in Tracking
+    updateAutocompoundingHandler(
+      turingAddress as string,
+      'ROCOCO',
+      currentTask?.taskId as string,
+      {
+        symbol: currentTask?.lpName as string,
+        amount: 100, // Need to confirm what to put here.
+      },
       'CANCELLED'
     );
     console.log(`Task cancelled withtaskId ${currentTask?.taskId}`);

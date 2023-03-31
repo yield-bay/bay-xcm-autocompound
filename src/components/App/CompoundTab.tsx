@@ -18,6 +18,7 @@ import {
   turingAddressAtom,
   mangataAddressAtom,
   selectedTaskAtom,
+  selectedEventAtom,
   stopCompModalOpenAtom,
 } from '@store/commonAtoms';
 import { delay, getDecimalBN } from '@utils/xcm/common/utils';
@@ -45,6 +46,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
   const [mangataHelper] = useAtom(mangataHelperAtom);
   const [turingHelper] = useAtom(turingHelperAtom);
   const [selectedTask] = useAtom(selectedTaskAtom);
+  const [selectedEvent] = useAtom(selectedEventAtom);
   const [, setStopModalOpen] = useAtom(stopCompModalOpenAtom);
 
   const [frequency, setFrequency] = useState<number>(1); // default day
@@ -82,6 +84,12 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
 
   const toast = useToast();
   const isAutocompounding = selectedTask?.status == 'RUNNING' ? true : false;
+  const hasEvent = selectedEvent != undefined ? true : false;
+
+  useEffect(() => {
+    console.log('hasEvent', hasEvent);
+    console.log('selected event', selectedEvent);
+  }, [hasEvent]);
 
   const [token0, token1] = formatTokenSymbols(
     replaceTokenSymbols(farm?.asset.symbol)
@@ -654,18 +662,21 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
             isSelected={frequency === 1}
             label="Day"
             value={1}
+            disabled={hasEvent && selectedEvent?.frequency !== 1}
           />
           <RadioButton
             changed={setFrequency}
             isSelected={frequency === 7}
             label="Week"
             value={7}
+            disabled={hasEvent && selectedEvent?.frequency !== 7}
           />
           <RadioButton
             changed={setFrequency}
             isSelected={frequency === 30}
             label="Month"
             value={30}
+            disabled={hasEvent && selectedEvent?.frequency !== 30}
           />
         </div>
       </div>
@@ -682,43 +693,47 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
             isSelected={duration === 7}
             label="1 Week"
             value={7}
+            disabled={hasEvent && selectedEvent?.duration !== 7}
           />
           <RadioButton
             changed={setDuration}
             isSelected={duration === 30}
             label="1 Month"
             value={30}
+            disabled={hasEvent && selectedEvent?.duration !== 30}
           />
         </div>
       </div>
-      <div>
-        <p className="inline-flex items-center mb-8">
-          Percentage
-          <Tooltip label="Percentage of yield to be compounded">
-            <QuestionMarkCircleIcon className="h-5 w-5 opacity-50 ml-3" />
-          </Tooltip>
-        </p>
-        <div className="flex flex-row gap-x-8">
-          <RadioButton
-            changed={setPercentage}
-            isSelected={percentage === 25}
-            label="25%"
-            value={25}
-          />
-          <RadioButton
-            changed={setPercentage}
-            isSelected={percentage === 50}
-            label="50%"
-            value={50}
-          />
-          <RadioButton
-            changed={setPercentage}
-            isSelected={percentage === 100}
-            label="100%"
-            value={100}
-          />
+      {!hasEvent && (
+        <div>
+          <p className="inline-flex items-center mb-8">
+            Percentage
+            <Tooltip label="Percentage of yield to be compounded">
+              <QuestionMarkCircleIcon className="h-5 w-5 opacity-50 ml-3" />
+            </Tooltip>
+          </p>
+          <div className="flex flex-row gap-x-8">
+            <RadioButton
+              changed={setPercentage}
+              isSelected={percentage === 25}
+              label="25%"
+              value={25}
+            />
+            <RadioButton
+              changed={setPercentage}
+              isSelected={percentage === 50}
+              label="50%"
+              value={50}
+            />
+            <RadioButton
+              changed={setPercentage}
+              isSelected={percentage === 100}
+              label="100%"
+              value={100}
+            />
+          </div>
         </div>
-      </div>
+      )}
       {/* Card box to show current and effective APY */}
       <div className="inline-flex justify-between w-full rounded-lg bg-[#1C1C1C] py-6 px-9">
         <Tooltip label="Without auto-compounding" placement="top">
@@ -829,7 +844,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
             <Button
               text={isInProcess ? 'Scheduling...' : 'Schedule Autocompounding'}
               type="primary"
-              disabled={isInProcess}
+              disabled={isInProcess || isSuccess}
               onClick={handleXcmpScheduling}
             />
           )}
