@@ -6,24 +6,27 @@ import Button from '@components/Library/Button';
 import ProcessStepper from '@components/Library/ProcessStepper';
 import Tooltip from '@components/Library/Tooltip';
 import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
-import { accountAtom } from '@store/accountAtoms';
 import {
   account1Atom,
   mainModalOpenAtom,
   mangataHelperAtom,
+  turingAddressAtom,
   turingHelperAtom,
 } from '@store/commonAtoms';
 import { formatTokenSymbols, replaceTokenSymbols } from '@utils/farmMethods';
-import { TabProps } from '@utils/types';
+import { TabProps, TokenType } from '@utils/types';
 import Loader from '@components/Library/Loader';
-import { BN } from 'bn.js';
 import ToastWrapper from '@components/Library/ToastWrapper';
-import { getAssets, getDecimalById } from '@utils/mangata-helpers';
+import { getDecimalById } from '@utils/mangata-helpers';
 import { getDecimalBN } from '@utils/xcm/common/utils';
+import { createLiquidityEventMutation } from '@utils/api';
+import { useMutation } from 'urql';
+import moment from 'moment';
 
 const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
   const [mangataHelper] = useAtom(mangataHelperAtom);
-  const [turingHelper] = useAtom(turingHelperAtom);
+  // const [turingHelper] = useAtom(turingHelperAtom);
+  const [turingAddress] = useAtom(turingAddressAtom);
   const signer = account?.wallet?.signer;
   const [account1] = useAtom(account1Atom);
   const [, setOpen] = useAtom(mainModalOpenAtom);
@@ -45,7 +48,7 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
   ); // temperory amount
   const [lpBalance, setLpBalance] = useState<any>(null);
   const [lpBalanceNum, setLpBalanceNum] = useState<number | null>(null);
-  const isInsufficientBalance = false; // firstTokenBalance < parseFloat(firstTokenAmount);
+  // const isInsufficientBalance = false; // firstTokenBalance < parseFloat(firstTokenAmount);
 
   const MAX_SLIPPAGE = 0.08; // 8% slippage; can’t be too large
   const [fees, setFees] = useState<number | null>(null);
@@ -54,6 +57,35 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
   const [token0, token1] = formatTokenSymbols(
     replaceTokenSymbols(farm?.asset.symbol)
   );
+
+  const [createLiquidityEventResult, createLiquidityEvent] = useMutation(
+    createLiquidityEventMutation
+  );
+  const createLiquidityEventHandler = async (
+    userAddress: string,
+    chain: string,
+    token0: TokenType,
+    token1: TokenType,
+    lp: TokenType,
+    timestamp: string,
+    gasFees: number,
+    eventType: string
+  ) => {
+    const variables = {
+      userAddress,
+      chain,
+      token0,
+      token1,
+      lp,
+      timestamp,
+      gasFees,
+      eventType,
+    };
+    console.log('Updating the createLiquidityEvent...');
+    createLiquidityEvent(variables).then((result) => {
+      console.log('createLiquidityEvent Result', result);
+    });
+  };
 
   // Estimate of fees; no need to be accurate
   // Method to fetch trnx fees based on token Amounts
@@ -86,8 +118,8 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
       const decimal = mangataHelper.getDecimalsBySymbol(`${token0}-${token1}`);
 
       const lpBalanceNum =
-        BigInt(lpBalance.reserved).toString(10) / 10 ** decimal +
-        BigInt(lpBalance.free).toString(10) / 10 ** decimal;
+        parseFloat(BigInt(lpBalance.reserved).toString(10)) / 10 ** decimal +
+        parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** decimal;
       setLpBalanceNum(lpBalanceNum);
     })();
   }, []);
@@ -220,13 +252,16 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
     setIsSigning(false);
     setIsSuccess(true);
 
-    // TODO: activate liquidity mining
-    // figure out lp token amount
-    // await mangataHelper.activateLiquidityV2({
-    //     tokenId: liquidityTokenId,
-    //     amount:
-    // })
-    // }
+    createLiquidityEventHandler(
+      turingAddress as string,
+      'ROCOCO',
+      { symbol: token0, amount: parseFloat(firstTokenAmount) },
+      { symbol: token1, amount: parseFloat(secondTokenAmount) },
+      { symbol: `${token0}-${token1}`, amount: 0 }, // NEED TO ASK
+      moment().valueOf().toString(),
+      fees as number,
+      'ADD_LIQUIDITY'
+    );
   };
 
   return (
@@ -341,25 +376,19 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
       </div>
       {/* Buttons */}
       <div className="flex flex-col gap-y-2">
-        {isInsufficientBalance ? (
-          <Button type="disabled" text="Insufficient Balance" />
-        ) : (
-          <Button
-            // type={
-            //   firstTokenAmount == null ||
-            //   secondTokenAmount == null ||
-            //   parseFloat(firstTokenAmount) <= 0 ||
-            //   parseFloat(secondTokenAmount) <= 0 ||
-            //   parseFloat(firstTokenAmount) > (firstTokenBalance as number) ||
-            //   parseFloat(secondTokenAmount) > (secondTokenBalance as number)
-            //     ? 'disabled'
-            //     : 'primary'
-            // }
-            type="primary"
-            text="Confirm"
-            onClick={handleAddLiquidity}
-          />
-        )}
+        <Button
+          type="primary"
+          disabled={
+            firstTokenAmount == '' ||
+            secondTokenAmount == '' ||
+            parseFloat(firstTokenAmount) <= 0 ||
+            parseFloat(secondTokenAmount) <= 0 ||
+            parseFloat(firstTokenAmount) > (firstTokenBalance as number) ||
+            parseFloat(secondTokenAmount) > (secondTokenBalance as number)
+          }
+          text="Confirm"
+          onClick={handleAddLiquidity}
+        />
         <Button
           type="secondary"
           text="Go Back"
@@ -391,10 +420,6 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
             <p>
               Liquidity Added: {firstTokenAmount} MGX with {secondTokenAmount}{' '}
               TUR successfully.
-              {/* Check your hash{' '}
-              <a href="#" className="underline underline-offset-4">
-                here
-              </a> */}
             </p>
           )}
         </div>

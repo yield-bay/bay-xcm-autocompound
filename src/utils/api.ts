@@ -112,9 +112,18 @@ export const createLiquidityEventMutation = gql`
     ) {
       userAddress
       chain
-      token0
-      token1
-      lp
+      token0 {
+        symbol
+        amount
+      }
+      token1 {
+        symbol
+        amount
+      }
+      lp {
+        symbol
+        amount
+      }
       timestamp
       gasFee
       eventType

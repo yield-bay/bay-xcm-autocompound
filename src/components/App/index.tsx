@@ -5,6 +5,7 @@ import {
   autocompoundEventsQuery,
   FarmsQuery,
   XcmpTasksQuery,
+  createLiquidityEventMutation,
 } from '@utils/api';
 import { useMutation, useQuery } from 'urql';
 import { filterMGXFarms } from '@utils/farmMethods';
@@ -15,6 +16,9 @@ import { useAtom } from 'jotai';
 import { accountAtom } from '@store/accountAtoms';
 import { turingAddressAtom, viewPositionsAtom } from '@store/commonAtoms';
 import clsx from 'clsx';
+import Button from '@components/Library/Button';
+import { TokenType } from '@utils/types';
+import moment from 'moment';
 
 const App = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -69,28 +73,34 @@ const App = () => {
     searchTerm
   );
 
-  // const [updateAutocompoundEventResult, updateAutocompoundEvent] = useMutation(
-  //   updateAutocompoundEventStatusMutation
-  // );
-  // const updateAutocompoundingHandler = async (
-  //   userAddress: string,
-  //   chain: string,
-  //   taskId: string,
-  //   lp: TokenType,
-  //   newStatus: string
-  // ) => {
-  //   const variables = {
-  //     userAddress,
-  //     chain,
-  //     taskId,
-  //     lp,
-  //     newStatus,
-  //   };
-  //   console.log('Updating the autocompounding event...');
-  //   updateAutocompoundEvent(variables).then((result) => {
-  //     console.log('updateAutocompounding Result', result);
-  //   });
-  // };
+  const [createLiquidityEventResult, createLiquidityEvent] = useMutation(
+    createLiquidityEventMutation
+  );
+  const createLiquidityEventHandler = async (
+    userAddress: string,
+    chain: string,
+    token0: TokenType,
+    token1: TokenType,
+    lp: TokenType,
+    timestamp: string,
+    gasFees: number,
+    eventType: string
+  ) => {
+    const variables = {
+      userAddress,
+      chain,
+      token0,
+      token1,
+      lp,
+      timestamp,
+      gasFees,
+      eventType,
+    };
+    console.log('Updating the createLiquidityEvent...');
+    createLiquidityEvent(variables).then((result) => {
+      console.log('createLiquidityEvent Result', result);
+    });
+  };
 
   return (
     <main
@@ -102,6 +112,23 @@ const App = () => {
       )}
     >
       <MetaTags />
+      <Button
+        type="primary"
+        text="Testing"
+        onClick={() => {
+          createLiquidityEventHandler(
+            turingAddress as string,
+            'ROCOCO',
+            { symbol: 'ROC', amount: 0.24 },
+            { symbol: 'MGR', amount: 521.27009 },
+            { symbol: 'ROC-MGR', amount: 0.24 },
+            moment().valueOf().toString(),
+            0.35,
+            'ADD_LIQUIDITY'
+          );
+        }}
+        className="px-10 ml-36 mb-5"
+      />
       <div className="max-w-[1138px] mx-auto">
         <div className="items-center w-full justify-center sm:justify-end lg:justify-center">
           <SearchInput
