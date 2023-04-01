@@ -131,7 +131,8 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
     executionFee: number,
     xcmpFee: number,
     status: string,
-    eventType: string
+    eventType: string,
+    percentage: number
   ) => {
     const variables = {
       userAddress,
@@ -145,6 +146,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       xcmpFee,
       status,
       eventType,
+      percentage,
     };
     console.log('Creating a new autocompounding event');
     createAutocompoundingEvent(variables).then((result) => {
@@ -621,11 +623,12 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       { symbol: lpName, amount: lpBalanceNum },
       duration,
       frequency,
-      new Date().getTime().toString(), // Timestamp
+      moment().toISOString(),
       executionFee,
       xcmpFee,
       'RUNNING',
-      'CREATE'
+      'CREATE',
+      percentage
     );
   };
 
@@ -704,36 +707,37 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
           />
         </div>
       </div>
-      {!hasEvent && (
-        <div>
-          <p className="inline-flex items-center mb-8">
-            Percentage
-            <Tooltip label="Percentage of yield to be compounded">
-              <QuestionMarkCircleIcon className="h-5 w-5 opacity-50 ml-3" />
-            </Tooltip>
-          </p>
-          <div className="flex flex-row gap-x-8">
-            <RadioButton
-              changed={setPercentage}
-              isSelected={percentage === 25}
-              label="25%"
-              value={25}
-            />
-            <RadioButton
-              changed={setPercentage}
-              isSelected={percentage === 50}
-              label="50%"
-              value={50}
-            />
-            <RadioButton
-              changed={setPercentage}
-              isSelected={percentage === 100}
-              label="100%"
-              value={100}
-            />
-          </div>
+      <div>
+        <p className="inline-flex items-center mb-8">
+          Percentage
+          <Tooltip label="Percentage of yield to be compounded">
+            <QuestionMarkCircleIcon className="h-5 w-5 opacity-50 ml-3" />
+          </Tooltip>
+        </p>
+        <div className="flex flex-row gap-x-8">
+          <RadioButton
+            changed={setPercentage}
+            isSelected={percentage === 25}
+            label="25%"
+            value={25}
+            disabled={hasEvent && selectedEvent?.percentage !== 25}
+          />
+          <RadioButton
+            changed={setPercentage}
+            isSelected={percentage === 50}
+            label="50%"
+            value={50}
+            disabled={hasEvent && selectedEvent?.percentage !== 50}
+          />
+          <RadioButton
+            changed={setPercentage}
+            isSelected={percentage === 100}
+            label="100%"
+            value={100}
+            disabled={hasEvent && selectedEvent?.percentage !== 100}
+          />
         </div>
-      )}
+      </div>
       {/* Card box to show current and effective APY */}
       <div className="inline-flex justify-between w-full rounded-lg bg-[#1C1C1C] py-6 px-9">
         <Tooltip label="Without auto-compounding" placement="top">
@@ -759,49 +763,51 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
           </div>
         </Tooltip>
       </div>
-      <div className="flex flex-col gap-y-12 text-base leading-[21.6px] font-bold items-center">
-        {isTurpriceLoading && totalFees == 0 ? (
-          <p className="text-[#B9B9B9]">Calculating fees...</p>
-        ) : (
-          <p className="text-[#B9B9B9]">
-            Costs{' '}
-            <span className="text-white">
-              ${(totalFees * turprice).toFixed(2)}
-            </span>{' '}
-            <span className="text-white">({turprice?.toFixed(2)} TUR)</span>{' '}
-            including Gas Fees
-          </p>
-        )}
-        <div className="inline-flex items-center gap-x-10">
-          <RadioButton
-            changed={setGasChoice}
-            isSelected={gasChoice == 0}
-            label="Pay with MGR"
-            value={0}
-            className={gasChoice == 0 ? '' : 'opacity-50'}
-            disabled
-            tooltip="Coming Soon"
-          />
-          <RadioButton
-            changed={setGasChoice}
-            isSelected={gasChoice == 1}
-            label="Pay with TUR"
-            value={1}
-            className={gasChoice == 1 ? '' : 'opacity-50'}
-          />
-        </div>
-        <div className="inline-flex gap-x-2 rounded-lg bg-[#232323] py-4 px-6 select-none">
-          <span className="text-primaryGreen">Balance:</span>
-          {gasChoice == 0 ? (
-            <span>{mgxBalance ?? 'loading...'} MGR</span>
+      {!hasEvent && (
+        <div className="flex flex-col gap-y-12 text-base leading-[21.6px] font-bold items-center">
+          {isTurpriceLoading && totalFees == 0 ? (
+            <p className="text-[#B9B9B9]">Calculating fees...</p>
           ) : (
-            <span>
-              {turBalance ?? 'loading...'} {gasChoice == 0 ? 'MGR' : 'TUR'}
-            </span>
+            <p className="text-[#B9B9B9]">
+              Costs{' '}
+              <span className="text-white">
+                ${(totalFees * turprice).toFixed(2)}
+              </span>{' '}
+              <span className="text-white">({turprice?.toFixed(2)} TUR)</span>{' '}
+              including Gas Fees
+            </p>
           )}
-          {/* <span className="text-[#8A8A8A]">$1000</span> */}
+          <div className="inline-flex items-center gap-x-10">
+            <RadioButton
+              changed={setGasChoice}
+              isSelected={gasChoice == 0}
+              label="Pay with MGR"
+              value={0}
+              className={gasChoice == 0 ? '' : 'opacity-50'}
+              disabled
+              tooltip="Coming Soon"
+            />
+            <RadioButton
+              changed={setGasChoice}
+              isSelected={gasChoice == 1}
+              label="Pay with TUR"
+              value={1}
+              className={gasChoice == 1 ? '' : 'opacity-50'}
+            />
+          </div>
+          <div className="inline-flex gap-x-2 rounded-lg bg-[#232323] py-4 px-6 select-none">
+            <span className="text-primaryGreen">Balance:</span>
+            {gasChoice == 0 ? (
+              <span>{mgxBalance ?? 'loading...'} MGR</span>
+            ) : (
+              <span>
+                {turBalance ?? 'loading...'} {gasChoice == 0 ? 'MGR' : 'TUR'}
+              </span>
+            )}
+            {/* <span className="text-[#8A8A8A]">$1000</span> */}
+          </div>
         </div>
-      </div>
+      )}
       {/* STEPPER */}
       {isInProcess && (
         <ProcessStepper

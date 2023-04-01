@@ -41,11 +41,14 @@ export type TokenType = {
   symbol: string;
   amount: number;
 };
-
 export interface AutocompoundEventType {
   userAddress: string;
   chain: string;
-  lp: TokenType;
+  taskId: string;
+  lp: {
+    symbol: string;
+    amount: number;
+  };
   duration: number;
   frequency: number;
   timestamp: string;
@@ -53,6 +56,7 @@ export interface AutocompoundEventType {
   xcmpFee: number;
   status: string;
   eventType: string;
+  percentage: number;
 }
 
 export interface TabProps {

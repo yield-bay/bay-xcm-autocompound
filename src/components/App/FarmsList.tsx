@@ -25,6 +25,12 @@ const FarmsList: FC<Props> = ({
   const noXcmpTasks =
     xcmpTasks !== undefined ? (xcmpTasks.length == 0 ? true : false) : true;
 
+  if (autocompoundEvents !== undefined) {
+    console.log('autocompoundEvents:', autocompoundEvents);
+  } else {
+    console.log('autocompoundEvents is undefined');
+  }
+
   return (
     <div className="flex flex-col items-center gap-y-[25px] my-16">
       {isLoading ? (

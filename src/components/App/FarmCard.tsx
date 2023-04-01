@@ -52,6 +52,7 @@ const FarmCard: FC<Props> = ({ farm, xcmpTask, autocompoundEvent }) => {
   const [token0, token1] = tokenNames;
   const isCompounding = xcmpTask?.status == 'RUNNING' ? true : false;
   const hasEvent = autocompoundEvent != undefined ? true : false;
+  console.log(`${token0}-${token1} has event:`, hasEvent);
 
   const toast = useToast();
 

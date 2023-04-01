@@ -32,7 +32,12 @@ const RadioButton: FC<Props> = ({
   tooltip = '',
 }) => {
   return (
-    <Tooltip label={tooltip} placement="top">
+    <Tooltip
+      label={
+        disabled && value !== 0 ? 'Stop current task to make changes' : tooltip
+      }
+      placement="top"
+    >
       <div
         className={clsx(
           'flex flex-col gap-y-3 justify-start cursor-pointer',

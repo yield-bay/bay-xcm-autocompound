@@ -148,6 +148,7 @@ export const autocompoundEventsQuery = gql`
       xcmpFee
       status
       eventType
+      percentage
     }
   }
 `;
@@ -165,6 +166,7 @@ export const createAutocompoundEventMutation = gql`
     $xcmpFee: Float! # in TUR
     $status: XCMPTaskStatus!
     $eventType: AutocompoundEventType!
+    $percentage: Float!
   ) {
     createAutocompoundEvent(
       userAddress: $userAddress
@@ -178,6 +180,7 @@ export const createAutocompoundEventMutation = gql`
       xcmpFee: $xcmpFee
       status: $status
       eventType: $eventType
+      percentage: $percentage
     ) {
       userAddress
       chain
@@ -193,6 +196,7 @@ export const createAutocompoundEventMutation = gql`
       xcmpFee
       status
       eventType
+      percentage
     }
   }
 `;

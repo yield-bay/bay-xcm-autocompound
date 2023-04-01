@@ -112,7 +112,7 @@ const App = () => {
       )}
     >
       <MetaTags />
-      <Button
+      {/* <Button
         type="primary"
         text="Testing"
         onClick={() => {
@@ -128,7 +128,7 @@ const App = () => {
           );
         }}
         className="px-10 ml-36 mb-5"
-      />
+      /> */}
       <div className="max-w-[1138px] mx-auto">
         <div className="items-center w-full justify-center sm:justify-end lg:justify-center">
           <SearchInput
