@@ -102,6 +102,7 @@ const SelectAccountMenu: FC<SelectAccountMenuProps> = ({ children }) => {
 const ConnectWalletButton: FC = () => {
   const [, setIsOpen] = useAtom(walletModalOpenAtom);
   const [account] = useAtom(accountAtom); // selected account
+  const [wallet] = useAtom(walletAtom);
 
   const [disconnectModalOpen, setDisconnectModalOpen] =
     useState<boolean>(false);
@@ -124,7 +125,11 @@ const ConnectWalletButton: FC = () => {
       )}
     >
       {account == null ? (
-        <span>Connect Wallet</span>
+        wallet == null ? (
+          <span>Connect Wallet</span>
+        ) : (
+          <span>Connect Account</span>
+        )
       ) : (
         <div className="inline-flex justify-between w-full">
           <div className="inline-flex gap-x-1">
