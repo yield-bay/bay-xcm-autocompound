@@ -58,6 +58,7 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
     replaceTokenSymbols(farm?.asset.symbol)
   );
 
+  // Mutation to add config as a createLiquidityEvent
   const [createLiquidityEventResult, createLiquidityEvent] = useMutation(
     createLiquidityEventMutation
   );
@@ -235,14 +236,38 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
       .signAndSend(account1?.address, { signer: signer }, ({ status }: any) => {
         if (status.isInBlock) {
           console.log(
-            `Mint liquidity trxn successful with hash ${status.asInBlock.toHex()}`
+            `Mint liquidity trxn is in Block with hash ${status.asInBlock.toHex()}`
           );
+          setIsSuccess(true);
         } else if (status.isFinalised) {
           console.log('Mint liquidity trxn finalised.');
+          toast({
+            position: 'top',
+            duration: 3000,
+            render: () => (
+              <ToastWrapper
+                title={`Adding liquidity to ${pool.firstTokenId}-${pool.secondTokenId}} in successful.`}
+                status="info"
+              />
+            ),
+          });
+
+          createLiquidityEventHandler(
+            turingAddress as string,
+            'ROCOCO',
+            { symbol: token0, amount: parseFloat(firstTokenAmount) },
+            { symbol: token1, amount: parseFloat(secondTokenAmount) },
+            { symbol: `${token0}-${token1}`, amount: 0 },
+            moment().valueOf().toString(),
+            fees as number,
+            'ADD_LIQUIDITY'
+          );
+
           setIsInProcess(false);
           setIsSigning(false);
           setIsSuccess(true);
         } else {
+          setIsSigning(false);
           console.log('Status:', status.type);
         }
       })
@@ -251,17 +276,6 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
       });
     setIsSigning(false);
     setIsSuccess(true);
-
-    createLiquidityEventHandler(
-      turingAddress as string,
-      'ROCOCO',
-      { symbol: token0, amount: parseFloat(firstTokenAmount) },
-      { symbol: token1, amount: parseFloat(secondTokenAmount) },
-      { symbol: `${token0}-${token1}`, amount: 0 }, // NEED TO ASK
-      moment().valueOf().toString(),
-      fees as number,
-      'ADD_LIQUIDITY'
-    );
   };
 
   return (

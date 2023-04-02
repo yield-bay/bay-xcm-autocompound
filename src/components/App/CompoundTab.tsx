@@ -742,13 +742,13 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       <div className="inline-flex justify-between w-full rounded-lg bg-[#1C1C1C] py-6 px-9">
         <Tooltip label="Without auto-compounding" placement="top">
           <div className="flex flex-col items-center gap-y-3">
-            <p className="text-xl font-medium opacity-60">Current APY</p>
+            <p className="text-xl font-medium opacity-60">Current APR</p>
             <p className="text-2xl">{APY.toFixed(2)}%</p>
           </div>
         </Tooltip>
         <Tooltip label="With auto-compounding" placement="top">
           <div className="flex flex-col items-center gap-y-3">
-            <p className="text-xl font-medium opacity-60">Effective APY</p>
+            <p className="text-xl font-medium opacity-60">Effective APR</p>
             <p className="text-2xl">
               <CountUp
                 start={0}
@@ -843,8 +843,13 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
                   : 'Autocompound'
               }
               type="primary"
-              disabled={isInProcess || lpBalanceNum == 0}
-              onClick={handleCompounding}
+              // disabled={isInProcess || lpBalanceNum == 0}
+              onClick={() => {
+                if (frequency === duration) {
+                  setFrequency(frequency - 1);
+                }
+                handleCompounding();
+              }}
             />
           ) : (
             <Button

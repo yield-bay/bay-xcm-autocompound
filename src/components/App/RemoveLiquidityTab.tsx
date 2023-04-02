@@ -1,24 +1,25 @@
-import { useAtom } from 'jotai';
-import Image from 'next/image';
 import { useEffect, useState } from 'react';
+import { useAtom } from 'jotai';
+import { useMutation } from 'urql';
+import moment from 'moment';
 import Button from '@components/Library/Button';
 import { mainModalOpenAtom } from '@store/commonAtoms';
 import { formatTokenSymbols, replaceTokenSymbols } from '@utils/farmMethods';
-import { TabProps } from '@utils/types';
-import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
+import { TabProps, TokenType } from '@utils/types';
 import { useToast } from '@chakra-ui/react';
-import Tooltip from '@components/Library/Tooltip';
 import { accountAtom } from '@store/accountAtoms';
 import ToastWrapper from '@components/Library/ToastWrapper';
 import {
   mangataHelperAtom,
-  turingHelperAtom,
+  turingAddressAtom,
   account1Atom,
 } from '@store/commonAtoms';
+import { createLiquidityEventMutation } from '@utils/api';
 
 const RemoveLiquidityTab = ({ farm, pool }: TabProps) => {
   const [account] = useAtom(accountAtom);
   const [mangataHelper] = useAtom(mangataHelperAtom);
+  const [turingAddress] = useAtom(turingAddressAtom);
 
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [isSigning, setIsSigning] = useState<boolean>(false);
@@ -67,43 +68,83 @@ const RemoveLiquidityTab = ({ farm, pool }: TabProps) => {
     })();
   }, []);
 
+  // Mutation to add config as a createLiquidityEvent
+  const [createLiquidityEventResult, createLiquidityEvent] = useMutation(
+    createLiquidityEventMutation
+  );
+  const createLiquidityEventHandler = async (
+    userAddress: string,
+    chain: string,
+    token0: TokenType,
+    token1: TokenType,
+    lp: TokenType,
+    timestamp: string,
+    gasFees: number,
+    eventType: string
+  ) => {
+    const variables = {
+      userAddress,
+      chain,
+      token0,
+      token1,
+      lp,
+      timestamp,
+      gasFees,
+      eventType,
+    };
+    console.log('Updating the createLiquidityEvent...');
+    createLiquidityEvent(variables).then((result) => {
+      console.log('createLiquidityEvent Result', result);
+    });
+  };
+
   const handleRemoveLiquidity = async () => {
     setIsProcessing(true);
 
     const signer = account?.wallet?.signer;
     setIsSigning(true);
-    const lpd = BigInt(lpBalance.reserved).toString(10);
+    const lpBalReserved =
+      parseFloat(BigInt(lpBalance.reserved).toString(10)) / 10 ** 18;
+    const lpBalFree =
+      parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** 18;
+
     console.log(
       'lpBalance.reserved',
       lpBalance.reserved,
-      parseFloat(lpd) / 10 ** 18,
+      lpBalReserved,
       'percentage',
       percentage
     );
 
     let txns = [];
+    console.log(
+      'res',
+      lpBalReserved,
+      'free',
+      lpBalFree,
+      'free+res',
+      lpBalReserved + lpBalFree
+    );
 
     const deactx = await mangataHelper.deactivateLiquidityV2(
       pool.liquidityTokenId,
-      parseFloat(lpd) / 10 ** 18
+      lpBalReserved
     );
     txns.push(deactx);
+
     console.log(
       'res',
-      parseFloat(lpd) / 10 ** 18,
+      lpBalReserved,
       'free',
-      parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** 18,
+      lpBalFree,
       'free+res',
-      parseFloat(lpd) / 10 ** 18 +
-        parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** 18
+      lpBalReserved + lpBalFree
     );
 
     const bltx = await mangataHelper.burnLiquidityTx(
       pool.firstTokenId,
       pool.secondTokenId,
-      // lpBalance.reserved,
-      parseFloat(lpd) / 10 ** 18 +
-        parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** 18,
+      lpBalReserved + lpBalFree,
       percentage
     );
     txns.push(bltx);
@@ -116,47 +157,53 @@ const RemoveLiquidityTab = ({ farm, pool }: TabProps) => {
         { signer: signer },
         async ({ status }: any) => {
           if (status.isInBlock) {
-            setIsSigning(false);
+            console.log('Burn Liquidity in block now!');
             console.log(
-              `Burn Liquidity in block for ${pool.firstTokenId} & ${
+              `Successful for ${pool.firstTokenId}-${
                 pool.secondTokenId
               } with hash ${status.asInBlock.toHex()}`
             );
             toast({
               position: 'top',
               duration: 3000,
-              render: () => (
-                <ToastWrapper
-                  title={`Burn Liquidity in block for ${pool.firstTokenId}-${pool.secondTokenId}}`}
-                  status="info"
-                />
-              ),
             });
+            setIsSuccess(true);
             // unsub();
             // resolve();
           } else if (status.isFinalized) {
             console.log(
-              `Burn Liquidity Successfully for Pool ${pool.firstTokenId}-${
+              `Liquidity Successfully removed for ${pool.firstTokenId}-${
                 pool.secondTokenId
               } with hash ${status.asFinalized.toHex()}`
             );
-
             toast({
               position: 'top',
               duration: 3000,
               render: () => (
                 <ToastWrapper
-                  title={`Burn Liquidity Successfully for Pool ${pool.firstTokenId}-${pool.secondTokenId}`}
+                  title={`Liquidity Successfully removed from ${pool.firstTokenId}-${pool.secondTokenId}`}
                   status="success"
                 />
               ),
             });
-            setIsProcessing(false);
-            setIsSigning(false);
-            setIsSuccess(true);
             // unsub();
             // resolve();
+            createLiquidityEventHandler(
+              turingAddress as string,
+              'ROCOCO',
+              { symbol: token0, amount: 0 },
+              { symbol: token1, amount: 0 },
+              {
+                symbol: `${token0}-${token1}`,
+                amount:
+                  ((lpBalReserved + lpBalFree) * parseFloat(percentage)) / 100,
+              }, // Amount of Liquidity burnt
+              moment().valueOf().toString(),
+              0,
+              'REMOVE_LIQUIDITY'
+            );
           } else {
+            setIsSigning(false);
             console.log(`Status: ${status.type}`);
           }
         }
@@ -170,72 +217,13 @@ const RemoveLiquidityTab = ({ farm, pool }: TabProps) => {
           position: 'top',
           duration: 3000,
           render: () => (
-            <ToastWrapper title={`Error in burnLiquidityTx`} status="error" />
+            <ToastWrapper
+              title="Error while removing Liquidity"
+              status="error"
+            />
           ),
         });
       });
-    // await bltx
-    //   .signAndSend(
-    //     account1?.address,
-    //     { signer: signer },
-    //     async ({ status }: any) => {
-    //       if (status.isInBlock) {
-    //         setIsSigning(false);
-    //         console.log(
-    //           `Burn Liquidity in block for ${pool.firstTokenId} & ${pool.secondTokenId
-    //           } with hash ${status.asInBlock.toHex()}`
-    //         );
-    //         toast({
-    //           position: 'top',
-    //           duration: 3000,
-    //           render: () => (
-    //             <ToastWrapper
-    //               title={`Burn Liquidity in block for ${pool.firstTokenId}-${pool.secondTokenId}}`}
-    //               status="info"
-    //             />
-    //           ),
-    //         });
-    //         // unsub();
-    //         // resolve();
-    //       } else if (status.isFinalized) {
-    //         console.log(
-    //           `Burn Liquidity Successfully for Pool ${pool.firstTokenId}-${pool.secondTokenId
-    //           } with hash ${status.asFinalized.toHex()}`
-    //         );
-
-    //         toast({
-    //           position: 'top',
-    //           duration: 3000,
-    //           render: () => (
-    //             <ToastWrapper
-    //               title={`Burn Liquidity Successfully for Pool ${pool.firstTokenId}-${pool.secondTokenId}`}
-    //               status="success"
-    //             />
-    //           ),
-    //         });
-    //         setIsProcessing(false);
-    //         setIsSigning(false);
-    //         setIsSuccess(true);
-    //         // unsub();
-    //         // resolve();
-    //       } else {
-    //         console.log(`Status: ${status.type}`);
-    //       }
-    //     }
-    //   )
-    //   .catch((e: any) => {
-    //     console.log('Error in burnLiquidityTx', e);
-    //     setIsProcessing(false);
-    //     setIsSigning(false);
-    //     setIsSuccess(false);
-    //     toast({
-    //       position: 'top',
-    //       duration: 3000,
-    //       render: () => (
-    //         <ToastWrapper title={`Error in burnLiquidityTx`} status="error" />
-    //       ),
-    //     });
-    //   });
   };
 
   return (
@@ -349,6 +337,7 @@ const RemoveLiquidityTab = ({ farm, pool }: TabProps) => {
             <Button
               type="warning"
               text={`Yes, Remove ${percentage}%`}
+              disabled={isProcessing || isSuccess}
               className="w-3/5"
               onClick={handleRemoveLiquidity}
             />
@@ -356,6 +345,7 @@ const RemoveLiquidityTab = ({ farm, pool }: TabProps) => {
               type="secondary"
               text="Go Back"
               className="w-2/5"
+              disabled={isProcessing}
               onClick={() => {
                 setPercentage('');
                 setIsVerify(false);

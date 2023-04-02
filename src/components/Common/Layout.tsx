@@ -105,8 +105,8 @@ const Layout: FC<Props> = ({ children }) => {
 
       const mangataAddress = account1.getChainByName(mangataChainName)?.address;
       const turingAddress = account1.getChainByName(turingChainName)?.address;
-      console.log('mangataAddress', mangataAddress);
-      console.log('turingAddress', turingAddress);
+      // console.log('mangataAddress', mangataAddress);
+      // console.log('turingAddress', turingAddress);
       setMangataAddress(mangataAddress);
       setTuringAddress(turingAddress);
 

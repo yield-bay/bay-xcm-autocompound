@@ -29,11 +29,9 @@ const Providers: FC<Props> = ({ children }) => {
 
   useEffect(() => {
     let unmounted = false;
-    let supportedWallets = getWallets().filter(
-      (wallet) =>
-        wallet.extensionName == 'polkadot-js' ||
-        wallet.extensionName == 'talisman' ||
-        wallet.extensionName == 'subwallet-js'
+    const walletsOrder = ['talisman', 'polkadot-js', 'subwallet-js'];
+    let supportedWallets = getWallets().filter((wallet) =>
+      walletsOrder.includes(wallet.extensionName)
     );
     if (!unmounted) {
       setWallets(supportedWallets);
