@@ -799,12 +799,16 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
             <span className="text-primaryGreen">Balance:</span>
             {gasChoice == 0 ? (
               <span>{mgxBalance ?? 'loading...'} MGR</span>
+            ) : turBalance ? (
+              <p>
+                {turBalance} TUR
+                <span className="text-[#8A8A8A] ml-2">
+                  ${(turBalance * turprice).toFixed(3)}
+                </span>
+              </p>
             ) : (
-              <span>
-                {turBalance ?? 'loading...'} {gasChoice == 0 ? 'MGR' : 'TUR'}
-              </span>
+              <p>loading...</p>
             )}
-            {/* <span className="text-[#8A8A8A]">$1000</span> */}
           </div>
         </div>
       )}

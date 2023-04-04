@@ -244,7 +244,7 @@ const FarmCard: FC<Props> = ({
                   setSelectedEvent(autocompoundEvent);
                 }
               }}
-              disabled={mgxBalance < 5000}
+              // disabled={mgxBalance < 5000}
             >
               {lpBalanceNum == 0 ? 'Autocompound' : 'Manage'}
             </button>
