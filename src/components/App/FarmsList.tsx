@@ -1,10 +1,16 @@
-import { FC } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { useAtom } from 'jotai';
 import { AutocompoundEventType, FarmType, XcmpTaskType } from '@utils/types';
 import Loader from '@components/Library/Loader';
 import FarmCard from './FarmCard';
 import { formatTokenSymbols, replaceTokenSymbols } from '@utils/farmMethods';
-import { viewPositionsAtom } from '@store/commonAtoms';
+import {
+  viewPositionsAtom,
+  account1Atom,
+  mangataHelperAtom,
+  mgxBalanceAtom,
+} from '@store/commonAtoms';
+import { getDecimalBN } from '@utils/xcm/common/utils';
 
 interface Props {
   farms: FarmType[];
@@ -22,8 +28,30 @@ const FarmsList: FC<Props> = ({
   autocompoundEvents,
 }) => {
   const [viewPositions] = useAtom(viewPositionsAtom);
+  const [account1] = useAtom(account1Atom);
+  const [mangataHelper] = useAtom(mangataHelperAtom);
+
+  // const [mgxBalance, setMgxBalance] = useState<number>(0);
+  const [mgxBalance, setMgxBalance] = useAtom(mgxBalanceAtom);
+
   const noXcmpTasks =
     xcmpTasks !== undefined ? (xcmpTasks.length == 0 ? true : false) : true;
+
+  useEffect(() => {
+    // Fetching MGX and TUR balance of connect account on Mangata Chain
+    (async () => {
+      if (account1) {
+        const mgrBalance = await mangataHelper.mangata?.getTokenBalance(
+          '0', // MGR TokenId
+          account1.address
+        );
+        const mgrBalanceFree = mgrBalance.free
+          .div(getDecimalBN(18)) // MGR decimals = 18
+          .toNumber();
+        setMgxBalance(mgrBalanceFree);
+      }
+    })();
+  }, [account1]);
 
   return (
     <div className="flex flex-col items-center gap-y-[25px] my-16">
@@ -49,6 +77,7 @@ const FarmsList: FC<Props> = ({
               key={index}
               xcmpTask={xcmpTask}
               autocompoundEvent={autocompoundEvent}
+              mgxBalance={mgxBalance}
             />
           );
         })

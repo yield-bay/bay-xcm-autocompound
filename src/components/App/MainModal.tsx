@@ -17,6 +17,7 @@ import {
   mangataHelperAtom,
   mangataAddressAtom,
   isInitialisedAtom,
+  mgxBalanceAtom,
 } from '@store/commonAtoms';
 import { accountAtom } from '@store/accountAtoms';
 import { FarmType } from '@utils/types';
@@ -29,6 +30,7 @@ import CompoundTab from './CompoundTab';
 import AddLiquidityTab from './AddLiquidityTab';
 import RemoveLiquidityTab from './RemoveLiquidityTab';
 import ToastWrapper from '@components/Library/ToastWrapper';
+import Tooltip from '@components/Library/Tooltip';
 
 const tabs = [
   { name: 'Compound', id: 0 },
@@ -53,6 +55,7 @@ const MainModal: FC = () => {
   const [mangataHelper] = useAtom(mangataHelperAtom);
   const [mangataAddress] = useAtom(mangataAddressAtom);
   const [isInitialised] = useAtom(isInitialisedAtom);
+  const [mgxBalance] = useAtom(mgxBalanceAtom);
 
   const [pool, setPool] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -166,19 +169,29 @@ const MainModal: FC = () => {
         <div className="hidden sm:block">
           <nav className="inline-flex justify-between w-full" aria-label="Tabs">
             {tabs.map((tab) => (
-              <button
+              <Tooltip
+                label={
+                  mgxBalance < 5000 && tab.id == 0
+                    ? 'Need a minimum of 5000 MGX as free balance to autocompound.'
+                    : ''
+                }
+                placement="top"
                 key={tab.name}
-                onClick={() => setSelectedTab(tab.id)}
-                className={clsx(
-                  tab.id == selectedTab
-                    ? 'ring-1 ring-primaryGreen  px-4'
-                    : 'opacity-40',
-                  'rounded-md px-4 py-[10px] transition duration-300 ease-in-out'
-                )}
-                aria-current={tab.id ? 'page' : undefined}
               >
-                {tab.name}
-              </button>
+                <button
+                  onClick={() => setSelectedTab(tab.id)}
+                  disabled={tab.id == 0 && mgxBalance < 5000}
+                  className={clsx(
+                    tab.id == selectedTab
+                      ? 'ring-1 ring-primaryGreen  px-4'
+                      : 'opacity-40',
+                    'rounded-md px-4 py-[10px] transition duration-300 ease-in-out'
+                  )}
+                  aria-current={tab.id ? 'page' : undefined}
+                >
+                  {tab.name}
+                </button>
+              </Tooltip>
             ))}
           </nav>
           <TabContent

@@ -25,3 +25,4 @@ export const mangataAddressAtom = atom<string | null>(null);
 export const turingAddressAtom = atom<string | null>(null);
 
 export const viewPositionsAtom = atom<boolean>(false);
+export const mgxBalanceAtom = atom<number>(0);

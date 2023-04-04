@@ -16,10 +16,10 @@ interface Props {
 
 const ConnectModal: FC = () => {
   const [isOpen, setIsOpen] = useAtom(walletModalOpenAtom);
-  const [wallets, setWallets] = useAtom(walletsAtom);
+  const [wallets] = useAtom(walletsAtom);
   const [walletAccounts, setWalletAccounts] = useAtom(walletAccountsAtom);
-  const [wallet, setWallet] = useAtom(walletAtom);
-  const [account, setAccount] = useAtom(accountAtom);
+  const [, setWallet] = useAtom(walletAtom);
+  const [, setAccount] = useAtom(accountAtom);
 
   const connected = walletAccounts !== null;
 

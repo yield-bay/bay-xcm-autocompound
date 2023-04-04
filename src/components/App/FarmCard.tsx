@@ -31,9 +31,15 @@ interface Props {
   farm: FarmType;
   xcmpTask: XcmpTaskType | undefined;
   autocompoundEvent: AutocompoundEventType | undefined;
+  mgxBalance: number;
 }
 
-const FarmCard: FC<Props> = ({ farm, xcmpTask, autocompoundEvent }) => {
+const FarmCard: FC<Props> = ({
+  farm,
+  xcmpTask,
+  autocompoundEvent,
+  mgxBalance,
+}) => {
   const [, setOpen] = useAtom(mainModalOpenAtom);
   const [, setSelectedTab] = useAtom(selectedTabModalAtom);
   const [, setSelectedFarm] = useAtom(selectedFarmAtom);
@@ -51,14 +57,8 @@ const FarmCard: FC<Props> = ({ farm, xcmpTask, autocompoundEvent }) => {
   );
   const [token0, token1] = tokenNames;
   const isCompounding = xcmpTask?.status == 'RUNNING' ? true : false;
-  // const hasEvent = autocompoundEvent != undefined ? true : false;
-  // console.log(`${token0}-${token1} has event:`, hasEvent);
 
   const toast = useToast();
-
-  // useEffect(() => {
-  //   console.log(`event in ${token0}-${token1}:`, hasEvent);
-  // }, [hasEvent]);
 
   // Calculate LP balance
   useEffect(() => {
@@ -209,31 +209,46 @@ const FarmCard: FC<Props> = ({ farm, xcmpTask, autocompoundEvent }) => {
               </p>
             </button>
           )}
-          <button
-            className="px-4 py-3 rounded-lg bg-white hover:bg-offWhite hover:ring-1 ring-offWhite active:ring-0 text-black transition duration-200"
-            onClick={() => {
-              if (account == null) {
-                toast({
-                  position: 'top',
-                  duration: 3000,
-                  render: () => (
-                    <ToastWrapper
-                      title="Please Connect Wallet"
-                      status="error"
-                    />
-                  ),
-                });
-              } else {
-                setSelectedTab(0);
-                setOpen(true);
-                setSelectedFarm(farm);
-                setSelectedTask(xcmpTask);
-                setSelectedEvent(autocompoundEvent);
-              }
-            }}
+          <Tooltip
+            label={
+              mgxBalance < 5000
+                ? 'Need a minimum of 5000 MGX as free balance to autocompound.'
+                : ''
+            }
+            placement="left"
           >
-            {lpBalanceNum == 0 ? 'Autocompound' : 'Manage'}
-          </button>
+            <button
+              className={clsx(
+                'px-4 py-3 rounded-lg bg-white hover:bg-offWhite hover:ring-1 ring-offWhite active:ring-0 text-black transition duration-200',
+                mgxBalance < 5000
+                  ? 'hover:ring-0 hover:bg-white opacity-50 cursor-default'
+                  : ''
+              )}
+              onClick={() => {
+                if (account == null) {
+                  toast({
+                    position: 'top',
+                    duration: 3000,
+                    render: () => (
+                      <ToastWrapper
+                        title="Please Connect Wallet"
+                        status="error"
+                      />
+                    ),
+                  });
+                } else {
+                  setSelectedTab(0);
+                  setOpen(true);
+                  setSelectedFarm(farm);
+                  setSelectedTask(xcmpTask);
+                  setSelectedEvent(autocompoundEvent);
+                }
+              }}
+              disabled={mgxBalance < 5000}
+            >
+              {lpBalanceNum == 0 ? 'Autocompound' : 'Manage'}
+            </button>
+          </Tooltip>
         </div>
       </div>
     </div>
