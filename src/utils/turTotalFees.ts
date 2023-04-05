@@ -69,6 +69,6 @@ export const turTotalFees = async (
     await turingHelper?.api?.rpc?.automationTime.queryFeeDetails(xcmpCall);
   console.log('executionFee', executionFee, 'xcmpFee', xcmpFee);
 
-  const totalFees = executionFee.toNumber() + xcmpFee.toNumber();
+  const totalFees = executionFee.toNumber() * executionTimes.length + xcmpFee.toNumber();
   return totalFees / 10 ** 10;
 };
