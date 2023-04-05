@@ -30,8 +30,6 @@ const FarmsList: FC<Props> = ({
   const [viewPositions] = useAtom(viewPositionsAtom);
   const [account1] = useAtom(account1Atom);
   const [mangataHelper] = useAtom(mangataHelperAtom);
-
-  // const [mgxBalance, setMgxBalance] = useState<number>(0);
   const [mgxBalance, setMgxBalance] = useAtom(mgxBalanceAtom);
 
   const noXcmpTasks =

@@ -1,5 +1,6 @@
 import { AutocompoundEventType, FarmType, XcmpTaskType } from '@utils/types';
 import { atom } from 'jotai';
+import Account from '@utils/xcm/common/account';
 
 export const walletModalOpenAtom = atom<boolean>(false);
 
@@ -20,7 +21,7 @@ export const turingHelperAtom = atom<any>(null);
 
 export const isInitialisedAtom = atom<boolean>(false);
 
-export const account1Atom = atom<any>(null);
+export const account1Atom = atom<Account | null>(null);
 export const mangataAddressAtom = atom<string | null>(null);
 export const turingAddressAtom = atom<string | null>(null);
 

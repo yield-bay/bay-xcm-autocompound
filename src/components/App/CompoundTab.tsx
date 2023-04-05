@@ -1,4 +1,5 @@
-import { FC, useState, useEffect, useRef } from 'react';
+import { FC, useState, useEffect } from 'react';
+import Link from 'next/link';
 import { TabProps, TokenType } from '@utils/types';
 import { useAtom } from 'jotai';
 import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
@@ -51,7 +52,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
 
   const [frequency, setFrequency] = useState<number>(1); // default day
   const [duration, setDuration] = useState<number>(7); // default week
-  const [percentage, setPercentage] = useState<number>(25); // default 25%
+  const [percentage, setPercentage] = useState<number>(100); // default 25%
 
   const [gasChoice, setGasChoice] = useState<number>(1); // default 0 == "MGX" / 1 == "TUR"
   const [taskId, setTaskId] = useState<any>('');
@@ -799,17 +800,23 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
             <span className="text-primaryGreen">Balance:</span>
             {gasChoice == 0 ? (
               <span>{mgxBalance ?? 'loading...'} MGR</span>
-            ) : turBalance ? (
+            ) : (
               <p>
-                {turBalance} TUR
+                {turBalance ?? 'loading...'} TUR
                 <span className="text-[#8A8A8A] ml-2">
                   ${(turBalance * turprice).toFixed(3)}
                 </span>
               </p>
-            ) : (
-              <p>loading...</p>
             )}
           </div>
+          <Link
+            href="https://mangata-finance.notion.site/How-to-get-TUR-bdb76dac848f4d15bf06bec7ded223ad"
+            target="_blank"
+            rel="noreferrer"
+            className="hover:text-primaryGreen text-sm -mt-8 underline underline-offset-2"
+          >
+            How to get TUR?
+          </Link>
         </div>
       )}
       {/* STEPPER */}

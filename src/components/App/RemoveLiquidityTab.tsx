@@ -234,7 +234,9 @@ const RemoveLiquidityTab = ({ farm, pool }: TabProps) => {
             {lpBalanceNum == null ? (
               <p>fetching your LP balance...</p>
             ) : (
-              <p>You Hold: {lpBalanceNum.toFixed(2)} LP token</p>
+              <p>
+                You Hold: {lpBalanceNum.toFixed(2)} {token0}-{token1} LP token
+              </p>
             )}
           </div>
           <div className="flex relative flex-col gap-y-5">
@@ -248,62 +250,10 @@ const RemoveLiquidityTab = ({ farm, pool }: TabProps) => {
               onChange={handlePercChange}
               type="number"
             />
-            {/* <div className="inline-flex justify-start gap-x-6">
-              <button className="text-left text-base leading-[21.6px]">
-                Percentage
-              </button>
-              <button
-                className="text-left text-base leading-[21.6px] opacity-50 cursor-not-allowed"
-                disabled
-              >
-                LP Tokens
-              </button>
-              <button
-                className="text-left text-base leading-[21.6px] opacity-50 cursor-not-allowed"
-                disabled
-              >
-                USD
-              </button>
-            </div> */}
             <div className="absolute right-4 top-[21px] bottom-0 text-base leading-[21.6px] text-[#727272]">
               %
             </div>
           </div>
-          {/* <div className="flex flex-col gap-y-5 text-xl leading-[27px]">
-            <div className="inline-flex w-full justify-between items-center">
-              <p className="inline-flex items-center">
-                <Image
-                  src={farm?.asset.logos[0]}
-                  alt={token0}
-                  height={32}
-                  width={32}
-                />
-                <span className="ml-5">{token0}</span>
-              </p>
-              <p className="text-base leading-[21.6px]">{'0.1'} MGX</p>
-            </div>
-            <div className="inline-flex w-full justify-between items-center">
-              <p className="inline-flex items-center">
-                <Image
-                  src={farm?.asset.logos[1]}
-                  alt={token1}
-                  height={32}
-                  width={32}
-                />
-                <span className="ml-5">{token1}</span>
-              </p>
-              <p className="text-base leading-[21.6px]">{'0.1'} TUR</p>
-            </div>
-            <div className="inline-flex items-center justify-between text-[14px] leading-[18.9px]">
-              <p className="inline-flex items-end">
-                Fee
-                <Tooltip label="Fees to remove liquidity.">
-                  <QuestionMarkCircleIcon className="h-5 w-5 opacity-50 ml-2" />
-                </Tooltip>
-              </p>
-              <span>{'15.8083'} MGX</span>
-            </div>
-          </div> */}
           <div className="flex flex-col gap-y-2">
             <Button
               type="primary"

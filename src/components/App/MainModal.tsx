@@ -18,6 +18,7 @@ import {
   mangataAddressAtom,
   isInitialisedAtom,
   mgxBalanceAtom,
+  selectedTaskAtom,
 } from '@store/commonAtoms';
 import { accountAtom } from '@store/accountAtoms';
 import { FarmType } from '@utils/types';
@@ -56,6 +57,10 @@ const MainModal: FC = () => {
   const [mangataAddress] = useAtom(mangataAddressAtom);
   const [isInitialised] = useAtom(isInitialisedAtom);
   const [mgxBalance] = useAtom(mgxBalanceAtom);
+  const [selectedTask] = useAtom(selectedTaskAtom);
+
+  // If the current pool is autocompounding
+  const isAutocompounding = selectedTask?.status == 'RUNNING' ? true : false;
 
   const [pool, setPool] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -171,8 +176,8 @@ const MainModal: FC = () => {
             {tabs.map((tab) => (
               <Tooltip
                 label={
-                  mgxBalance < 5000 && tab.id == 0
-                    ? 'Need a minimum of 5000 MGX as free balance to autocompound.'
+                  tab.id == 0 && mgxBalance < 5000 && !isAutocompounding
+                    ? 'Need a minimum of 5000 MGR as free balance to autocompound.'
                     : ''
                 }
                 placement="top"
@@ -180,7 +185,9 @@ const MainModal: FC = () => {
               >
                 <button
                   onClick={() => setSelectedTab(tab.id)}
-                  disabled={tab.id == 0 && mgxBalance < 5000}
+                  disabled={
+                    tab.id == 0 && mgxBalance < 5000 && !isAutocompounding
+                  }
                   className={clsx(
                     tab.id == selectedTab
                       ? 'ring-1 ring-primaryGreen  px-4'

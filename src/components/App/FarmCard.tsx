@@ -51,14 +51,19 @@ const FarmCard: FC<Props> = ({
   const [pools] = useAtom(poolsAtom);
 
   const [lpBalanceNum, setLpBalanceNum] = useState(0.0);
+  const [isAutocompounding, setIsAutocompounding] = useState(false);
 
   const tokenNames = formatTokenSymbols(
     replaceTokenSymbols(farm?.asset.symbol)
   );
   const [token0, token1] = tokenNames;
-  const isCompounding = xcmpTask?.status == 'RUNNING' ? true : false;
 
   const toast = useToast();
+
+  useEffect(() => {
+    console.log(`xcmpStatus in farmcard ${token0}-${token1}`, xcmpTask?.status);
+    setIsAutocompounding(xcmpTask?.status == 'RUNNING' ? true : false);
+  }, []);
 
   // Calculate LP balance
   useEffect(() => {
@@ -161,7 +166,7 @@ const FarmCard: FC<Props> = ({
         </div>
         {/* Right Right */}
         <div className="relative flex flex-col justify-between">
-          {isCompounding && (
+          {isAutocompounding && (
             <div className="hidden lg:inline-flex select-none drop-shadow-xl gap-x-2 absolute right-[186px] font-medium text-[#868686] text-base leading-[21.6px]">
               <Image
                 src="/icons/ThunderIcon.svg"
@@ -211,7 +216,8 @@ const FarmCard: FC<Props> = ({
           )}
           <Tooltip
             label={
-              mgxBalance < 5000
+              // MGX Balance is less than 500 & no autocompounding
+              mgxBalance < 5000 && !isAutocompounding
                 ? 'Need a minimum of 5000 MGX as free balance to autocompound.'
                 : ''
             }
@@ -220,9 +226,9 @@ const FarmCard: FC<Props> = ({
             <button
               className={clsx(
                 'px-4 py-3 rounded-lg bg-white hover:bg-offWhite hover:ring-1 ring-offWhite active:ring-0 text-black transition duration-200',
-                mgxBalance < 5000
-                  ? 'hover:ring-0 hover:bg-white opacity-50 cursor-default'
-                  : ''
+                mgxBalance < 5000 &&
+                  !isAutocompounding &&
+                  'hover:ring-0 hover:bg-white opacity-50 cursor-default'
               )}
               onClick={() => {
                 if (account == null) {
@@ -244,9 +250,9 @@ const FarmCard: FC<Props> = ({
                   setSelectedEvent(autocompoundEvent);
                 }
               }}
-              // disabled={mgxBalance < 5000}
+              disabled={mgxBalance < 5000 && !isAutocompounding}
             >
-              {lpBalanceNum == 0 ? 'Autocompound' : 'Manage'}
+              {!isAutocompounding ? 'Autocompound' : 'Manage'}
             </button>
           </Tooltip>
         </div>

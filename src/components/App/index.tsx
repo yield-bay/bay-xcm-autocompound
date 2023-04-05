@@ -14,13 +14,18 @@ import FarmsList from './FarmsList';
 import SearchInput from '@components/Library/SearchInput';
 import useFilteredFarms from '@hooks/useFilteredFarms';
 import { accountAtom } from '@store/accountAtoms';
-import { turingAddressAtom, viewPositionsAtom } from '@store/commonAtoms';
+import {
+  account1Atom,
+  turingAddressAtom,
+  viewPositionsAtom,
+} from '@store/commonAtoms';
 
 const App = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [account] = useAtom(accountAtom);
   const [turingAddress] = useAtom(turingAddressAtom);
   const [viewPositions] = useAtom(viewPositionsAtom);
+  const [account1] = useAtom(account1Atom);
 
   const [farmsResult, reexecuteQuery] = useQuery({
     query: FarmsQuery,
@@ -44,7 +49,7 @@ const App = () => {
   useEffect(() => {
     console.log('xcmpTasksData', xcmpTasksData?.xcmpTasks);
     reexecuteXcmpTasksQuery({ requestPolicy: 'network-only' });
-  }, [account]);
+  }, [account, account1]);
 
   const [autocompoundEventsResult, reexecuteAutocompoundEventsQuery] = useQuery(
     {
@@ -91,7 +96,10 @@ const App = () => {
           noFarms={noFilteredFarms}
           isLoading={
             account
-              ? farmsFetching || xcmpTasksData?.xcmpTasks == undefined
+              ? farmsFetching ||
+                xcmpTasksData?.xcmpTasks == undefined ||
+                xcmpTasksFetching ||
+                autocompoundEventsFetching
               : farmsFetching
           }
           xcmpTasks={xcmpTasksData?.xcmpTasks ?? []}

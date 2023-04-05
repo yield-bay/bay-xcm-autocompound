@@ -1,6 +1,6 @@
 import { useAtom } from 'jotai';
 import Image from 'next/image';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useToast } from '@chakra-ui/react';
 import Button from '@components/Library/Button';
 import ProcessStepper from '@components/Library/ProcessStepper';
@@ -25,7 +25,6 @@ import moment from 'moment';
 
 const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
   const [mangataHelper] = useAtom(mangataHelperAtom);
-  // const [turingHelper] = useAtom(turingHelperAtom);
   const [turingAddress] = useAtom(turingAddressAtom);
   const signer = account?.wallet?.signer;
   const [account1] = useAtom(account1Atom);
@@ -48,7 +47,6 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
   ); // temperory amount
   const [lpBalance, setLpBalance] = useState<any>(null);
   const [lpBalanceNum, setLpBalanceNum] = useState<number | null>(null);
-  // const isInsufficientBalance = false; // firstTokenBalance < parseFloat(firstTokenAmount);
 
   const MAX_SLIPPAGE = 0.08; // 8% slippage; can’t be too large
   const [fees, setFees] = useState<number | null>(null);
@@ -97,7 +95,7 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
 
     // Estimate of fees; no need to be accurate
     const fees = await mangataHelper.getMintLiquidityFee({
-      pair: account1.address,
+      pair: account1?.address,
       firstTokenId: pool.firstTokenId,
       firstTokenAmount: firstTokenAmt,
       secondTokenId: pool.secondTokenId,
@@ -139,24 +137,16 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
         );
         const allAssets = await mangataHelper.mangata.getAssetsInfo();
 
-        const token0Decimal = await getDecimalById(
-          allAssets,
-          pool.firstTokenId
-        );
-        const token1Decimal = await getDecimalById(
-          allAssets,
-          pool.secondTokenId
-        );
+        const token0Decimal = mangataHelper.getDecimalsBySymbol(token0);
+        const token1Decimal = mangataHelper.getDecimalsBySymbol(token1);
 
-        // Converting Token balances to human readable format and setting to state
-        const token0BalanceFree = token0Bal.free
-          .div(getDecimalBN(token0Decimal))
-          .toNumber();
+        const token0BalanceFree =
+          parseFloat(BigInt(token0Bal.free).toString(10)) / 10 ** token0Decimal;
+        const token1BalanceFree =
+          parseFloat(BigInt(token1Bal.free).toString(10)) / 10 ** token1Decimal;
+
         setFirstTokenBalance(token0BalanceFree);
 
-        const token1BalanceFree = token1Bal.free
-          .div(getDecimalBN(token1Decimal))
-          .toNumber();
         setSecondTokenBalance(token1BalanceFree);
       } else {
         toast({
@@ -205,12 +195,6 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
   const handleAddLiquidity = async () => {
     setIsInProcess(true);
 
-    // this should go in add liquidity modal
-    // if (liquidityBalance.reserved.toNumber() === 0) {
-    // console.log(
-    //   'Reserved pool token is zero; minting liquidity to generate rewards...'
-    // );
-
     console.log(
       'pool.firstTokenAmountFloat',
       pool.firstTokenAmountFloat,
@@ -238,9 +222,9 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
           console.log(
             `Mint liquidity trxn is in Block with hash ${status.asInBlock.toHex()}`
           );
-          setIsSuccess(true);
         } else if (status.isFinalised) {
           console.log('Mint liquidity trxn finalised.');
+          setIsSuccess(true);
           toast({
             position: 'top',
             duration: 3000,
@@ -252,6 +236,7 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
             ),
           });
 
+          // Calling the ADD_LIQUIDITY tracker in isFinalised status
           createLiquidityEventHandler(
             turingAddress as string,
             'ROCOCO',
@@ -308,7 +293,7 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
               {firstTokenBalance == null ? (
                 <span>loading...</span>
               ) : (
-                <span>{`${firstTokenBalance} ${token0}`}</span>
+                <span>{`${firstTokenBalance.toFixed(2)} ${token0}`}</span>
               )}
             </p>
             <button
@@ -355,7 +340,7 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
               {secondTokenBalance == null ? (
                 <span>loading...</span>
               ) : (
-                <span>{`${secondTokenBalance} ${token1}`}</span>
+                <span>{`${secondTokenBalance.toFixed(2)} ${token1}`}</span>
               )}
             </p>
           </div>
@@ -375,7 +360,7 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
                   <QuestionMarkCircleIcon className="ml-2 h-5 w-5 opacity-50" />
                 </Tooltip>
               </p>
-              <p>{fees.toFixed(3)} MGX</p>
+              <p>{fees.toFixed(3)} MGR</p>
             </div>
             {/* <div className="flex flex-row justify-between">
               <p className="inline-flex items-center">Expected Share of Pool</p>
@@ -432,8 +417,9 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
           )}
           {isSuccess && (
             <p>
-              Liquidity Added: {firstTokenAmount} MGX with {secondTokenAmount}{' '}
-              TUR successfully.
+              Liquidity Added: {firstTokenAmount} {token0} with{' '}
+              {secondTokenAmount} {token1}
+              successfully.
             </p>
           )}
         </div>
