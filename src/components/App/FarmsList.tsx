@@ -31,6 +31,7 @@ const FarmsList: FC<Props> = ({
   const [account1] = useAtom(account1Atom);
   const [mangataHelper] = useAtom(mangataHelperAtom);
   const [mgxBalance, setMgxBalance] = useAtom(mgxBalanceAtom);
+  const [hasProxy, setHasProxy] = useState(false);
 
   const noXcmpTasks =
     xcmpTasks !== undefined ? (xcmpTasks.length == 0 ? true : false) : true;
@@ -47,6 +48,14 @@ const FarmsList: FC<Props> = ({
           .div(getDecimalBN(18)) // MGR decimals = 18
           .toNumber();
         setMgxBalance(mgrBalanceFree);
+        const proxies = await mangataHelper.api.query.proxy.proxies(
+          account1.address
+        );
+        proxies.toHuman()[0].forEach((p: any) => {
+          if (p.proxyType == 'AutoCompound') {
+            setHasProxy(true);
+          }
+        });
       }
     })();
   }, [account1]);
@@ -76,6 +85,7 @@ const FarmsList: FC<Props> = ({
               xcmpTask={xcmpTask}
               autocompoundEvent={autocompoundEvent}
               mgxBalance={mgxBalance}
+              hasProxy={hasProxy}
             />
           );
         })

@@ -32,6 +32,7 @@ interface Props {
   xcmpTask: XcmpTaskType | undefined;
   autocompoundEvent: AutocompoundEventType | undefined;
   mgxBalance: number;
+  hasProxy: boolean;
 }
 
 const FarmCard: FC<Props> = ({
@@ -39,6 +40,7 @@ const FarmCard: FC<Props> = ({
   xcmpTask,
   autocompoundEvent,
   mgxBalance,
+  hasProxy,
 }) => {
   const [, setOpen] = useAtom(mainModalOpenAtom);
   const [, setSelectedTab] = useAtom(selectedTabModalAtom);
@@ -217,7 +219,7 @@ const FarmCard: FC<Props> = ({
           <Tooltip
             label={
               // MGX Balance is less than 500 & no autocompounding
-              mgxBalance < 5000 && !isAutocompounding
+              mgxBalance < 5000 && !isAutocompounding && !hasProxy
                 ? 'Need a minimum of 5000 MGX as free balance to autocompound.'
                 : ''
             }
@@ -228,6 +230,7 @@ const FarmCard: FC<Props> = ({
                 'px-4 py-3 rounded-lg bg-white hover:bg-offWhite hover:ring-1 ring-offWhite active:ring-0 text-black transition duration-200',
                 mgxBalance < 5000 &&
                   !isAutocompounding &&
+                  !hasProxy &&
                   'hover:ring-0 hover:bg-white opacity-50 cursor-default'
               )}
               onClick={() => {
@@ -250,7 +253,7 @@ const FarmCard: FC<Props> = ({
                   setSelectedEvent(autocompoundEvent);
                 }
               }}
-              disabled={mgxBalance < 5000 && !isAutocompounding}
+              disabled={mgxBalance < 5000 && !isAutocompounding && !hasProxy}
             >
               {!isAutocompounding ? 'Autocompound' : 'Manage'}
             </button>
