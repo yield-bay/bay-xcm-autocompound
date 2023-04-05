@@ -775,7 +775,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
               <span className="text-white">
                 ${(totalFees * turprice).toFixed(2)}
               </span>{' '}
-              <span className="text-white">({turprice?.toFixed(2)} TUR)</span>{' '}
+              <span className="text-white">({totalFees?.toFixed(2)} TUR)</span>{' '}
               including Gas Fees
             </p>
           )}
