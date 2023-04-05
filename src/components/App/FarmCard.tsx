@@ -63,7 +63,7 @@ const FarmCard: FC<Props> = ({
   const toast = useToast();
 
   useEffect(() => {
-    console.log(`xcmpStatus in farmcard ${token0}-${token1}`, xcmpTask?.status);
+    console.log(`xcmptask in farmcard ${token0}-${token1}`, xcmpTask);
     setIsAutocompounding(xcmpTask?.status == 'RUNNING' ? true : false);
   }, []);
 
@@ -179,7 +179,7 @@ const FarmCard: FC<Props> = ({
               <span>Autocompounding</span>
             </div>
           )}
-          {lpBalanceNum == 0 ? (
+          {lpBalanceNum < 0.0001 ? (
             <button
               className="bg-baseGray py-4 px-5 text-white text-base leading-5 hover:ring-1 ring-baseGrayLow rounded-lg transition duration-200"
               onClick={() => {
@@ -195,8 +195,8 @@ const FarmCard: FC<Props> = ({
                     ),
                   });
                 } else {
-                  setSelectedTab(1);
                   setOpen(true);
+                  setSelectedTab(1);
                   setSelectedFarm(farm);
                   setSelectedTask(xcmpTask);
                   setSelectedEvent(autocompoundEvent);
@@ -207,7 +207,16 @@ const FarmCard: FC<Props> = ({
               <p>Liquidity</p>
             </button>
           ) : (
-            <button className="flex flex-col items-center bg-[#151414] py-2 px-5 ring-1 ring-primaryGreen rounded-lg transition duration-200 pointer-events-none">
+            <button
+              className="flex flex-col items-center bg-[#151414] py-2 px-5 ring-1 ring-primaryGreen rounded-lg transition duration-200"
+              onClick={() => {
+                setOpen(true);
+                setSelectedTab(1);
+                setSelectedFarm(farm);
+                setSelectedTask(xcmpTask);
+                setSelectedEvent(autocompoundEvent);
+              }}
+            >
               <p className="text-[#868686] font-medium text-base leading-[#21.6px]">
                 You Deposited
               </p>

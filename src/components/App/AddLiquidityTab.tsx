@@ -17,8 +17,6 @@ import { formatTokenSymbols, replaceTokenSymbols } from '@utils/farmMethods';
 import { TabProps, TokenType } from '@utils/types';
 import Loader from '@components/Library/Loader';
 import ToastWrapper from '@components/Library/ToastWrapper';
-import { getDecimalById } from '@utils/mangata-helpers';
-import { getDecimalBN } from '@utils/xcm/common/utils';
 import { createLiquidityEventMutation } from '@utils/api';
 import { useMutation } from 'urql';
 import moment from 'moment';
@@ -222,9 +220,12 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
           console.log(
             `Mint liquidity trxn is in Block with hash ${status.asInBlock.toHex()}`
           );
-        } else if (status.isFinalised) {
-          console.log('Mint liquidity trxn finalised.');
+          // unsub();
+        } else if (status.isFinalized) {
           setIsSuccess(true);
+          setIsInProcess(false);
+          setIsSigning(false);
+          console.log('Mint liquidity trxn finalised.');
           toast({
             position: 'top',
             duration: 3000,
@@ -235,7 +236,7 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
               />
             ),
           });
-
+          // unsub();
           // Calling the ADD_LIQUIDITY tracker in isFinalised status
           createLiquidityEventHandler(
             turingAddress as string,
@@ -247,20 +248,29 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
             fees as number,
             'ADD_LIQUIDITY'
           );
-
-          setIsInProcess(false);
-          setIsSigning(false);
-          setIsSuccess(true);
         } else {
-          setIsSigning(false);
           console.log('Status:', status.type);
+          setIsSigning(false);
+          setFirstTokenAmount('');
+          setSecondTokenAmount('');
         }
       })
       .catch((err: any) => {
         console.log('Error while minting liquidity: ', err);
+        setIsInProcess(false);
+        setIsSigning(false);
+        setIsSuccess(false);
+        toast({
+          position: 'top',
+          duration: 3000,
+          render: () => (
+            <ToastWrapper
+              title="Error while minting Liquidity!"
+              status="error"
+            />
+          ),
+        });
       });
-    setIsSigning(false);
-    setIsSuccess(true);
   };
 
   return (
@@ -354,12 +364,7 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
         {fees !== null ? (
           <>
             <div className="flex flex-row justify-between">
-              <p className="inline-flex items-center">
-                Fee
-                <Tooltip label={<span>This is it</span>}>
-                  <QuestionMarkCircleIcon className="ml-2 h-5 w-5 opacity-50" />
-                </Tooltip>
-              </p>
+              <p className="inline-flex items-center">Fee</p>
               <p>{fees.toFixed(3)} MGR</p>
             </div>
             {/* <div className="flex flex-row justify-between">
@@ -383,7 +388,8 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
             parseFloat(firstTokenAmount) <= 0 ||
             parseFloat(secondTokenAmount) <= 0 ||
             parseFloat(firstTokenAmount) > (firstTokenBalance as number) ||
-            parseFloat(secondTokenAmount) > (secondTokenBalance as number)
+            parseFloat(secondTokenAmount) > (secondTokenBalance as number) ||
+            isInProcess
           }
           text="Confirm"
           onClick={handleAddLiquidity}
@@ -391,22 +397,24 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
         <Button
           type="secondary"
           text="Go Back"
+          disabled={isInProcess}
           onClick={() => {
             setOpen(false);
           }}
         />
       </div>
       {/* Stepper */}
-      {isInProcess && (
-        <ProcessStepper
-          activeStep={isSuccess ? 3 : isSigning ? 2 : 1}
-          steps={[
-            { label: 'Confirm' },
-            { label: 'Sign' },
-            { label: 'Complete' },
-          ]}
-        />
-      )}
+      {isInProcess ||
+        (isSuccess && (
+          <ProcessStepper
+            activeStep={isSuccess ? 3 : isSigning ? 2 : 1}
+            steps={[
+              { label: 'Confirm' },
+              { label: 'Sign' },
+              { label: 'Complete' },
+            ]}
+          />
+        ))}
       {isInProcess && (
         <div className="flex flex-row px-4 items-center justify-center text-base leading-[21.6px] bg-baseGray rounded-lg py-10 text-center">
           {(isSigning || !isSuccess) && <Loader size="md" />}
@@ -415,13 +423,17 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
               Please sign the transaction in your wallet.
             </span>
           )}
-          {isSuccess && (
-            <p>
-              Liquidity Added: {firstTokenAmount} {token0} with{' '}
-              {secondTokenAmount} {token1}
-              successfully.
-            </p>
-          )}
+        </div>
+      )}
+      {isSuccess && (
+        <div className="flex flex-col gap-2 px-4 items-center justify-center text-base leading-[21.6px] bg-baseGray rounded-lg py-10 text-center">
+          <p>
+            Liquidity Added: {firstTokenAmount} {token0} with{' '}
+            {secondTokenAmount} {token1} successfully.
+          </p>
+          <p className="opacity-60">
+            Go back and refresh to see updated Balance.
+          </p>
         </div>
       )}
     </div>

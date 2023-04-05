@@ -31,7 +31,7 @@ const FarmsList: FC<Props> = ({
   const [account1] = useAtom(account1Atom);
   const [mangataHelper] = useAtom(mangataHelperAtom);
   const [mgxBalance, setMgxBalance] = useAtom(mgxBalanceAtom);
-  const [hasProxy, setHasProxy] = useState(true);
+  const [hasProxy, setHasProxy] = useState(false);
 
   const noXcmpTasks =
     xcmpTasks !== undefined ? (xcmpTasks.length == 0 ? true : false) : true;
@@ -94,12 +94,12 @@ const FarmsList: FC<Props> = ({
           <p>No Results. Try searching for something else.</p>
         </div>
       )}
-      {viewPositions && noXcmpTasks && (
+      {/* {viewPositions && noXcmpTasks && (
         <>
           <p>No Results. You don&apos;t have any active positions.</p>
           <p>Please add liquidity in some pool first.</p>
         </>
-      )}
+      )} */}
     </div>
   );
 };

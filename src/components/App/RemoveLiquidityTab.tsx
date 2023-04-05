@@ -15,13 +15,14 @@ import {
   account1Atom,
 } from '@store/commonAtoms';
 import { createLiquidityEventMutation } from '@utils/api';
+import Loader from '@components/Library/Loader';
 
 const RemoveLiquidityTab = ({ farm, pool }: TabProps) => {
   const [account] = useAtom(accountAtom);
   const [mangataHelper] = useAtom(mangataHelperAtom);
   const [turingAddress] = useAtom(turingAddressAtom);
 
-  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [isInProcess, setIsInProcess] = useState<boolean>(false);
   const [isSigning, setIsSigning] = useState<boolean>(false);
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
 
@@ -99,7 +100,7 @@ const RemoveLiquidityTab = ({ farm, pool }: TabProps) => {
   };
 
   const handleRemoveLiquidity = async () => {
-    setIsProcessing(true);
+    setIsInProcess(true);
 
     const signer = account?.wallet?.signer;
     setIsSigning(true);
@@ -158,19 +159,12 @@ const RemoveLiquidityTab = ({ farm, pool }: TabProps) => {
         async ({ status }: any) => {
           if (status.isInBlock) {
             console.log('Burn Liquidity in block now!');
-            console.log(
-              `Successful for ${pool.firstTokenId}-${
-                pool.secondTokenId
-              } with hash ${status.asInBlock.toHex()}`
-            );
-            toast({
-              position: 'top',
-              duration: 3000,
-            });
-            setIsSuccess(true);
             // unsub();
             // resolve();
           } else if (status.isFinalized) {
+            setIsSuccess(true);
+            setIsInProcess(false);
+            setIsSigning(false);
             console.log(
               `Liquidity Successfully removed for ${pool.firstTokenId}-${
                 pool.secondTokenId
@@ -191,15 +185,15 @@ const RemoveLiquidityTab = ({ farm, pool }: TabProps) => {
             createLiquidityEventHandler(
               turingAddress as string,
               'ROCOCO',
-              { symbol: token0, amount: 0 },
-              { symbol: token1, amount: 0 },
+              { symbol: token0, amount: 0.0 },
+              { symbol: token1, amount: 0.0 },
               {
                 symbol: `${token0}-${token1}`,
                 amount:
                   ((lpBalReserved + lpBalFree) * parseFloat(percentage)) / 100,
               }, // Amount of Liquidity burnt
               moment().valueOf().toString(),
-              0,
+              0.0,
               'REMOVE_LIQUIDITY'
             );
           } else {
@@ -210,7 +204,7 @@ const RemoveLiquidityTab = ({ farm, pool }: TabProps) => {
       )
       .catch((e: any) => {
         console.log('Error in burnLiquidityTx', e);
-        setIsProcessing(false);
+        setIsInProcess(false);
         setIsSigning(false);
         setIsSuccess(false);
         toast({
@@ -218,7 +212,7 @@ const RemoveLiquidityTab = ({ farm, pool }: TabProps) => {
           duration: 3000,
           render: () => (
             <ToastWrapper
-              title="Error while removing Liquidity"
+              title="Error while removing Liquidity!"
               status="error"
             />
           ),
@@ -287,7 +281,7 @@ const RemoveLiquidityTab = ({ farm, pool }: TabProps) => {
             <Button
               type="warning"
               text={`Yes, Remove ${percentage}%`}
-              disabled={isProcessing || isSuccess}
+              disabled={isInProcess || isSuccess}
               className="w-3/5"
               onClick={handleRemoveLiquidity}
             />
@@ -295,13 +289,32 @@ const RemoveLiquidityTab = ({ farm, pool }: TabProps) => {
               type="secondary"
               text="Go Back"
               className="w-2/5"
-              disabled={isProcessing}
+              disabled={isInProcess}
               onClick={() => {
                 setPercentage('');
                 setIsVerify(false);
               }}
             />
           </div>
+          {isInProcess && (
+            <div className="flex flex-row px-4 items-center justify-center text-base leading-[21.6px] bg-baseGray rounded-lg py-10 text-center">
+              {!isSuccess && <Loader size="md" />}
+              {isSigning && (
+                <span className="ml-6">
+                  Please sign the transaction in your wallet.
+                </span>
+              )}
+            </div>
+          )}
+          {isSuccess && (
+            <div className="flex flex-col gap-2 px-4 items-center justify-center text-base leading-[21.6px] bg-baseGray rounded-lg py-10 text-center">
+              <p>
+                Successfully removed {percentage}% Liquidity from {token0}-
+                {token1}! 🎉
+              </p>
+              <p>Close modal & Refresh to update.</p>
+            </div>
+          )}
         </div>
       )}
     </div>

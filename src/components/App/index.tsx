@@ -98,6 +98,7 @@ const App = () => {
             account
               ? farmsFetching ||
                 xcmpTasksData?.xcmpTasks == undefined ||
+                autocompoundEventsData?.autocompoundEvents == undefined ||
                 xcmpTasksFetching ||
                 autocompoundEventsFetching
               : farmsFetching

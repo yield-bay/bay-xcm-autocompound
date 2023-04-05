@@ -8,10 +8,9 @@ export const turTotalFees = async (
   mangataHelper: MangataHelper,
   turingHelper: TuringHelper,
   account: WalletAccount | null,
-  token0: string,
-  token1: string,
   duration: number,
-  frequency: number
+  frequency: number,
+  percentage: number
 ) => {
   if (account == null) return;
   const { liquidityTokenId } = pool;
@@ -19,7 +18,7 @@ export const turTotalFees = async (
 
   const proxyExtrinsic = mangataHelper?.api?.tx.xyk.compoundRewards(
     liquidityTokenId,
-    10
+    (1000 * percentage) / 100
   );
 
   const mangataProxyCall = await mangataHelper.createProxyCall(
@@ -69,6 +68,7 @@ export const turTotalFees = async (
     await turingHelper?.api?.rpc?.automationTime.queryFeeDetails(xcmpCall);
   console.log('executionFee', executionFee, 'xcmpFee', xcmpFee);
 
-  const totalFees = executionFee.toNumber() * executionTimes.length + xcmpFee.toNumber();
+  const totalFees =
+    executionFee.toNumber() * executionTimes.length + xcmpFee.toNumber();
   return totalFees / 10 ** 10;
 };

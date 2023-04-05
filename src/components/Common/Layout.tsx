@@ -1,5 +1,5 @@
 // Library Imports
-import { FC, ReactNode, useEffect, useMemo } from 'react';
+import { FC, ReactNode, useEffect, useMemo, useState } from 'react';
 import { useAtom } from 'jotai';
 import clsx from 'clsx';
 import _ from 'lodash';
@@ -39,7 +39,7 @@ const Layout: FC<Props> = ({ children }) => {
   const [account] = useAtom(accountAtom);
   const [mangataHelperx, setMangataHelper] = useAtom(mangataHelperAtom);
   const [turingHelperx, setTuringHelper] = useAtom(turingHelperAtom);
-  const [, setAccount1] = useAtom(account1Atom);
+  const [accountInit, setAccountInit] = useAtom(account1Atom);
   const [, setMangataAddress] = useAtom(mangataAddressAtom);
   const [, setTuringAddress] = useAtom(turingAddressAtom);
   const [, setPools] = useAtom(poolsAtom);
@@ -48,13 +48,19 @@ const Layout: FC<Props> = ({ children }) => {
   // Initial turing and mangata Helper setup.
   // This is done only once when the app is loaded.
   useEffect(() => {
-    (async () => {
-      if (account == null) {
+    (async (accountInit) => {
+      if (account?.address == null) {
         console.log('Connect wallet to use App!');
         return;
       }
 
-      if (mangataHelperx != null && turingHelperx != null) {
+      if (
+        mangataHelperx != null &&
+        turingHelperx != null &&
+        accountInit?.address === account.address
+      ) {
+        console.log('accountinit', accountInit?.address);
+        console.log('account address', account.address);
         console.log('Already initialised!');
         return;
       }
@@ -101,7 +107,9 @@ const Layout: FC<Props> = ({ children }) => {
       });
       await account1.init([turingHelper, mangataHelper]);
       console.log('account1', account1);
-      setAccount1(account1);
+      // It is setting Account1 here, and this fn runs only once in starting
+      // it should re-run when an account is updated.
+      setAccountInit(account1);
 
       const mangataAddress = account1.getChainByName(mangataChainName)?.address;
       const turingAddress = account1.getChainByName(turingChainName)?.address;
@@ -114,7 +122,7 @@ const Layout: FC<Props> = ({ children }) => {
       console.log('Promoted Pools', pools);
       setPools(pools);
       setIsInitialised(true);
-    })();
+    })(accountInit);
   }, [account]);
 
   if (!mounted) {

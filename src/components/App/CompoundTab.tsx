@@ -52,7 +52,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
 
   const [frequency, setFrequency] = useState<number>(1); // default day
   const [duration, setDuration] = useState<number>(7); // default week
-  const [percentage, setPercentage] = useState<number>(100); // default 25%
+  const [percentage, setPercentage] = useState<number>(100); // default 100%
 
   const [gasChoice, setGasChoice] = useState<number>(1); // default 0 == "MGX" / 1 == "TUR"
   const [taskId, setTaskId] = useState<any>('');
@@ -201,38 +201,38 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
     },
   });
 
+  const fetchTurTotalFees = async () => {
+    if (totalFees !== 0) {
+      console.log('fees already fetched');
+      return;
+    }
+    console.log('Fetching fees...');
+    try {
+      const feesInTUR = await turTotalFees(
+        pool,
+        mangataHelper,
+        turingHelper,
+        account,
+        duration,
+        frequency,
+        percentage
+      );
+      setTotalFees(feesInTUR as number);
+    } catch (error) {
+      console.log('error: Fetching fees', error);
+      toast({
+        position: 'top',
+        duration: 3000,
+        render: () => (
+          <ToastWrapper title="Unable to fetch Fees." status="error" />
+        ),
+      });
+    }
+  };
   // Fetch pool Just in time
   useEffect(() => {
-    (async () => {
-      if (totalFees !== 0) {
-        console.log('fees already fetched');
-        return;
-      }
-      console.log('Fetching fees...');
-      try {
-        const feesInTUR = await turTotalFees(
-          pool,
-          mangataHelper,
-          turingHelper,
-          account,
-          token0,
-          token1,
-          duration,
-          frequency
-        );
-        setTotalFees(feesInTUR as number);
-      } catch (error) {
-        console.log('error: Fetching fees', error);
-        toast({
-          position: 'top',
-          duration: 3000,
-          render: () => (
-            <ToastWrapper title="Unable to fetch Fees." status="error" />
-          ),
-        });
-      }
-    })();
-  }, [frequency, duration]);
+    fetchTurTotalFees();
+  }, [frequency, duration, percentage]);
 
   // Calculate LP balance
   useEffect(() => {
