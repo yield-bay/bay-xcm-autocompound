@@ -126,13 +126,15 @@ const RemoveLiquidityTab = ({ farm, pool }: TabProps) => {
       'free+res',
       lpBalReserved + lpBalFree
     );
-
-    const deactx = await mangataHelper.deactivateLiquidityV2(
-      pool.liquidityTokenId,
-      BigInt(lpBalance.reserved)
-    );
-    txns.push(deactx);
-
+    if (BigInt(lpBalance.reserved) == BigInt(0)) {
+      console.log('resbal is zero');
+    } else {
+      const deactx = await mangataHelper.deactivateLiquidityV2(
+        pool.liquidityTokenId,
+        BigInt(lpBalance.reserved)
+      );
+      txns.push(deactx);
+    }
     console.log(
       'res',
       lpBalReserved,
@@ -160,14 +162,22 @@ const RemoveLiquidityTab = ({ farm, pool }: TabProps) => {
       'onlyres',
       BigInt(lpBalReserved * 10 ** 18).toString(10)
     );
-    const bltx = await mangataHelper.burnLiquidityTx(
-      pool.firstTokenId,
-      pool.secondTokenId,
+    if (
       BigInt(parseInt(percentage, 10) / 100) *
-        (BigInt(lpBalance.free) + BigInt(lpBalance.reserved)),
-      parseInt(percentage, 10)
-    );
-    txns.push(bltx);
+        (BigInt(lpBalance.free) + BigInt(lpBalance.reserved)) ==
+      BigInt(0)
+    ) {
+      console.log('totalburnbal is zero');
+    } else {
+      const bltx = await mangataHelper.burnLiquidityTx(
+        pool.firstTokenId,
+        pool.secondTokenId,
+        BigInt(parseInt(percentage, 10) / 100) *
+          (BigInt(lpBalance.free) + BigInt(lpBalance.reserved)),
+        parseInt(percentage, 10)
+      );
+      txns.push(bltx);
+    }
 
     const removeLiqBatchTx = mangataHelper.api.tx.utility.batchAll(txns);
 
