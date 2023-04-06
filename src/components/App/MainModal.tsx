@@ -19,6 +19,7 @@ import {
   isInitialisedAtom,
   mgxBalanceAtom,
   selectedTaskAtom,
+  account1Atom,
 } from '@store/commonAtoms';
 import { accountAtom } from '@store/accountAtoms';
 import { FarmType } from '@utils/types';
@@ -58,11 +59,13 @@ const MainModal: FC = () => {
   const [isInitialised] = useAtom(isInitialisedAtom);
   const [mgxBalance] = useAtom(mgxBalanceAtom);
   const [selectedTask] = useAtom(selectedTaskAtom);
+  const [account1] = useAtom(account1Atom);
 
   // If the current pool is autocompounding
   const isAutocompounding = selectedTask?.status == 'RUNNING' ? true : false;
 
   const [pool, setPool] = useState<any>(null);
+  const [hasProxy, setHasProxy] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   const toast = useToast();
@@ -147,6 +150,20 @@ const MainModal: FC = () => {
   };
 
   useEffect(() => {
+    // Checks if the user's account has proxy setup
+    (async () => {
+      const proxies = await mangataHelper.api.query.proxy.proxies(
+        account1?.address
+      );
+      proxies.toHuman()[0].forEach((p: any) => {
+        if (p.proxyType == 'AutoCompound') {
+          setHasProxy(true);
+        }
+      });
+    })();
+  }, [account1]);
+
+  useEffect(() => {
     console.log('isInitialised', isInitialised);
     console.log('selectedFarm', selectedFarm);
     if (isInitialised && selectedFarm != null) {
@@ -176,8 +193,15 @@ const MainModal: FC = () => {
             {tabs.map((tab) => (
               <Tooltip
                 label={
-                  tab.id == 0 && mgxBalance < 5000 && !isAutocompounding
+                  tab.id == 0 &&
+                  mgxBalance < 5000 &&
+                  !isAutocompounding &&
+                  !hasProxy
                     ? 'Need a minimum of 5000 MGR as free balance to autocompound.'
+                    : tab.id == 1 && isAutocompounding
+                    ? 'Stop autocompounding if you wish to add Liquidity'
+                    : tab.id == 2 && isAutocompounding
+                    ? 'Stop autocompounding if you wish to remove Liquidity'
                     : ''
                 }
                 placement="top"
@@ -186,7 +210,11 @@ const MainModal: FC = () => {
                 <button
                   onClick={() => setSelectedTab(tab.id)}
                   disabled={
-                    tab.id == 0 && mgxBalance < 5000 && !isAutocompounding
+                    (tab.id == 0 &&
+                      mgxBalance < 5000 &&
+                      !isAutocompounding &&
+                      !hasProxy) ||
+                    ((tab.id == 1 || tab.id == 2) && isAutocompounding)
                   }
                   className={clsx(
                     tab.id == selectedTab

@@ -179,33 +179,48 @@ const FarmCard: FC<Props> = ({
               <span>Autocompounding</span>
             </div>
           )}
-          {lpBalanceNum < 0.0001 ? (
-            <button
-              className="bg-baseGray py-4 px-5 text-white text-base leading-5 hover:ring-1 ring-baseGrayLow rounded-lg transition duration-200"
-              onClick={() => {
-                if (account == null) {
-                  toast({
-                    position: 'top',
-                    duration: 3000,
-                    render: () => (
-                      <ToastWrapper
-                        title="Please Connect Wallet"
-                        status="error"
-                      />
-                    ),
-                  });
-                } else {
-                  setOpen(true);
-                  setSelectedTab(1);
-                  setSelectedFarm(farm);
-                  setSelectedTask(xcmpTask);
-                  setSelectedEvent(autocompoundEvent);
-                }
-              }}
+          {lpBalanceNum == 0 ? (
+            <Tooltip
+              label={
+                isAutocompounding
+                  ? 'Stop autocompounding if you wish to Add/Remove liquidity.'
+                  : ''
+              }
+              placement="left"
             >
-              <p>Add/Remove</p>
-              <p>Liquidity</p>
-            </button>
+              <button
+                className={clsx(
+                  'bg-baseGray py-4 px-5 text-white text-base leading-5 hover:ring-1 ring-baseGrayLow rounded-lg transition duration-200',
+                  isAutocompounding
+                    ? 'cursor-default hover:ring-0 opacity-50'
+                    : ''
+                )}
+                onClick={() => {
+                  if (account == null) {
+                    toast({
+                      position: 'top',
+                      duration: 3000,
+                      render: () => (
+                        <ToastWrapper
+                          title="Please Connect Wallet"
+                          status="error"
+                        />
+                      ),
+                    });
+                  } else {
+                    setOpen(true);
+                    setSelectedTab(1);
+                    setSelectedFarm(farm);
+                    setSelectedTask(xcmpTask);
+                    setSelectedEvent(autocompoundEvent);
+                  }
+                }}
+                disabled={isAutocompounding}
+              >
+                <p>Add/Remove</p>
+                <p>Liquidity</p>
+              </button>
+            </Tooltip>
           ) : (
             <button
               className="flex flex-col items-center bg-[#151414] py-2 px-5 ring-1 ring-primaryGreen rounded-lg transition duration-200"
@@ -216,6 +231,7 @@ const FarmCard: FC<Props> = ({
                 setSelectedTask(xcmpTask);
                 setSelectedEvent(autocompoundEvent);
               }}
+              disabled={isAutocompounding}
             >
               <p className="text-[#868686] font-medium text-base leading-[#21.6px]">
                 You Deposited

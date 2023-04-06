@@ -302,9 +302,7 @@ const RemoveLiquidityTab = ({ farm, pool }: TabProps) => {
       ) : (
         <div className="w-full flex flex-col gap-y-14 mt-10">
           <p className="text-base leading-[21.6px] text-[#B9B9B9] text-center w-full px-24">
-            {parseFloat(percentage) == 100
-              ? 'Removing 100% of Liquidity also stops Autocompounding. Are you sure you want to go ahead?'
-              : `Are you sure you want to remove ${percentage}% of Liquidity?`}
+            Are you sure you want to remove {percentage}% of Liquidity?
           </p>
           <div className="inline-flex gap-x-2 w-full">
             <Button
