@@ -202,10 +202,10 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
   });
 
   const fetchTurTotalFees = async () => {
-    if (totalFees !== 0) {
-      console.log('fees already fetched');
-      return;
-    }
+    // if (totalFees !== 0) {
+    //   console.log('fees already fetched');
+    //   return;
+    // }
     console.log('Fetching fees...');
     try {
       const feesInTUR = await turTotalFees(
