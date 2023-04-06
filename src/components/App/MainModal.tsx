@@ -152,14 +152,18 @@ const MainModal: FC = () => {
   useEffect(() => {
     // Checks if the user's account has proxy setup
     (async () => {
-      const proxies = await mangataHelper.api.query.proxy.proxies(
-        account1?.address
-      );
-      proxies.toHuman()[0].forEach((p: any) => {
-        if (p.proxyType == 'AutoCompound') {
-          setHasProxy(true);
-        }
-      });
+      if (account1) {
+        console.log('acc1');
+        const proxies = await mangataHelper.api.query.proxy.proxies(
+          account1?.address
+        );
+        proxies.toHuman()[0].forEach((p: any) => {
+          if (p.proxyType == 'AutoCompound') {
+            setHasProxy(true);
+            console.log('hasproxy mm');
+          }
+        });
+      }
     })();
   }, [account1]);
 
