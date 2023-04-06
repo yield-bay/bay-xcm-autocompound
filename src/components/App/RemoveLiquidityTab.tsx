@@ -129,24 +129,43 @@ const RemoveLiquidityTab = ({ farm, pool }: TabProps) => {
 
     const deactx = await mangataHelper.deactivateLiquidityV2(
       pool.liquidityTokenId,
-      lpBalReserved
+      BigInt(lpBalance.reserved)
     );
     txns.push(deactx);
 
     console.log(
       'res',
       lpBalReserved,
+      BigInt(lpBalance.reserved),
       'free',
+      BigInt(lpBalance.free),
+      BigInt(lpBalance.free).toString(10),
+      parseInt(BigInt(lpBalance.free).toString(10)),
       lpBalFree,
       'free+res',
-      lpBalReserved + lpBalFree
+      lpBalReserved + lpBalFree,
+      'thiss',
+      parseFloat(BigInt(lpBalance.free).toString(10)) +
+        parseFloat(BigInt(lpBalance.reserved).toString(10)),
+      BigInt(lpBalance.free) + BigInt(lpBalance.reserved),
+      BigInt(parseInt(percentage, 10) / 100) *
+        (BigInt(lpBalance.free) + BigInt(lpBalance.reserved))
     );
-
+    console.log(
+      'blstuff',
+      BigInt(
+        (parseInt(percentage, 10) / 100) *
+          parseFloat(BigInt(lpBalance.free).toString(10))
+      ).toString(10),
+      'onlyres',
+      BigInt(lpBalReserved * 10 ** 18).toString(10)
+    );
     const bltx = await mangataHelper.burnLiquidityTx(
       pool.firstTokenId,
       pool.secondTokenId,
-      lpBalReserved + lpBalFree,
-      percentage
+      BigInt(parseInt(percentage, 10) / 100) *
+        (BigInt(lpBalance.free) + BigInt(lpBalance.reserved)),
+      parseInt(percentage, 10)
     );
     txns.push(bltx);
 

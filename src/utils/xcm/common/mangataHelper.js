@@ -204,9 +204,7 @@ class MangataHelper {
     return this.api.tx.xyk.deactivateLiquidityV2(
       tokenId,
       new BN(
-        BigInt(
-          Math.round(amount * 10 ** 18)
-        ).toString(10),
+        amount.toString(10),
         10
       )
     );
@@ -266,9 +264,7 @@ class MangataHelper {
       //   10
       // )
       new BN(
-        BigInt(
-          Math.round((percentage / 100) * liquidityAssetAmount * 10 ** 18)
-        ).toString(10),
+        liquidityAssetAmount.toString(10),
         10
       ),
     );
