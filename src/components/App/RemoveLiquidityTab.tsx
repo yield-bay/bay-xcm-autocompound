@@ -80,7 +80,7 @@ const RemoveLiquidityTab = ({ farm, pool }: TabProps) => {
     token1: TokenType,
     lp: TokenType,
     timestamp: string,
-    gasFees: number,
+    gasFee: number,
     eventType: string
   ) => {
     const variables = {
@@ -90,7 +90,7 @@ const RemoveLiquidityTab = ({ farm, pool }: TabProps) => {
       token1,
       lp,
       timestamp,
-      gasFees,
+      gasFee,
       eventType,
     };
     console.log('Updating the createLiquidityEvent...');

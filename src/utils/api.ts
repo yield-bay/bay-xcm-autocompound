@@ -97,7 +97,7 @@ export const createLiquidityEventMutation = gql`
     $token1: TokenInput!
     $lp: TokenInput!
     $timestamp: String!
-    $gasFee: Float! # in MGX
+    $gasFee: Float!
     $eventType: LiquidityEventType!
   ) {
     createLiquidityEvent(
@@ -107,7 +107,7 @@ export const createLiquidityEventMutation = gql`
       token1: $token1
       lp: $lp
       timestamp: $timestamp
-      gasFee: $gasFee # in MGX
+      gasFee: $gasFee
       eventType: $eventType
     ) {
       userAddress
