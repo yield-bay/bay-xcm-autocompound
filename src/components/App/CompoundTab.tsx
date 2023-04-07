@@ -905,9 +905,9 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
               type="primary"
               disabled={isInProcess || lpBalanceNum == 0}
               onClick={() => {
-                if (frequency === duration) {
-                  setFrequency(frequency - 1);
-                }
+                // if (frequency === duration) {
+                //   setFrequency(frequency - 1);
+                // }
                 handleCompounding();
               }}
             />
