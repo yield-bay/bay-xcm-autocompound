@@ -427,10 +427,14 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
     console.log('\nb) Query automationTime fee details ');
     const { executionFee, xcmpFee } =
       await turingHelper.api.rpc.automationTime.queryFeeDetails(xcmpCall);
-    console.log('executionFee', executionFee, 'xcmpFee', xcmpFee);
+    console.log(
+      'executionFee',
+      executionFee.toNumber(),
+      'xcmpFee',
+      xcmpFee.toNumber()
+    );
 
-    const totalFees =
-      executionFee.toNumber() * executionTimes.length + xcmpFee.toNumber();
+    const totalFees = executionFee.toNumber() + xcmpFee.toNumber() + 10 ** 10;
     console.log('totalFees', totalFees);
     // TOTAL_FEES / 10^(DECIMAL OF TUR)
 

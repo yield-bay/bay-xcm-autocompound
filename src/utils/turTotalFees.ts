@@ -53,6 +53,9 @@ export const turTotalFees = async (
     executionTimes.push(et + secondsInHour * 24 * index);
   }
 
+  console.log('executionTimes', executionTimes);
+  
+
   const xcmpCall = await turingHelper?.api?.tx.automationTime.scheduleXcmpTask(
     providedId,
     { Fixed: { executionTimes: executionTimes } },
@@ -64,11 +67,13 @@ export const turTotalFees = async (
 
   // Query automationTime fee IN TUR
   console.log('\nb) Query automationTime fee details ');
+  // console.log('qfds', await turingHelper?.api?.rpc?.automationTime.queryFeeDetails(xcmpCall));
   const { executionFee, xcmpFee } =
     await turingHelper?.api?.rpc?.automationTime.queryFeeDetails(xcmpCall);
-  console.log('executionFee', executionFee, 'xcmpFee', xcmpFee);
+  console.log('times', executionTimes.length, 'executionFee', executionFee.toNumber() / 10 ** 10, 'xcmpFee', xcmpFee.toNumber() / 10 ** 10);
 
   const totalFees =
-    executionFee.toNumber() * executionTimes.length + xcmpFee.toNumber();
+    executionFee.toNumber() + xcmpFee.toNumber();
+  console.log('totalFees iss', totalFees / 10 ** 10);
   return totalFees / 10 ** 10;
 };
