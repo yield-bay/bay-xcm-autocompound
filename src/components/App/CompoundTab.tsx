@@ -669,21 +669,21 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
           <RadioButton
             changed={setFrequency}
             isSelected={frequency === 1}
-            label="Day"
+            label="Daily"
             value={1}
             disabled={hasEvent && selectedEvent?.frequency !== 1}
           />
           <RadioButton
             changed={setFrequency}
             isSelected={frequency === 7}
-            label="Week"
+            label="Weekly"
             value={7}
             disabled={hasEvent && selectedEvent?.frequency !== 7}
           />
           <RadioButton
             changed={setFrequency}
             isSelected={frequency === 30}
-            label="Month"
+            label="Monthly"
             value={30}
             disabled={hasEvent && selectedEvent?.frequency !== 30}
           />
@@ -710,6 +710,13 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
             label="1 Month"
             value={30}
             disabled={hasEvent && selectedEvent?.duration !== 30}
+          />
+          <RadioButton
+            changed={setDuration}
+            isSelected={duration === 182}
+            label="6 Months"
+            value={182}
+            disabled={hasEvent && selectedEvent?.duration !== 182}
           />
         </div>
       </div>
