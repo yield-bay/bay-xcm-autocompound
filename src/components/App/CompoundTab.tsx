@@ -208,13 +208,26 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
     // }
     console.log('Fetching fees...');
     try {
+      let freq = frequency;
+      let dur = duration;
+      if (frequency == 7 && duration == 7) {
+        console.log('77');
+        // setFrequency(6);
+        freq = 6;
+      }
+      if (frequency == 30 && duration == 30) {
+        console.log('3030');
+        // setFrequency(29);
+        freq = 29;
+      }
       const feesInTUR = await turTotalFees(
         pool,
         mangataHelper,
         turingHelper,
         account,
         duration,
-        frequency,
+        // frequency,
+        freq,
         percentage
       );
       setTotalFees(feesInTUR as number);
@@ -233,6 +246,19 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
   useEffect(() => {
     fetchTurTotalFees();
   }, [frequency, duration, percentage]);
+
+  // useEffect(() => {
+  //   // freq=1week, duration=1week : here, set freq to 6 days instead of 7
+  //   // freq=1month, duration=1month : here, set freq to 29 days instead of 30
+  //   if (frequency == 7 && duration == 7) {
+  //     console.log('77');
+  //     setFrequency(6);
+  //   }
+  //   if (frequency == 30 && duration == 30) {
+  //     console.log('3030');
+  //     setFrequency(29);
+  //   }
+  // }, [frequency, duration]);
 
   // Calculate LP balance
   useEffect(() => {
@@ -389,8 +415,19 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
     // frequency
     const executionTimes = [];
     console.log('duration', duration, 'freq', frequency);
+    let freq = frequency;
+    if (frequency == 7 && duration == 7) {
+      console.log('77');
+      // setFrequency(6);
+      freq = 6;
+    }
+    if (frequency == 30 && duration == 30) {
+      console.log('3030');
+      // setFrequency(29);
+      freq = 29;
+    }
 
-    for (let index = frequency; index < duration; index += frequency) {
+    for (let index = freq; index < duration; index += freq) {
       console.log('idx', index);
       executionTimes.push(et + secondsInHour * 24 * index);
     }
