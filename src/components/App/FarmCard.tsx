@@ -110,9 +110,9 @@ const FarmCard: FC<Props> = ({
         <div className="flex flex-col gap-y-[10px]">
           <div className="flex flex-row gap-x-3">
             <FarmAssets logos={farm?.asset.logos} />
-            <div className="py-[9px] select-none px-4 bg-white text-xs text-black rounded-full">
+            {/* <div className="py-[9px] select-none px-4 bg-white text-xs text-black rounded-full">
               {formatFarmType(farm?.farmType)}
-            </div>
+            </div> */}
           </div>
           <p className="text-2xl text-offWhite">
             {tokenNames.map((tokenName, index) => (
