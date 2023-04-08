@@ -62,10 +62,10 @@ const FarmCard: FC<Props> = ({
 
   const toast = useToast();
 
-  useEffect(() => {
-    // console.log(`xcmptask in farmcard ${token0}-${token1}`, xcmpTask);
-    setIsAutocompounding(xcmpTask?.status == 'RUNNING' ? true : false);
-  }, []);
+  // useEffect(() => {
+  //   // console.log(`xcmptask in farmcard ${token0}-${token1}`, xcmpTask);
+  //   setIsAutocompounding(xcmpTask?.status == 'RUNNING' ? true : false);
+  // }, []);
 
   // Calculate LP balance
   useEffect(() => {

@@ -1,4 +1,5 @@
 import type { Wallet, WalletAccount } from '@talismn/connect-wallets';
+import { XcmpTaskType } from '@utils/types';
 import { atom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
 
@@ -22,6 +23,13 @@ export const walletAtom = atom(
     set(walletNameAtom, update !== null ? update.extensionName : null);
   }
 );
+
+export const selectedTaskAtom = atom<XcmpTaskType | undefined>(undefined);
+export const taskIsCompoundingAtom = atom((get) => {
+  const task = get(selectedTaskAtom);
+  if (task == null) return null;
+  return task?.status == 'RUNNING';
+});
 
 export const connected = atomWithStorage<boolean>(
   'jotai:connected', // key

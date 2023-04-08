@@ -62,7 +62,8 @@ const MainModal: FC = () => {
   const [account1] = useAtom(account1Atom);
 
   // If the current pool is autocompounding
-  const isAutocompounding = selectedTask?.status == 'RUNNING' ? true : false;
+  // const isAutocompounding = selectedTask?.status == 'RUNNING' ? true : false;
+  const isAutocompounding = false;
 
   const [pool, setPool] = useState<any>(null);
   const [hasProxy, setHasProxy] = useState(false);
