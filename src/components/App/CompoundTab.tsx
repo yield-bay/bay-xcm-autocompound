@@ -245,22 +245,17 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
   });
 
   const fetchTurTotalFees = async () => {
-    // if (totalFees !== 0) {
-    //   console.log('fees already fetched');
-    //   return;
-    // }
     console.log('Fetching fees...');
+    setTotalFees(0);
     try {
       let freq = frequency;
       let dur = duration;
       if (frequency == 7 && duration == 7) {
-        console.log('77');
-        // setFrequency(6);
+        console.log('77 edge case');
         freq = 6;
       }
       if (frequency == 30 && duration == 30) {
-        console.log('3030');
-        // setFrequency(29);
+        console.log('3030 edge case');
         freq = 29;
       }
       const feesInTUR = await turTotalFees(
@@ -858,8 +853,8 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       </div>
       {!hasEvent && (
         <div className="flex flex-col gap-y-12 text-base leading-[21.6px] font-bold items-center">
-          {isTurpriceLoading && totalFees == 0 ? (
-            <p className="text-[#B9B9B9]">Calculating fees...</p>
+          {isTurpriceLoading || totalFees == 0 ? (
+            <p className="text-[#B9B9B9] mr-2">Calculating fees...</p>
           ) : (
             <p className="text-[#B9B9B9]">
               Costs{' '}

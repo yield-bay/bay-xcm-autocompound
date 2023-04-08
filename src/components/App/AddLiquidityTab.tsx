@@ -31,6 +31,8 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
   // Amount States
   const [firstTokenAmount, setFirstTokenAmount] = useState('');
   const [secondTokenAmount, setSecondTokenAmount] = useState('');
+  const [tempFirstAmount, setTempFirstAmount] = useState('');
+  const [tempSecondAmount, setTempSecondAmount] = useState('');
 
   // Process States
   const [isInProcess, setIsInProcess] = useState(false);
@@ -133,7 +135,6 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
           pool.secondTokenId,
           account1.address
         );
-        const allAssets = await mangataHelper.mangata.getAssetsInfo();
 
         const token0Decimal = mangataHelper.getDecimalsBySymbol(token0);
         const token1Decimal = mangataHelper.getDecimalsBySymbol(token1);
@@ -144,7 +145,6 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
           parseFloat(BigInt(token1Bal.free).toString(10)) / 10 ** token1Decimal;
 
         setFirstTokenBalance(token0BalanceFree);
-
         setSecondTokenBalance(token1BalanceFree);
       } else {
         toast({
@@ -231,7 +231,7 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
             duration: 3000,
             render: () => (
               <ToastWrapper
-                title={`Adding liquidity to ${pool.firstTokenId}-${pool.secondTokenId}} in successful.`}
+                title={`Liquidity successfully added in ${token0}-${token1} pool.`}
                 status="info"
               />
             ),
@@ -251,6 +251,8 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
         } else {
           console.log('Status:', status.type);
           setIsSigning(false);
+          setTempFirstAmount(firstTokenAmount);
+          setTempSecondAmount(secondTokenAmount);
           setFirstTokenAmount('');
           setSecondTokenAmount('');
         }
@@ -379,42 +381,40 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
         ) : null}
       </div>
       {/* Buttons */}
-      <div className="flex flex-col gap-y-2">
-        <Button
-          type="primary"
-          disabled={
-            firstTokenAmount == '' ||
-            secondTokenAmount == '' ||
-            parseFloat(firstTokenAmount) <= 0 ||
-            parseFloat(secondTokenAmount) <= 0 ||
-            parseFloat(firstTokenAmount) > (firstTokenBalance as number) ||
-            parseFloat(secondTokenAmount) > (secondTokenBalance as number) ||
-            isInProcess
-          }
-          text="Confirm"
-          onClick={handleAddLiquidity}
-        />
-        <Button
-          type="secondary"
-          text="Go Back"
-          disabled={isInProcess}
-          onClick={() => {
-            setOpen(false);
-          }}
-        />
-      </div>
-      {/* Stepper */}
-      {isInProcess ||
-        (isSuccess && (
-          <ProcessStepper
-            activeStep={isSuccess ? 3 : isSigning ? 2 : 1}
-            steps={[
-              { label: 'Confirm' },
-              { label: 'Sign' },
-              { label: 'Complete' },
-            ]}
+      {!isInProcess && (
+        <div className="flex flex-col gap-y-2">
+          <Button
+            type="primary"
+            disabled={
+              firstTokenAmount == '' ||
+              secondTokenAmount == '' ||
+              parseFloat(firstTokenAmount) <= 0 ||
+              parseFloat(secondTokenAmount) <= 0 ||
+              parseFloat(firstTokenAmount) > (firstTokenBalance as number) ||
+              parseFloat(secondTokenAmount) > (secondTokenBalance as number) ||
+              isInProcess
+            }
+            text="Confirm"
+            onClick={handleAddLiquidity}
           />
-        ))}
+          <Button
+            type="secondary"
+            text="Go Back"
+            disabled={isInProcess}
+            onClick={() => {
+              setOpen(false);
+            }}
+          />
+        </div>
+      )}
+      {/* Stepper */}
+      {/* {isInProcess ||
+        (isSuccess && ( */}
+      <ProcessStepper
+        activeStep={isSuccess ? 3 : isSigning ? 2 : 1}
+        steps={[{ label: 'Confirm' }, { label: 'Sign' }, { label: 'Complete' }]}
+      />
+      {/* ))} */}
       {isInProcess && (
         <div className="flex flex-row px-4 items-center justify-center text-base leading-[21.6px] bg-baseGray rounded-lg py-10 text-center">
           {(isSigning || !isSuccess) && <Loader size="md" />}
@@ -428,8 +428,8 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
       {isSuccess && (
         <div className="flex flex-col gap-2 px-4 items-center justify-center text-base leading-[21.6px] bg-baseGray rounded-lg py-10 text-center">
           <p>
-            Liquidity Added: {firstTokenAmount} {token0} with{' '}
-            {secondTokenAmount} {token1} successfully.
+            Liquidity Added: {tempFirstAmount} {token0} with {tempSecondAmount}{' '}
+            {token1} successfully.
           </p>
           <p className="opacity-60">
             Go back and refresh to see updated Balance.

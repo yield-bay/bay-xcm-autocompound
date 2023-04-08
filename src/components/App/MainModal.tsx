@@ -203,12 +203,12 @@ const MainModal: FC = () => {
                   !hasProxy
                     ? 'Need a minimum of 5000 MGR as free balance to autocompound.'
                     : tab.id == 1 && isAutocompounding
-                    ? 'Stop autocompounding if you wish to add Liquidity'
+                    ? 'Stop current autocompounding task to add liquidity'
                     : tab.id == 2 && isAutocompounding
-                    ? 'Stop autocompounding if you wish to remove Liquidity'
+                    ? 'Stop current autocompounding task to remove liquidity'
                     : ''
                 }
-                placement="top"
+                placement="auto"
                 key={tab.name}
               >
                 <button

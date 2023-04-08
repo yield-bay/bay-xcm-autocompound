@@ -195,16 +195,14 @@ const RemoveLiquidityTab = ({ farm, pool }: TabProps) => {
             setIsInProcess(false);
             setIsSigning(false);
             console.log(
-              `Liquidity Successfully removed for ${pool.firstTokenId}-${
-                pool.secondTokenId
-              } with hash ${status.asFinalized.toHex()}`
+              `Liquidity Successfully removed from ${token0}-${token1} with hash ${status.asFinalized.toHex()}`
             );
             toast({
               position: 'top',
               duration: 3000,
               render: () => (
                 <ToastWrapper
-                  title={`Liquidity Successfully removed from ${pool.firstTokenId}-${pool.secondTokenId}`}
+                  title={`Liquidity successfully removed from ${token0}-${token1} pool.`}
                   status="success"
                 />
               ),
@@ -241,7 +239,7 @@ const RemoveLiquidityTab = ({ farm, pool }: TabProps) => {
           duration: 3000,
           render: () => (
             <ToastWrapper
-              title="Error while removing Liquidity!"
+              title="Error while removing Liquidity. Please try again later."
               status="error"
             />
           ),

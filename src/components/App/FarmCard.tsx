@@ -63,7 +63,7 @@ const FarmCard: FC<Props> = ({
   const toast = useToast();
 
   useEffect(() => {
-    console.log(`xcmptask in farmcard ${token0}-${token1}`, xcmpTask);
+    // console.log(`xcmptask in farmcard ${token0}-${token1}`, xcmpTask);
     setIsAutocompounding(xcmpTask?.status == 'RUNNING' ? true : false);
   }, []);
 
