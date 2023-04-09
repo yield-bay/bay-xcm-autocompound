@@ -4,14 +4,12 @@ import { useEffect, useState } from 'react';
 import { useToast } from '@chakra-ui/react';
 import Button from '@components/Library/Button';
 import ProcessStepper from '@components/Library/ProcessStepper';
-import Tooltip from '@components/Library/Tooltip';
-import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
 import {
   account1Atom,
   mainModalOpenAtom,
   mangataHelperAtom,
   turingAddressAtom,
-  turingHelperAtom,
+  trxnProcessAtom,
 } from '@store/commonAtoms';
 import { formatTokenSymbols, replaceTokenSymbols } from '@utils/farmMethods';
 import { TabProps, TokenType } from '@utils/types';
@@ -35,7 +33,8 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
   const [tempSecondAmount, setTempSecondAmount] = useState('');
 
   // Process States
-  const [isInProcess, setIsInProcess] = useState(false);
+  // const [isInProcess, setIsInProcess] = useState(false);
+  const [isInProcess, setIsInProcess] = useAtom(trxnProcessAtom);
   const [isSigning, setIsSigning] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
@@ -93,33 +92,41 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
     console.log('first token in feemint: ', firstTokenAmt);
     console.log('second token in feemint: ', secondTokenAmt);
 
-    // Estimate of fees; no need to be accurate
-    const fees = await mangataHelper.getMintLiquidityFee({
-      pair: account1?.address,
-      firstTokenId: pool.firstTokenId,
-      firstTokenAmount: firstTokenAmt,
-      secondTokenId: pool.secondTokenId,
-      secondTokenAmount: secondTokenAmt, // expectedSecondTokenAmount
-    });
-
-    console.log('fees:', fees, parseFloat(fees));
-    setFees(parseFloat(fees));
+    try {
+      // Estimate of fees; no need to be accurate
+      const fees = await mangataHelper.getMintLiquidityFee({
+        pair: account1?.address,
+        firstTokenId: pool.firstTokenId,
+        firstTokenAmount: firstTokenAmt,
+        secondTokenId: pool.secondTokenId,
+        secondTokenAmount: secondTokenAmt, // expectedSecondTokenAmount
+      });
+      console.log('fees:', fees, parseFloat(fees));
+      setFees(parseFloat(fees));
+    } catch (error) {
+      console.log('error in handleFees', error);
+    }
   };
 
   // Fetch LP balance from mangataHelper
   useEffect(() => {
     (async () => {
-      const lpBalance = await mangataHelper.mangata.getTokenBalance(
-        pool.liquidityTokenId,
-        account?.address
-      );
-      setLpBalance(lpBalance);
-      const decimal = mangataHelper.getDecimalsBySymbol(`${token0}-${token1}`);
-
-      const lpBalanceNum =
-        parseFloat(BigInt(lpBalance.reserved).toString(10)) / 10 ** decimal +
-        parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** decimal;
-      setLpBalanceNum(lpBalanceNum);
+      try {
+        const lpBalance = await mangataHelper.mangata.getTokenBalance(
+          pool.liquidityTokenId,
+          account?.address
+        );
+        setLpBalance(lpBalance);
+        const decimal = mangataHelper.getDecimalsBySymbol(
+          `${token0}-${token1}`
+        );
+        const lpBalanceNum =
+          parseFloat(BigInt(lpBalance.reserved).toString(10)) / 10 ** decimal +
+          parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** decimal;
+        setLpBalanceNum(lpBalanceNum);
+      } catch (error) {
+        console.log('error in fetching LP balance', error);
+      }
     })();
   }, []);
 
@@ -192,7 +199,6 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
   // Method to call to Add Liquidity confirmation
   const handleAddLiquidity = async () => {
     setIsInProcess(true);
-
     console.log(
       'pool.firstTokenAmountFloat',
       pool.firstTokenAmountFloat,
@@ -204,75 +210,90 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
       secondTokenAmount // expectedSecondTokenAmount
     );
 
-    // Method to Add Liquidity
-    const mintLiquidityTxn = await mangataHelper.mintLiquidityTx(
-      pool.firstTokenId,
-      pool.secondTokenId,
-      parseFloat(firstTokenAmount),
-      parseFloat(secondTokenAmount) // expectedSecondTokenAmount
-    );
+    try {
+      // Method to Add Liquidity
+      const mintLiquidityTxn = await mangataHelper.mintLiquidityTx(
+        pool.firstTokenId,
+        pool.secondTokenId,
+        parseFloat(firstTokenAmount),
+        parseFloat(secondTokenAmount) // expectedSecondTokenAmount
+      );
+      setIsSigning(true);
 
-    setIsSigning(true);
-
-    await mintLiquidityTxn
-      .signAndSend(account1?.address, { signer: signer }, ({ status }: any) => {
-        if (status.isInBlock) {
-          console.log(
-            `Mint liquidity trxn is in Block with hash ${status.asInBlock.toHex()}`
-          );
-          // unsub();
-        } else if (status.isFinalized) {
-          setIsSuccess(true);
+      await mintLiquidityTxn
+        .signAndSend(
+          account1?.address,
+          { signer: signer },
+          ({ status }: any) => {
+            if (status.isInBlock) {
+              console.log(
+                `Mint liquidity trxn is in Block with hash ${status.asInBlock.toHex()}`
+              );
+              // unsub();
+            } else if (status.isFinalized) {
+              setIsSuccess(true);
+              setIsInProcess(false);
+              setIsSigning(false);
+              console.log('Mint liquidity trxn finalised.');
+              toast({
+                position: 'top',
+                duration: 3000,
+                render: () => (
+                  <ToastWrapper
+                    title={`Liquidity successfully added in ${token0}-${token1} pool.`}
+                    status="info"
+                  />
+                ),
+              });
+              // unsub();
+              // Calling the ADD_LIQUIDITY tracker in isFinalised status
+              createLiquidityEventHandler(
+                turingAddress as string,
+                'ROCOCO',
+                { symbol: token0, amount: parseFloat(firstTokenAmount) },
+                { symbol: token1, amount: parseFloat(secondTokenAmount) },
+                { symbol: `${token0}-${token1}`, amount: 0 },
+                moment().valueOf().toString(),
+                fees as number,
+                'ADD_LIQUIDITY'
+              );
+            } else {
+              console.log('Status:', status.type);
+              setIsSigning(false);
+              setTempFirstAmount(firstTokenAmount);
+              setTempSecondAmount(secondTokenAmount);
+              setFirstTokenAmount('');
+              setSecondTokenAmount('');
+            }
+          }
+        )
+        .catch((err: any) => {
+          console.log('Error while minting liquidity: ', err);
           setIsInProcess(false);
           setIsSigning(false);
-          console.log('Mint liquidity trxn finalised.');
+          setIsSuccess(false);
           toast({
             position: 'top',
             duration: 3000,
             render: () => (
               <ToastWrapper
-                title={`Liquidity successfully added in ${token0}-${token1} pool.`}
-                status="info"
+                title="Error while minting Liquidity!"
+                status="error"
               />
             ),
           });
-          // unsub();
-          // Calling the ADD_LIQUIDITY tracker in isFinalised status
-          createLiquidityEventHandler(
-            turingAddress as string,
-            'ROCOCO',
-            { symbol: token0, amount: parseFloat(firstTokenAmount) },
-            { symbol: token1, amount: parseFloat(secondTokenAmount) },
-            { symbol: `${token0}-${token1}`, amount: 0 },
-            moment().valueOf().toString(),
-            fees as number,
-            'ADD_LIQUIDITY'
-          );
-        } else {
-          console.log('Status:', status.type);
-          setIsSigning(false);
-          setTempFirstAmount(firstTokenAmount);
-          setTempSecondAmount(secondTokenAmount);
-          setFirstTokenAmount('');
-          setSecondTokenAmount('');
-        }
-      })
-      .catch((err: any) => {
-        console.log('Error while minting liquidity: ', err);
-        setIsInProcess(false);
-        setIsSigning(false);
-        setIsSuccess(false);
-        toast({
-          position: 'top',
-          duration: 3000,
-          render: () => (
-            <ToastWrapper
-              title="Error while minting Liquidity!"
-              status="error"
-            />
-          ),
         });
+    } catch (error) {
+      let errorString = `${error}`;
+      console.log('error while adding liquidity:', errorString);
+      toast({
+        position: 'top',
+        duration: 3000,
+        render: () => <ToastWrapper title={errorString} status="error" />,
       });
+      setIsInProcess(false);
+      setIsSigning(false);
+    }
   };
 
   return (

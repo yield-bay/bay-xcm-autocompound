@@ -3,7 +3,7 @@ import { useAtom } from 'jotai';
 import { useMutation } from 'urql';
 import moment from 'moment';
 import Button from '@components/Library/Button';
-import { mainModalOpenAtom } from '@store/commonAtoms';
+import { mainModalOpenAtom, trxnProcessAtom } from '@store/commonAtoms';
 import { formatTokenSymbols, replaceTokenSymbols } from '@utils/farmMethods';
 import { TabProps, TokenType } from '@utils/types';
 import { useToast } from '@chakra-ui/react';
@@ -23,7 +23,8 @@ const RemoveLiquidityTab = ({ farm, pool }: TabProps) => {
   const [mangataHelper] = useAtom(mangataHelperAtom);
   const [turingAddress] = useAtom(turingAddressAtom);
 
-  const [isInProcess, setIsInProcess] = useState<boolean>(false);
+  // const [isInProcess, setIsInProcess] = useState<boolean>(false);
+  const [isInProcess, setIsInProcess] = useAtom(trxnProcessAtom);
   const [isSigning, setIsSigning] = useState<boolean>(false);
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
 
@@ -103,149 +104,162 @@ const RemoveLiquidityTab = ({ farm, pool }: TabProps) => {
   const handleRemoveLiquidity = async () => {
     setIsInProcess(true);
 
-    const signer = account?.wallet?.signer;
-    setIsSigning(true);
-    const lpBalReserved =
-      parseFloat(BigInt(lpBalance.reserved).toString(10)) / 10 ** 18;
-    const lpBalFree =
-      parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** 18;
+    try {
+      const signer = account?.wallet?.signer;
+      setIsSigning(true);
+      const lpBalReserved =
+        parseFloat(BigInt(lpBalance.reserved).toString(10)) / 10 ** 18;
+      const lpBalFree =
+        parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** 18;
 
-    console.log(
-      'lpBalance.reserved',
-      lpBalance.reserved,
-      lpBalReserved,
-      'percentage',
-      percentage
-    );
-
-    let txns = [];
-    console.log(
-      'res',
-      lpBalReserved,
-      'free',
-      lpBalFree,
-      'free+res',
-      lpBalReserved + lpBalFree
-    );
-    if (BigInt(lpBalance.reserved) == BigInt(0)) {
-      console.log('resbal is zero');
-    } else {
-      const deactx = await mangataHelper.deactivateLiquidityV2(
-        pool.liquidityTokenId,
-        BigInt(lpBalance.reserved)
+      console.log(
+        'lpBalance.reserved',
+        lpBalance.reserved,
+        lpBalReserved,
+        'percentage',
+        percentage
       );
-      txns.push(deactx);
-    }
-    console.log(
-      'res',
-      lpBalReserved,
-      BigInt(lpBalance.reserved),
-      'free',
-      BigInt(lpBalance.free),
-      BigInt(lpBalance.free).toString(10),
-      parseInt(BigInt(lpBalance.free).toString(10)),
-      lpBalFree,
-      'free+res',
-      lpBalReserved + lpBalFree,
-      'thiss',
-      parseFloat(BigInt(lpBalance.free).toString(10)) +
-        parseFloat(BigInt(lpBalance.reserved).toString(10)),
-      BigInt(lpBalance.free) + BigInt(lpBalance.reserved),
-      BigInt(parseInt(percentage, 10) / 100) *
-        (BigInt(lpBalance.free) + BigInt(lpBalance.reserved))
-    );
-    console.log(
-      'blstuff',
-      BigInt(
-        (parseInt(percentage, 10) / 100) *
-          parseFloat(BigInt(lpBalance.free).toString(10))
-      ).toString(10),
-      'onlyres',
-      BigInt(lpBalReserved * 10 ** 18).toString(10)
-    );
-    if (
-      BigInt(parseInt(percentage, 10) / 100) *
-        (BigInt(lpBalance.free) + BigInt(lpBalance.reserved)) ==
-      BigInt(0)
-    ) {
-      console.log('totalburnbal is zero');
-    } else {
-      const bltx = await mangataHelper.burnLiquidityTx(
-        pool.firstTokenId,
-        pool.secondTokenId,
+
+      let txns = [];
+      console.log(
+        'res',
+        lpBalReserved,
+        'free',
+        lpBalFree,
+        'free+res',
+        lpBalReserved + lpBalFree
+      );
+      if (BigInt(lpBalance.reserved) == BigInt(0)) {
+        console.log('resbal is zero');
+      } else {
+        const deactx = await mangataHelper.deactivateLiquidityV2(
+          pool.liquidityTokenId,
+          BigInt(lpBalance.reserved)
+        );
+        txns.push(deactx);
+      }
+      console.log(
+        'res',
+        lpBalReserved,
+        BigInt(lpBalance.reserved),
+        'free',
+        BigInt(lpBalance.free),
+        BigInt(lpBalance.free).toString(10),
+        parseInt(BigInt(lpBalance.free).toString(10)),
+        lpBalFree,
+        'free+res',
+        lpBalReserved + lpBalFree,
+        'thiss',
+        parseFloat(BigInt(lpBalance.free).toString(10)) +
+          parseFloat(BigInt(lpBalance.reserved).toString(10)),
+        BigInt(lpBalance.free) + BigInt(lpBalance.reserved),
         BigInt(parseInt(percentage, 10) / 100) *
-          (BigInt(lpBalance.free) + BigInt(lpBalance.reserved)),
-        parseInt(percentage, 10)
+          (BigInt(lpBalance.free) + BigInt(lpBalance.reserved))
       );
-      txns.push(bltx);
-    }
+      console.log(
+        'blstuff',
+        BigInt(
+          (parseInt(percentage, 10) / 100) *
+            parseFloat(BigInt(lpBalance.free).toString(10))
+        ).toString(10),
+        'onlyres',
+        BigInt(lpBalReserved * 10 ** 18).toString(10)
+      );
+      if (
+        BigInt(parseInt(percentage, 10) / 100) *
+          (BigInt(lpBalance.free) + BigInt(lpBalance.reserved)) ==
+        BigInt(0)
+      ) {
+        console.log('totalburnbal is zero');
+      } else {
+        const bltx = await mangataHelper.burnLiquidityTx(
+          pool.firstTokenId,
+          pool.secondTokenId,
+          BigInt(parseInt(percentage, 10) / 100) *
+            (BigInt(lpBalance.free) + BigInt(lpBalance.reserved)),
+          parseInt(percentage, 10)
+        );
+        txns.push(bltx);
+      }
 
-    const removeLiqBatchTx = mangataHelper.api.tx.utility.batchAll(txns);
+      const removeLiqBatchTx = mangataHelper.api.tx.utility.batchAll(txns);
 
-    await removeLiqBatchTx
-      .signAndSend(
-        account1?.address,
-        { signer: signer },
-        async ({ status }: any) => {
-          if (status.isInBlock) {
-            console.log('Burn Liquidity in block now!');
-            // unsub();
-            // resolve();
-          } else if (status.isFinalized) {
-            setIsSuccess(true);
-            setIsInProcess(false);
-            setIsSigning(false);
-            console.log(
-              `Liquidity Successfully removed from ${token0}-${token1} with hash ${status.asFinalized.toHex()}`
-            );
-            toast({
-              position: 'top',
-              duration: 3000,
-              render: () => (
-                <ToastWrapper
-                  title={`Liquidity successfully removed from ${token0}-${token1} pool.`}
-                  status="success"
-                />
-              ),
-            });
-            // unsub();
-            // resolve();
-            createLiquidityEventHandler(
-              turingAddress as string,
-              'ROCOCO',
-              { symbol: token0, amount: 0.0 },
-              { symbol: token1, amount: 0.0 },
-              {
-                symbol: `${token0}-${token1}`,
-                amount:
-                  ((lpBalReserved + lpBalFree) * parseFloat(percentage)) / 100,
-              }, // Amount of Liquidity burnt
-              moment().valueOf().toString(),
-              0.0,
-              'REMOVE_LIQUIDITY'
-            );
-          } else {
-            setIsSigning(false);
-            console.log(`Status: ${status.type}`);
+      await removeLiqBatchTx
+        .signAndSend(
+          account1?.address,
+          { signer: signer },
+          async ({ status }: any) => {
+            if (status.isInBlock) {
+              console.log('Burn Liquidity in block now!');
+              // unsub();
+              // resolve();
+            } else if (status.isFinalized) {
+              setIsSuccess(true);
+              setIsInProcess(false);
+              setIsSigning(false);
+              console.log(
+                `Liquidity Successfully removed from ${token0}-${token1} with hash ${status.asFinalized.toHex()}`
+              );
+              toast({
+                position: 'top',
+                duration: 3000,
+                render: () => (
+                  <ToastWrapper
+                    title={`Liquidity successfully removed from ${token0}-${token1} pool.`}
+                    status="success"
+                  />
+                ),
+              });
+              // unsub();
+              // resolve();
+              createLiquidityEventHandler(
+                turingAddress as string,
+                'ROCOCO',
+                { symbol: token0, amount: 0.0 },
+                { symbol: token1, amount: 0.0 },
+                {
+                  symbol: `${token0}-${token1}`,
+                  amount:
+                    ((lpBalReserved + lpBalFree) * parseFloat(percentage)) /
+                    100,
+                }, // Amount of Liquidity burnt
+                moment().valueOf().toString(),
+                0.0,
+                'REMOVE_LIQUIDITY'
+              );
+            } else {
+              setIsSigning(false);
+              console.log(`Status: ${status.type}`);
+            }
           }
-        }
-      )
-      .catch((e: any) => {
-        console.log('Error in burnLiquidityTx', e);
-        setIsInProcess(false);
-        setIsSigning(false);
-        setIsSuccess(false);
-        toast({
-          position: 'top',
-          duration: 3000,
-          render: () => (
-            <ToastWrapper
-              title="Error while removing Liquidity. Please try again later."
-              status="error"
-            />
-          ),
+        )
+        .catch((e: any) => {
+          console.log('Error in burnLiquidityTx', e);
+          setIsInProcess(false);
+          setIsSigning(false);
+          setIsSuccess(false);
+          toast({
+            position: 'top',
+            duration: 3000,
+            render: () => (
+              <ToastWrapper
+                title="Error while removing Liquidity. Please try again later."
+                status="error"
+              />
+            ),
+          });
         });
+    } catch (error) {
+      let errorString = `${error}`;
+      console.log('error while handling remove liquidity:', errorString);
+      toast({
+        position: 'top',
+        duration: 3000,
+        render: () => <ToastWrapper title={errorString} status="error" />,
       });
+      setIsInProcess(false);
+      setIsSigning(false);
+    }
   };
 
   return (

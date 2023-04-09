@@ -6,7 +6,9 @@ import { accountAtom } from '@store/accountAtoms';
 import {
   mainModalOpenAtom,
   selectedTaskAtom,
-  stopCompModalOpenAtom,
+  taskTrxnProcessAtom,
+  taskModalOpenAtom,
+  trxnProcessAtom,
   turingAddressAtom,
   turingHelperAtom,
 } from '@store/commonAtoms';
@@ -18,17 +20,19 @@ import {
 import Loader from '@components/Library/Loader';
 import { useToast } from '@chakra-ui/react';
 import { TokenType } from '@utils/types';
+import ToastWrapper from '@components/Library/ToastWrapper';
 
 const StopCompoundingModal: FC = () => {
   const [account] = useAtom(accountAtom); // selected account
   const [turingHelper] = useAtom(turingHelperAtom);
   const [currentTask] = useAtom(selectedTaskAtom);
-  const [openStopComp, setOpenStopComp] = useAtom(stopCompModalOpenAtom);
+  const [isModalOpen, setIsModalOpen] = useAtom(taskModalOpenAtom);
   const [, setOpenMainModal] = useAtom(mainModalOpenAtom);
   const [turingAddress] = useAtom(turingAddressAtom);
 
   // Process States
-  const [isInProcess, setIsInProcess] = useState(false);
+  // const [isInProcess, setIsInProcess] = useState(false);
+  const [isInProcess, setIsInProcess] = useAtom(taskTrxnProcessAtom);
   const [isSigning, setIsSigning] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
@@ -81,58 +85,70 @@ const StopCompoundingModal: FC = () => {
     setIsInProcess(true);
     setIsSigning(true);
 
-    // remove liquidity
-    // 1. turingHelper-> canceltask
-    // 2. mangataHelper -> burnLiquidity
-    const cancelTx = await turingHelper.api.tx.automationTime.cancelTask(
-      currentTask?.taskId
-    );
+    try {
+      // remove liquidity
+      // 1. turingHelper-> canceltask
+      // 2. mangataHelper -> burnLiquidity
+      const cancelTx = await turingHelper.api.tx.automationTime.cancelTask(
+        currentTask?.taskId
+      );
 
-    await turingHelper.sendXcmExtrinsic(
-      cancelTx,
-      account?.address,
-      signer,
-      currentTask?.taskId,
-      setIsSigning,
-      setIsInProcess,
-      setIsSuccess,
-      toast
-    );
+      await turingHelper.sendXcmExtrinsic(
+        cancelTx,
+        account?.address,
+        signer,
+        currentTask?.taskId,
+        setIsSigning,
+        setIsInProcess,
+        setIsSuccess,
+        toast
+      );
 
-    setIsInProcess(false);
-    setIsSigning(false);
+      setIsInProcess(false);
+      setIsSigning(false);
 
-    updateXcmpTaskHandler(
-      currentTask?.taskId as string,
-      turingAddress as string,
-      currentTask?.lpName as string,
-      currentTask?.chain as string,
-      'CANCELLED'
-    );
+      updateXcmpTaskHandler(
+        currentTask?.taskId as string,
+        turingAddress as string,
+        currentTask?.lpName as string,
+        currentTask?.chain as string,
+        'CANCELLED'
+      );
 
-    // Update Autocompounding Event in Tracking
-    updateAutocompoundingHandler(
-      turingAddress as string,
-      'ROCOCO',
-      currentTask?.taskId as string,
-      {
-        symbol: currentTask?.lpName as string,
-        amount: 100, // Need to confirm what to put here.
-      },
-      'CANCELLED'
-    );
-    console.log(`Task cancelled withtaskId ${currentTask?.taskId}`);
+      // Update Autocompounding Event in Tracking
+      updateAutocompoundingHandler(
+        turingAddress as string,
+        'ROCOCO',
+        currentTask?.taskId as string,
+        {
+          symbol: currentTask?.lpName as string,
+          amount: 100, // Need to confirm what to put here.
+        },
+        'CANCELLED'
+      );
+      console.log(`Task cancelled withtaskId ${currentTask?.taskId}`);
+    } catch (error) {
+      let errorString = `${error}`;
+      console.log('error in stopping compounding task:', errorString);
+      toast({
+        position: 'top',
+        duration: 3000,
+        render: () => <ToastWrapper title={errorString} status="error" />,
+      });
+      setIsInProcess(false);
+      setIsSigning(false);
+    }
   };
 
   return (
-    <ModalWrapper open={openStopComp} setOpen={setOpenStopComp}>
+    <ModalWrapper open={isModalOpen} setOpen={setIsModalOpen}>
       <div className="w-full flex flex-col gap-y-12">
         <p className="text-base leading-[21.6px] text-[#B9B9B9] text-center w-full">
           Are you sure you want to stop Autocompounding?
         </p>
         <div className="inline-flex gap-x-2 w-full">
           <Button
-            type={'warning'}
+            type="warning"
             text={
               isInProcess ? 'Stopping the process...' : 'Stop Autocompounding'
             }
@@ -150,7 +166,7 @@ const StopCompoundingModal: FC = () => {
             disabled={isInProcess || isSuccess}
             onClick={() => {
               setOpenMainModal(true);
-              setOpenStopComp(false);
+              setIsModalOpen(false);
             }}
           />
         </div>

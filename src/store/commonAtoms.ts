@@ -1,11 +1,51 @@
 import { AutocompoundEventType, FarmType, XcmpTaskType } from '@utils/types';
 import { atom } from 'jotai';
 import Account from '@utils/xcm/common/account';
+import { atomWithStorage } from 'jotai/utils';
 
 export const walletModalOpenAtom = atom<boolean>(false);
 
-export const mainModalOpenAtom = atom<boolean>(false);
-export const stopCompModalOpenAtom = atom<boolean>(false);
+export const trxnProcessAtom = atomWithStorage<boolean>(
+  'jotai:trxn_process',
+  false
+);
+export const modalOpenAtom = atomWithStorage<boolean>(
+  'jotai:modal_open',
+  false
+);
+export const mainModalOpenAtom = atom(
+  (get) => {
+    return get(trxnProcessAtom) || get(modalOpenAtom);
+  },
+  (get, set, update: boolean) => {
+    const isInProcess = get(trxnProcessAtom);
+    if (!isInProcess) {
+      set(modalOpenAtom, update);
+    }
+  }
+);
+
+export const taskTrxnProcessAtom = atomWithStorage<boolean>(
+  'jotai:trxn_process',
+  false
+);
+export const tModalOpenAtom = atomWithStorage<boolean>(
+  'jotai:modal_open',
+  false
+);
+export const taskModalOpenAtom = atom(
+  (get) => {
+    return get(taskTrxnProcessAtom) || get(tModalOpenAtom);
+  },
+  (get, set, update: boolean) => {
+    const isInProcess = get(taskTrxnProcessAtom);
+    if (!isInProcess) {
+      set(tModalOpenAtom, update);
+    }
+  }
+);
+
+// export const stopCompModalOpenAtom = atom<boolean>(false);
 
 export const selectedTabModalAtom = atom<number>(0);
 

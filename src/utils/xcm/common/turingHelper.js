@@ -97,7 +97,7 @@ class TuringHelper {
                 unsub();
                 resolve();
               } else if (status.isFinalized) {
-                consnole,log('Transaction is Finalized!');
+                consnole, log('Transaction is Finalized!');
                 console.log(
                   `Finalized block hash ${status.asFinalized.toHex()}`
                 );
@@ -110,17 +110,19 @@ class TuringHelper {
               }
             }
           )
-          .catch((err) => {
-            console.log('sendXcmExtrinsic Err --\n', err);
+          .catch((error) => {
+            console.log('sendXcmExtrinsic Err --\n', error);
+            let errorString = `${error}`;
+            setIsInProcess(false);
+            setIsSigning(false);
             setIsSigning(false);
             setIsSuccess(false);
-            setIsInProcess(false);
             toast({
               position: 'top',
               duration: 3000,
               render: () => (
                 <ToastWrapper
-                  title="Error while handling automation task."
+                  title={errorString}
                   status="error"
                 />
               ),
