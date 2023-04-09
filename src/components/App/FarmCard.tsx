@@ -62,10 +62,10 @@ const FarmCard: FC<Props> = ({
 
   const toast = useToast();
 
-  // useEffect(() => {
-  //   // console.log(`xcmptask in farmcard ${token0}-${token1}`, xcmpTask);
-  //   setIsAutocompounding(xcmpTask?.status == 'RUNNING' ? true : false);
-  // }, []);
+  useEffect(() => {
+    // console.log(`xcmptask in farmcard ${token0}-${token1}`, xcmpTask);
+    setIsAutocompounding(xcmpTask?.status == 'RUNNING' ? true : false);
+  }, []);
 
   // Calculate LP balance
   useEffect(() => {
@@ -182,7 +182,9 @@ const FarmCard: FC<Props> = ({
           {lpBalanceNum == 0 ? (
             <Tooltip
               label={
-                isAutocompounding
+                account == null
+                  ? 'Please connect wallet to add Liquidity.'
+                  : isAutocompounding
                   ? 'Stop autocompounding if you wish to Add/Remove liquidity.'
                   : ''
               }
@@ -191,31 +193,18 @@ const FarmCard: FC<Props> = ({
               <button
                 className={clsx(
                   'bg-baseGray py-4 px-5 text-white text-base leading-5 hover:ring-1 ring-baseGrayLow rounded-lg transition duration-200',
-                  isAutocompounding
+                  isAutocompounding || account == null
                     ? 'cursor-default hover:ring-0 opacity-50'
                     : ''
                 )}
                 onClick={() => {
-                  if (account == null) {
-                    toast({
-                      position: 'top',
-                      duration: 3000,
-                      render: () => (
-                        <ToastWrapper
-                          title="Please Connect Wallet"
-                          status="error"
-                        />
-                      ),
-                    });
-                  } else {
-                    setOpen(true);
-                    setSelectedTab(1);
-                    setSelectedFarm(farm);
-                    setSelectedTask(xcmpTask);
-                    setSelectedEvent(autocompoundEvent);
-                  }
+                  setOpen(true);
+                  setSelectedTab(1);
+                  setSelectedFarm(farm);
+                  setSelectedTask(xcmpTask);
+                  setSelectedEvent(autocompoundEvent);
                 }}
-                disabled={isAutocompounding}
+                disabled={isAutocompounding || account == null}
               >
                 <p>Add/Remove</p>
                 <p>Liquidity</p>
@@ -243,8 +232,9 @@ const FarmCard: FC<Props> = ({
           )}
           <Tooltip
             label={
-              // MGX Balance is less than 500 & no autocompounding
-              mgxBalance < 5000 && !isAutocompounding && !hasProxy
+              account == null
+                ? 'Please connect wallet to manage Autocompounding.'
+                : mgxBalance < 5000 && !isAutocompounding && !hasProxy
                 ? 'Need a minimum of 5000 MGX as free balance to autocompound.'
                 : ''
             }
@@ -253,32 +243,21 @@ const FarmCard: FC<Props> = ({
             <button
               className={clsx(
                 'px-4 py-3 rounded-lg bg-white hover:bg-offWhite hover:ring-1 ring-offWhite active:ring-0 text-black transition duration-200',
-                mgxBalance < 5000 &&
-                  !isAutocompounding &&
-                  !hasProxy &&
-                  'hover:ring-0 hover:bg-white opacity-50 cursor-default'
+                (mgxBalance < 5000 && !isAutocompounding && !hasProxy) ||
+                  (account == null &&
+                    'hover:ring-0 hover:bg-white opacity-50 cursor-default')
               )}
               onClick={() => {
-                if (account == null) {
-                  toast({
-                    position: 'top',
-                    duration: 3000,
-                    render: () => (
-                      <ToastWrapper
-                        title="Please Connect Wallet"
-                        status="error"
-                      />
-                    ),
-                  });
-                } else {
-                  setSelectedTab(0);
-                  setOpen(true);
-                  setSelectedFarm(farm);
-                  setSelectedTask(xcmpTask);
-                  setSelectedEvent(autocompoundEvent);
-                }
+                setSelectedTab(0);
+                setOpen(true);
+                setSelectedFarm(farm);
+                setSelectedTask(xcmpTask);
+                setSelectedEvent(autocompoundEvent);
               }}
-              disabled={mgxBalance < 5000 && !isAutocompounding && !hasProxy}
+              disabled={
+                (mgxBalance < 5000 && !isAutocompounding && !hasProxy) ||
+                account == null
+              }
             >
               {!isAutocompounding ? 'Autocompound' : 'Manage'}
             </button>
