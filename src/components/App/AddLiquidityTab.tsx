@@ -415,7 +415,12 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
               parseFloat(secondTokenAmount) > (secondTokenBalance as number) ||
               isInProcess
             }
-            text="Confirm"
+            text={
+              parseFloat(firstTokenAmount) > (firstTokenBalance as number) ||
+              parseFloat(secondTokenAmount) > (secondTokenBalance as number)
+                ? 'Not enough funds'
+                : 'Confirm'
+            }
             onClick={handleAddLiquidity}
           />
           <Button
