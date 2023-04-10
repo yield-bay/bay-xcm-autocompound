@@ -1,14 +1,10 @@
 import { FC, useEffect, useState } from 'react';
-import { useToast } from '@chakra-ui/react';
 import Image from 'next/image';
 import clsx from 'clsx';
 import { useAtom } from 'jotai';
 import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
-// import { motion } from 'framer-motion';
-import ToastWrapper from '@components/Library/ToastWrapper';
 import FarmAssets from '@components/Library/FarmAssets';
 import toDollarUnits, {
-  formatFarmType,
   formatTokenSymbols,
   replaceTokenSymbols,
 } from '@utils/farmMethods';
@@ -60,12 +56,10 @@ const FarmCard: FC<Props> = ({
   );
   const [token0, token1] = tokenNames;
 
-  const toast = useToast();
-
   useEffect(() => {
     // console.log(`xcmptask in farmcard ${token0}-${token1}`, xcmpTask);
     setIsAutocompounding(xcmpTask?.status == 'RUNNING' ? true : false);
-  }, []);
+  }, [xcmpTask]);
 
   // Calculate LP balance
   useEffect(() => {
@@ -168,7 +162,7 @@ const FarmCard: FC<Props> = ({
         </div>
         {/* Right Right */}
         <div className="relative flex flex-col justify-between">
-          {isAutocompounding && (
+          {account && isAutocompounding && (
             <div className="hidden lg:inline-flex select-none drop-shadow-xl gap-x-2 absolute right-[186px] font-medium text-[#868686] text-base leading-[21.6px]">
               <Image
                 src="/icons/ThunderIcon.svg"

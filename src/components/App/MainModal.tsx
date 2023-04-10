@@ -60,10 +60,11 @@ const MainModal: FC = () => {
   const [mgxBalance] = useAtom(mgxBalanceAtom);
   const [selectedTask] = useAtom(selectedTaskAtom);
   const [account1] = useAtom(account1Atom);
+  const [isAutocompounding, setIsAutocompounding] = useState(false);
 
-  // If the current pool is autocompounding
-  // const isAutocompounding = selectedTask?.status == 'RUNNING' ? true : false;
-  const isAutocompounding = false;
+  useEffect(() => {
+    setIsAutocompounding(selectedTask?.status == 'RUNNING' ? true : false);
+  }, [selectedTask]);
 
   const [pool, setPool] = useState<any>(null);
   const [hasProxy, setHasProxy] = useState(false);
