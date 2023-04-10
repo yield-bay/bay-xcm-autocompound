@@ -3,7 +3,6 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { useToast } from '@chakra-ui/react';
 import Button from '@components/Library/Button';
-import ProcessStepper from '@components/Library/ProcessStepper';
 import {
   account1Atom,
   mainModalOpenAtom,
@@ -18,6 +17,7 @@ import ToastWrapper from '@components/Library/ToastWrapper';
 import { createLiquidityEventMutation } from '@utils/api';
 import { useMutation } from 'urql';
 import moment from 'moment';
+import Stepper from '@components/Library/Stepper';
 
 const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
   const [mangataHelper] = useAtom(mangataHelperAtom);
@@ -433,14 +433,10 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
           />
         </div>
       )}
-      {/* Stepper */}
-      {/* {isInProcess ||
-        (isSuccess && ( */}
-      <ProcessStepper
-        activeStep={isSuccess ? 3 : isSigning ? 2 : 1}
+      <Stepper
+        activeStep={isSuccess ? 2 : isSigning ? 1 : 0}
         steps={[{ label: 'Confirm' }, { label: 'Sign' }, { label: 'Complete' }]}
       />
-      {/* ))} */}
       {isInProcess && (
         <div className="flex flex-row px-4 items-center justify-center text-base leading-[21.6px] bg-baseGray rounded-lg py-10 text-center">
           {(isSigning || !isSuccess) && <Loader size="md" />}
