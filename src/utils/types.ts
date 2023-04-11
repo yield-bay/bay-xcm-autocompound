@@ -1,3 +1,5 @@
+import { WalletAccount } from '@talismn/connect-wallets';
+
 export interface FarmType {
   id: number;
   chef: string;
@@ -25,4 +27,40 @@ export interface FarmType {
   allocPoint: number;
   lastUpdatedAtUTC: string;
   safetyScore: number;
+}
+
+export interface XcmpTaskType {
+  taskId: string;
+  userAddress: string;
+  lpName: string;
+  chain: string;
+  status: string;
+}
+
+export type TokenType = {
+  symbol: string;
+  amount: number;
+};
+export interface AutocompoundEventType {
+  userAddress: string;
+  chain: string;
+  taskId: string;
+  lp: {
+    symbol: string;
+    amount: number;
+  };
+  duration: number;
+  frequency: number;
+  timestamp: string;
+  executionFee: number;
+  xcmpFee: number;
+  status: string;
+  eventType: string;
+  percentage: number;
+}
+
+export interface TabProps {
+  farm: FarmType;
+  account: WalletAccount;
+  pool: any | undefined;
 }

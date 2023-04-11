@@ -7,15 +7,18 @@ const walletNameAtom = atomWithStorage<string | null>(
   null // intial value
 );
 
-const originalWalletAtom = atom<Wallet | null>(null);
-originalWalletAtom.debugLabel = 'wallet';
-
 export const walletsAtom = atom<Wallet[]>([]);
 
 export const walletAtom = atom(
-  (get) => get(originalWalletAtom),
+  (get) => {
+    const walletName = get(walletNameAtom);
+    if (walletName == null) return null;
+    return (
+      get(walletsAtom)?.find((wallet) => wallet.extensionName === walletName) ??
+      null
+    );
+  },
   (get, set, update: Wallet | null) => {
-    set(originalWalletAtom, update);
     set(walletNameAtom, update !== null ? update.extensionName : null);
   }
 );

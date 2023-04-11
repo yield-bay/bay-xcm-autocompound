@@ -12,145 +12,167 @@ import { Shibuya } from '../config';
 const WEIGHT_PER_SECOND = 1000000000000;
 
 class ShibuyaHelper {
-    constructor(config) {
-        this.config = config;
-    }
+  constructor(config) {
+    this.config = config;
+  }
 
-    initialize = async () => {
-        const api = await ApiPromise.create({ provider: new WsProvider(this.config.endpoint) });
-        this.api = api;
-        this.assets = this.config.assets;
-        this.keyring = new Keyring({ type: 'sr25519', ss58Format: this.config.ss58 });
-    };
+  initialize = async () => {
+    const api = await ApiPromise.create({
+      provider: new WsProvider(this.config.endpoint),
+    });
+    this.api = api;
+    this.assets = this.config.assets;
+    this.keyring = new Keyring({
+      type: 'sr25519',
+      ss58Format: this.config.ss58,
+    });
+  };
 
-    getApi = () => this.api;
+  getApi = () => this.api;
 
-    getProxyAccount = (address, paraId) => {
-        const accountId = getProxyAccount(this.api, paraId, address);
-        return this.keyring.encodeAddress(accountId);
-    };
+  getProxyAccount = (address, paraId) => {
+    const accountId = getProxyAccount(this.api, paraId, address);
+    return this.keyring.encodeAddress(accountId);
+  };
 
-    getProxies = async (address) => getProxies(this.api, address);
+  getProxies = async (address) => getProxies(this.api, address);
 
-    getBalance = async (address) => {
-        const balance = (await this.api.query.system.account(address))?.data;
-        return balance;
-    };
+  getBalance = async (address) => {
+    const balance = (await this.api.query.system.account(address))?.data;
+    return balance;
+  };
 
-    createTransactExtrinsic = ({
-        targetParaId, encodedCall, feePerSecond, requireWeightAtMost, proxyAccount, instructionWeight,
-    }) => {
-        // The instruction count of XCM message.
-        // Because polkadotXcm.send will insert the DescendOrigin instruction at the head of the instructions list.
-        // So instructionCount should be V2.length + 1
-        const instructionCount = 6;
-        const totalInstructionWeight = instructionCount * instructionWeight;
-        const weightLimit = requireWeightAtMost + totalInstructionWeight;
-        const fungible = new BN(weightLimit).mul(new BN(feePerSecond)).div(new BN(WEIGHT_PER_SECOND));
-        const xcmpExtrinsic = this.api.tx.polkadotXcm.send(
-            {
-                V1: {
+  createTransactExtrinsic = ({
+    targetParaId,
+    encodedCall,
+    feePerSecond,
+    requireWeightAtMost,
+    proxyAccount,
+    instructionWeight,
+  }) => {
+    // The instruction count of XCM message.
+    // Because polkadotXcm.send will insert the DescendOrigin instruction at the head of the instructions list.
+    // So instructionCount should be V2.length + 1
+    const instructionCount = 6;
+    const totalInstructionWeight = instructionCount * instructionWeight;
+    const weightLimit = requireWeightAtMost + totalInstructionWeight;
+    const fungible = new BN(weightLimit)
+      .mul(new BN(feePerSecond))
+      .div(new BN(WEIGHT_PER_SECOND));
+    const xcmpExtrinsic = this.api.tx.polkadotXcm.send(
+      {
+        V1: {
+          parents: 1,
+          interior: { X1: { Parachain: targetParaId } },
+        },
+      },
+      {
+        V2: [
+          {
+            WithdrawAsset: [
+              {
+                fun: { Fungible: fungible },
+                id: {
+                  Concrete: {
+                    interior: { X1: { Parachain: Shibuya.paraId } },
                     parents: 1,
-                    interior: { X1: { Parachain: targetParaId } },
+                  },
                 },
-            },
-            {
-                V2: [
-                    {
-                        WithdrawAsset: [
-                            {
-                                fun: { Fungible: fungible },
-                                id: {
-                                    Concrete: {
-                                        interior: { X1: { Parachain: Shibuya.paraId } },
-                                        parents: 1,
-                                    },
-                                },
-                            },
-                        ],
-                    },
-                    {
-                        BuyExecution: {
-                            fees: {
-                                fun: { Fungible: fungible },
-                                id: {
-                                    Concrete: {
-                                        interior: { X1: { Parachain: Shibuya.paraId } },
-                                        parents: 1,
-                                    },
-                                },
-                            },
-                            weightLimit: { Limited: weightLimit },
-                        },
-                    },
-                    {
-                        Transact: {
-                            originType: 'SovereignAccount',
-                            requireWeightAtMost,
-                            call: { encoded: encodedCall },
-                        },
-                    },
-                    {
-                        RefundSurplus: '',
-                    },
-                    {
-                        DepositAsset: {
-                            assets: { Wild: 'All' },
-                            maxAssets: 1,
-                            beneficiary: {
-                                parents: 1,
-                                interior: { X1: { AccountId32: { network: { Any: '' }, id: proxyAccount } } },
-                            },
-                        },
-                    },
-                ],
-            },
-        );
-        return xcmpExtrinsic;
-    };
-
-    createReserveTransferAssetsExtrinsic = (targetParaId, proxyAccount, amount) => {
-        const extrinsic = this.api.tx.polkadotXcm.reserveTransferAssets(
-            {
-                V1: {
+              },
+            ],
+          },
+          {
+            BuyExecution: {
+              fees: {
+                fun: { Fungible: fungible },
+                id: {
+                  Concrete: {
+                    interior: { X1: { Parachain: Shibuya.paraId } },
                     parents: 1,
-                    interior: { X1: { Parachain: targetParaId } },
+                  },
                 },
+              },
+              weightLimit: { Limited: weightLimit },
             },
-            {
-                V1: {
-                    interior: { X1: { AccountId32: { network: { Any: '' }, id: proxyAccount } } },
-                    parents: 0,
+          },
+          {
+            Transact: {
+              originType: 'SovereignAccount',
+              requireWeightAtMost,
+              call: { encoded: encodedCall },
+            },
+          },
+          {
+            RefundSurplus: '',
+          },
+          {
+            DepositAsset: {
+              assets: { Wild: 'All' },
+              maxAssets: 1,
+              beneficiary: {
+                parents: 1,
+                interior: {
+                  X1: {
+                    AccountId32: { network: { Any: '' }, id: proxyAccount },
+                  },
                 },
+              },
             },
-            {
-                V1: [
-                    {
-                        fun: { Fungible: amount },
-                        id: {
-                            Concrete: {
-                                interior: { Here: '' },
-                                parents: 0,
-                            },
-                        },
-                    },
-                ],
+          },
+        ],
+      }
+    );
+    return xcmpExtrinsic;
+  };
+
+  createReserveTransferAssetsExtrinsic = (
+    targetParaId,
+    proxyAccount,
+    amount
+  ) => {
+    const extrinsic = this.api.tx.polkadotXcm.reserveTransferAssets(
+      {
+        V1: {
+          parents: 1,
+          interior: { X1: { Parachain: targetParaId } },
+        },
+      },
+      {
+        V1: {
+          interior: {
+            X1: { AccountId32: { network: { Any: '' }, id: proxyAccount } },
+          },
+          parents: 0,
+        },
+      },
+      {
+        V1: [
+          {
+            fun: { Fungible: amount },
+            id: {
+              Concrete: {
+                interior: { Here: '' },
+                parents: 0,
+              },
             },
-            0,
-        );
+          },
+        ],
+      },
+      0
+    );
 
-        return extrinsic;
-    };
+    return extrinsic;
+  };
 
-    /**
-     * Returns the decimal number such as 18 for a specific asset
-     * @param {string} symbol such as SBY
-     * @returns 18 for SBY
-     */
-    getDecimalsBySymbol(symbol) {
-        const token = _.find(this.assets, { symbol });
-        return token.decimals;
-    }
+  /**
+   * Returns the decimal number such as 18 for a specific asset
+   * @param {string} symbol such as SBY
+   * @returns 18 for SBY
+   */
+  getDecimalsBySymbol(symbol) {
+    const token = _.find(this.assets, { symbol });
+    return token.decimals;
+  }
 }
 
 export default ShibuyaHelper;

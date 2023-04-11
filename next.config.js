@@ -2,10 +2,14 @@
 module.exports = {
   reactStrictMode: true,
   typescript: {
-    // !! WARN !!
-    // Dangerously allow production builds to successfully complete even if
-    // your project has type errors.
-    // !! WARN !!
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: true, // allow production builds even if type errors
   },
-}
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'raw.githubusercontent.com',
+      },
+    ],
+  },
+};

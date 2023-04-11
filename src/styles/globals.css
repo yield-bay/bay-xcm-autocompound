@@ -1,3 +1,25 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+  input[type='radio'] + label span {
+    @apply bg-white;
+  }
+  input[type='radio']:checked + label span {
+    @apply bg-primaryGreen;
+  }
+  input[type='radio'] + label span,
+  input[type='radio']:checked + label span {
+    -webkit-transition: background-color 0.2s ease-in-out;
+    -o-transition: background-color 0.2s ease-in-out;
+    -moz-transition: background-color 0.2s ease-in-out;
+    transition: background-color 0.2s ease-in-out;
+  }
+  input[type='search']::-webkit-search-decoration,
+  input[type='search']::-webkit-search-cancel-button,
+  input[type='search']::-webkit-search-results-button,
+  input[type='search']::-webkit-search-results-decoration {
+    display: none;
+  }
+}

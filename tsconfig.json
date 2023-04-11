@@ -19,6 +19,6 @@
       "@*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "src/utils/fetch-prices.js", "src/utils/mangata-helpers.js"],
   "exclude": ["node_modules", ".next", "out"]
 }

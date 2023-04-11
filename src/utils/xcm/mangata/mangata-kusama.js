@@ -14,11 +14,13 @@ import { Mangata, Turing } from '../config';
 
 /** * Main entrance of the program */
 async function main() {
-    const autoCompound = new AutoCompound(Turing, Mangata);
-    await autoCompound.run();
+  const autoCompound = new AutoCompound(Turing, Mangata);
+  await autoCompound.run();
 }
 
-main().catch(console.error).finally(() => {
+main()
+  .catch(console.error)
+  .finally(() => {
     console.log('Reached end of main() ...');
     process.exit();
-});
+  });

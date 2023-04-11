@@ -8,42 +8,57 @@ import moment from 'moment';
 
 const LISTEN_EVENT_DELAY = 3 * 60;
 
-export const sendExtrinsic = async (api, extrinsic, keyPair, { isSudo = false } = {}) => new Promise((resolve) => {
+export const sendExtrinsic = async (
+  api,
+  extrinsic,
+  keyPair,
+  { isSudo = false } = {}
+) =>
+  new Promise((resolve) => {
     const newExtrinsic = isSudo ? api.tx.sudo.sudo(extrinsic) : extrinsic;
     newExtrinsic.signAndSend(keyPair, { nonce: -1 }, ({ status, events }) => {
-        console.log('status.type', status.type);
+      console.log('status.type', status.type);
 
-        if (status.isInBlock || status.isFinalized) {
-            events
-            // find/filter for failed events
-                .filter(({ event }) => api.events.system.ExtrinsicFailed.is(event))
-            // we know that data for system.ExtrinsicFailed is
-            // (DispatchError, DispatchInfo)
-                .forEach(({ event: { data: [error] } }) => {
-                    if (error.isModule) {
-                        // for module errors, we have the section indexed, lookup
-                        const decoded = api.registry.findMetaError(error.asModule);
-                        const { docs, method, section } = decoded;
-                        console.log(`${section}.${method}: ${docs.join(' ')}`);
-                    } else {
-                        // Other, CannotLookup, BadOrigin, no extra info
-                        console.log(error.toString());
-                    }
-                });
-
-            if (status.isFinalized) {
-                resolve(status.asFinalized.toString());
+      if (status.isInBlock || status.isFinalized) {
+        events
+          // find/filter for failed events
+          .filter(({ event }) => api.events.system.ExtrinsicFailed.is(event))
+          // we know that data for system.ExtrinsicFailed is
+          // (DispatchError, DispatchInfo)
+          .forEach(
+            ({
+              event: {
+                data: [error],
+              },
+            }) => {
+              if (error.isModule) {
+                // for module errors, we have the section indexed, lookup
+                const decoded = api.registry.findMetaError(error.asModule);
+                const { docs, method, section } = decoded;
+                console.log(`${section}.${method}: ${docs.join(' ')}`);
+              } else {
+                // Other, CannotLookup, BadOrigin, no extra info
+                console.log(error.toString());
+              }
             }
+          );
+
+        if (status.isFinalized) {
+          resolve(status.asFinalized.toString());
         }
+      }
     });
-});
+  });
 
 /**
-* Usage: await delay(1000)
-* @param  {number} ms) [description]
-* @return {Promise}    [description]
-*/
-export const delay = async (ms) => new Promise((res) => { setTimeout(res, ms); });
+ * Usage: await delay(1000)
+ * @param  {number} ms) [description]
+ * @return {Promise}    [description]
+ */
+export const delay = async (ms) =>
+  new Promise((res) => {
+    setTimeout(res, ms);
+  });
 
 // @usage: await waitForEvent(mangataHelper.api, "xyk.LiquidityMinted");
 // This is a utility function copied from https://github.com/mangata-finance/mangata-e2e/pull/166/files
@@ -58,28 +73,34 @@ export const delay = async (ms) => new Promise((res) => { setTimeout(res, ms); }
  * @param {number} blocks starting block number; no idea why it is 3
  * @returns
  */
-export const waitForEvent = async (api, method, blocks = 3) => new Promise((resolve, reject) => {
+export const waitForEvent = async (api, method, blocks = 3) =>
+  new Promise((resolve, reject) => {
     let counter = 0;
     const unsub = api.rpc.chain.getFinalizedHead(async (head) => {
-        await api.query.system.events((events) => {
-            counter += 1;
-            console.log(`await event check for '${method}', attempt ${counter}, head ${head}`);
-            events.forEach(({ phase, event: { data, section } }) => {
-                console.log(phase, data, method, section);
-            });
-            const foundEvent = _.find(events, ({ event }) => `${event.section}.${event.method}` === method);
-            if (foundEvent) {
-                resolve();
-                unsub();
-                // } else {
-                //   reject(new Error("event not found"));
-            }
-            if (counter === blocks) {
-                reject(new Error(`method ${method} not found within blocks limit`));
-            }
+      await api.query.system.events((events) => {
+        counter += 1;
+        console.log(
+          `await event check for '${method}', attempt ${counter}, head ${head}`
+        );
+        events.forEach(({ phase, event: { data, section } }) => {
+          console.log(phase, data, method, section);
         });
+        const foundEvent = _.find(
+          events,
+          ({ event }) => `${event.section}.${event.method}` === method
+        );
+        if (foundEvent) {
+          resolve();
+          unsub();
+          // } else {
+          //   reject(new Error("event not found"));
+        }
+        if (counter === blocks) {
+          reject(new Error(`method ${method} not found within blocks limit`));
+        }
+      });
     });
-});
+  });
 
 /**
  * Formatting number with thousand separator.
@@ -87,49 +108,51 @@ export const waitForEvent = async (api, method, blocks = 3) => new Promise((reso
  * @return {string}   "1,000,000.65"
  */
 export function formatNumberThousands(num) {
-    if (_.isUndefined(num)) {
-        return num;
-    }
+  if (_.isUndefined(num)) {
+    return num;
+  }
 
-    const numStr = num.toString();
-    const parts = numStr.split('.');
+  const numStr = num.toString();
+  const parts = numStr.split('.');
 
-    const decimalStr = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    const period = _.isUndefined(parts[1]) ? '' : '.';
-    const floatStr = _.isUndefined(parts[1]) ? '' : parts[1];
+  const decimalStr = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  const period = _.isUndefined(parts[1]) ? '' : '.';
+  const floatStr = _.isUndefined(parts[1]) ? '' : parts[1];
 
-    return `${decimalStr}${period}${floatStr}`;
+  return `${decimalStr}${period}${floatStr}`;
 }
 
 export const getProxyAccount = (api, sourceParaId, address) => {
-    const decodedAddress = decodeAddress(address); // An Int array presentation of the address’ ss58 public key
+  const decodedAddress = decodeAddress(address); // An Int array presentation of the address’ ss58 public key
 
-    const location = {
-        parents: 1, // from source parachain to target parachain
-        interior: {
-            X2: [
-                { Parachain: sourceParaId },
-                {
-                    AccountId32: {
-                        network: 'Any',
-                        id: u8aToHex(decodedAddress),
-                    },
-                },
-            ],
+  const location = {
+    parents: 1, // from source parachain to target parachain
+    interior: {
+      X2: [
+        { Parachain: sourceParaId },
+        {
+          AccountId32: {
+            network: 'Any',
+            id: u8aToHex(decodedAddress),
+          },
         },
-    };
+      ],
+    },
+  };
 
-    const multilocation = api.createType('XcmV1MultiLocation', location);
+  const multilocation = api.createType('XcmV1MultiLocation', location);
 
-    const toHash = new Uint8Array([
-        ...new Uint8Array([32]),
-        ...new TextEncoder().encode('multiloc'),
-        ...multilocation.toU8a(),
-    ]);
+  const toHash = new Uint8Array([
+    ...new Uint8Array([32]),
+    ...new TextEncoder().encode('multiloc'),
+    ...multilocation.toU8a(),
+  ]);
 
-    const DescendOriginAddress32 = u8aToHex(api.registry.hash(toHash).slice(0, 32));
+  const DescendOriginAddress32 = u8aToHex(
+    api.registry.hash(toHash).slice(0, 32)
+  );
 
-    return DescendOriginAddress32;
+  return DescendOriginAddress32;
 };
 
 /**
@@ -137,15 +160,15 @@ export const getProxyAccount = (api, sourceParaId, address) => {
  * @param {*} decimals The decimals number of a token
  */
 export function getDecimalBN(decimals) {
-    const base = new BN(10, 10);
-    const power = new BN(decimals, 10);
-    return base.pow(power);
+  const base = new BN(10, 10);
+  const power = new BN(decimals, 10);
+  return base.pow(power);
 }
 
 export const getProxies = async (api, address) => {
-    const proxiesResponse = await api.query.proxy.proxies(address);
-    const proxies = proxiesResponse.toJSON()[0];
-    return proxies;
+  const proxiesResponse = await api.query.proxy.proxies(address);
+  const proxies = proxiesResponse.toJSON()[0];
+  return proxies;
 };
 
 /**
@@ -156,52 +179,57 @@ export const getProxies = async (api, address) => {
  * @param {*} timeout - Set timeout to stop event listening.
  * @returns
  */
-export const listenEvents = async (api, section, method, timeout = undefined) => new Promise((resolve) => {
+export const listenEvents = async (api, section, method, timeout = undefined) =>
+  new Promise((resolve) => {
     let unsub = null;
     let timeoutId = null;
 
     if (timeout) {
-        timeoutId = setTimeout(() => {
-            unsub();
-            resolve(false);
-        }, timeout);
+      timeoutId = setTimeout(() => {
+        unsub();
+        resolve(false);
+      }, timeout);
     }
 
     const listenSystemEvents = async () => {
-        unsub = await api.query.system.events((events) => {
-            let foundEvent = false;
-            // Loop through the Vec<EventRecord>
-            events.forEach((record) => {
-                // Extract the phase, event and the event types
-                const { event, phase } = record;
-                const { section: eventSection, method: eventMethod, typeDef: types } = event;
+      unsub = await api.query.system.events((events) => {
+        let foundEvent = false;
+        // Loop through the Vec<EventRecord>
+        events.forEach((record) => {
+          // Extract the phase, event and the event types
+          const { event, phase } = record;
+          const {
+            section: eventSection,
+            method: eventMethod,
+            typeDef: types,
+          } = event;
 
-                // console.log('section.method: ', `${section}.${method}`);
-                if (eventSection === section && eventMethod === method) {
-                    foundEvent = true;
-                    // Show what we are busy with
-                    console.log(`\t${section}:${method}:: (phase=${phase.toString()})`);
-                    // console.log(`\t\t${event.meta.documentation.toString()}`);
+          // console.log('section.method: ', `${section}.${method}`);
+          if (eventSection === section && eventMethod === method) {
+            foundEvent = true;
+            // Show what we are busy with
+            console.log(`\t${section}:${method}:: (phase=${phase.toString()})`);
+            // console.log(`\t\t${event.meta.documentation.toString()}`);
 
-                    // Loop through each of the parameters, displaying the type and data
-                    event.data.forEach((data, index) => {
-                        console.log(`\t\t\t${types[index].type}: ${data.toString()}`);
-                    });
-                }
+            // Loop through each of the parameters, displaying the type and data
+            event.data.forEach((data, index) => {
+              console.log(`\t\t\t${types[index].type}: ${data.toString()}`);
             });
-
-            if (foundEvent) {
-                unsub();
-                if (timeoutId) {
-                    clearTimeout(timeoutId);
-                }
-                resolve(true);
-            }
+          }
         });
+
+        if (foundEvent) {
+          unsub();
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+          }
+          resolve(true);
+        }
+      });
     };
 
     listenSystemEvents().catch(console.log);
-});
+  });
 
 /*
  * Return a JSON file of a wallet
@@ -213,4 +241,5 @@ export const listenEvents = async (api, section, method, timeout = undefined) =>
 //     return JSON.parse(json);
 // };
 
-export const calculateTimeout = (executionTime) => (executionTime - moment().valueOf() / 1000 + LISTEN_EVENT_DELAY) * 1000;
+export const calculateTimeout = (executionTime) =>
+  (executionTime - moment().valueOf() / 1000 + LISTEN_EVENT_DELAY) * 1000;
