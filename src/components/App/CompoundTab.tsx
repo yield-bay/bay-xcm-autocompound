@@ -31,7 +31,6 @@ import { fetchTokenPrices } from '@utils/fetch-prices';
 import Tooltip from '@components/Library/Tooltip';
 import RadioButton from '@components/Library/RadioButton';
 import Button from '@components/Library/Button';
-import ProcessStepper from '@components/Library/ProcessStepper';
 import ToastWrapper from '@components/Library/ToastWrapper';
 import Loader from '@components/Library/Loader';
 import { useMutation } from 'urql';
@@ -39,6 +38,7 @@ import {
   AddXcmpTaskMutation,
   createAutocompoundEventMutation,
 } from '@utils/api';
+import Stepper from '@components/Library/Stepper';
 
 const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
   const [, setOpen] = useAtom(mainModalOpenAtom);
@@ -921,16 +921,10 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
         </div>
       )}
       {/* STEPPER */}
-      {isInProcess && (
-        <ProcessStepper
-          activeStep={isSuccess ? 3 : isSigning ? 2 : 1}
-          steps={[
-            { label: 'Confirm' },
-            { label: 'Sign' },
-            { label: 'Complete' },
-          ]}
-        />
-      )}
+      <Stepper
+        activeStep={isSuccess ? 2 : isSigning ? 1 : 0}
+        steps={[{ label: 'Confirm' }, { label: 'Sign' }, { label: 'Complete' }]}
+      />
       {/* BUTTONS */}
       {isAutocompounding || (!isInProcess && isSuccess) ? (
         <div className="flex flex-col gap-y-2">

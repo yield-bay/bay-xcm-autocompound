@@ -21,6 +21,7 @@ import Loader from '@components/Library/Loader';
 import { useToast } from '@chakra-ui/react';
 import { TokenType } from '@utils/types';
 import ToastWrapper from '@components/Library/ToastWrapper';
+import Stepper from '@components/Library/Stepper';
 
 const StopCompoundingModal: FC = () => {
   const [account] = useAtom(accountAtom); // selected account
@@ -186,6 +187,14 @@ const StopCompoundingModal: FC = () => {
             <p>Close modal & Refresh to update.</p>
           </div>
         )}
+        <Stepper
+          activeStep={isSuccess ? 2 : isSigning ? 1 : 0}
+          steps={[
+            { label: 'Confirm' },
+            { label: 'Sign' },
+            { label: 'Complete' },
+          ]}
+        />
       </div>
     </ModalWrapper>
   );

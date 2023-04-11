@@ -16,7 +16,7 @@ import {
 } from '@store/commonAtoms';
 import { createLiquidityEventMutation } from '@utils/api';
 import Loader from '@components/Library/Loader';
-import ProcessStepper from '@components/Library/ProcessStepper';
+import Stepper from '@components/Library/Stepper';
 
 const RemoveLiquidityTab = ({ farm, pool }: TabProps) => {
   const [account] = useAtom(accountAtom);
@@ -336,8 +336,8 @@ const RemoveLiquidityTab = ({ farm, pool }: TabProps) => {
               }}
             />
           </div>
-          <ProcessStepper
-            activeStep={isSuccess ? 3 : isSigning ? 2 : 1}
+          <Stepper
+            activeStep={isSuccess ? 2 : isSigning ? 1 : 0}
             steps={[
               { label: 'Confirm' },
               { label: 'Sign' },
