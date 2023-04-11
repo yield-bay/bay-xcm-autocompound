@@ -19,6 +19,7 @@ import {
   selectedTabModalAtom,
   selectedTaskAtom,
   viewPositionsAtom,
+  allLpBalancesAtom,
 } from '@store/commonAtoms';
 import Tooltip from '@components/Library/Tooltip';
 import _ from 'lodash';
@@ -57,7 +58,6 @@ const FarmCard: FC<Props> = ({
   const [token0, token1] = tokenNames;
 
   useEffect(() => {
-    // console.log(`xcmptask in farmcard ${token0}-${token1}`, xcmpTask);
     setIsAutocompounding(xcmpTask?.status == 'RUNNING' ? true : false);
   }, [xcmpTask]);
 
@@ -87,16 +87,18 @@ const FarmCard: FC<Props> = ({
     })();
   }, [pools]);
 
+  // Conditions for disabling Autocompounding button
+  const disabledCompoundingBtn =
+    (mgxBalance < 5000 && !isAutocompounding && !hasProxy) ||
+    lpBalanceNum == 0 ||
+    account == null;
+
   return (
     <div
       className={clsx(
         viewPositions ? (lpBalanceNum > 0.0 ? 'flex' : 'hidden') : 'flex',
         'flex-row w-full bg-baseGrayDark hover:ring-[1px] transition duration-20 ring-primaryGreen rounded-lg'
       )}
-      // initial={{ opacity: '0' }}
-      // animate={{ opacity: '100%', y: '0' }}
-      // whileInView={{ opacity: '100%' }}
-      // transition={{ duration: 0.2, type: 'spring' }}
     >
       {/* LEFT */}
       <div className="flex flex-row items-center justify-between px-6 py-14 w-full max-w-[400px] rounded-l-lg bg-card-gradient">
@@ -173,7 +175,7 @@ const FarmCard: FC<Props> = ({
               <span>Autocompounding</span>
             </div>
           )}
-          {lpBalanceNum == 0 ? (
+          {lpBalanceNum == 0 || isNaN(lpBalanceNum) ? (
             <Tooltip
               label={
                 account == null
@@ -186,7 +188,7 @@ const FarmCard: FC<Props> = ({
             >
               <button
                 className={clsx(
-                  'bg-baseGray py-4 px-5 text-white text-base leading-5 hover:ring-1 ring-baseGrayLow rounded-lg transition duration-200',
+                  'bg-baseGray py-4 px-5 h-full mb-4 text-white text-base leading-5 hover:ring-1 ring-baseGrayLow rounded-lg transition duration-200',
                   isAutocompounding || account == null
                     ? 'cursor-default hover:ring-0 opacity-50'
                     : ''
@@ -200,34 +202,44 @@ const FarmCard: FC<Props> = ({
                 }}
                 disabled={isAutocompounding || account == null}
               >
-                <p>Add/Remove</p>
-                <p>Liquidity</p>
+                <p>Add Liquidity</p>
               </button>
             </Tooltip>
           ) : (
-            <button
-              className="flex flex-col items-center bg-[#151414] py-2 px-5 ring-1 ring-primaryGreen rounded-lg transition duration-200"
-              onClick={() => {
-                setOpen(true);
-                setSelectedTab(1);
-                setSelectedFarm(farm);
-                setSelectedTask(xcmpTask);
-                setSelectedEvent(autocompoundEvent);
-              }}
-              disabled={isAutocompounding}
+            <Tooltip
+              label={
+                isAutocompounding
+                  ? 'Stop autocompounding to add or remove liquidity'
+                  : ''
+              }
+              placement="left"
             >
-              <p className="text-[#868686] font-medium text-base leading-[#21.6px]">
-                You Deposited
-              </p>
-              <p className="text-2xl leading-8 text-white">
-                {lpBalanceNum.toFixed(2)} LP
-              </p>
-            </button>
+              <button
+                className="flex flex-col items-center bg-[#151414] py-2 px-5 ring-1 ring-primaryGreen rounded-lg transition duration-200"
+                onClick={() => {
+                  setOpen(true);
+                  setSelectedTab(1);
+                  setSelectedFarm(farm);
+                  setSelectedTask(xcmpTask);
+                  setSelectedEvent(autocompoundEvent);
+                }}
+                disabled={isAutocompounding}
+              >
+                <p className="text-[#868686] font-medium text-base leading-[#21.6px]">
+                  You Deposited
+                </p>
+                <p className="text-2xl leading-8 text-white">
+                  {lpBalanceNum.toFixed(2)} LP
+                </p>
+              </button>
+            </Tooltip>
           )}
           <Tooltip
             label={
               account == null
                 ? 'Please connect wallet to manage Autocompounding.'
+                : lpBalanceNum == 0
+                ? 'Add liquidity to autocompound'
                 : mgxBalance < 5000 && !isAutocompounding && !hasProxy
                 ? 'Need a minimum of 5000 MGX as free balance to autocompound.'
                 : ''
@@ -237,9 +249,8 @@ const FarmCard: FC<Props> = ({
             <button
               className={clsx(
                 'px-4 py-3 rounded-lg bg-white hover:bg-offWhite hover:ring-1 ring-offWhite active:ring-0 text-black transition duration-200',
-                (mgxBalance < 5000 && !isAutocompounding && !hasProxy) ||
-                  (account == null &&
-                    'hover:ring-0 hover:bg-white opacity-50 cursor-default')
+                disabledCompoundingBtn &&
+                  'hover:ring-0 hover:bg-white opacity-50 cursor-default'
               )}
               onClick={() => {
                 setSelectedTab(0);
@@ -248,10 +259,7 @@ const FarmCard: FC<Props> = ({
                 setSelectedTask(xcmpTask);
                 setSelectedEvent(autocompoundEvent);
               }}
-              disabled={
-                (mgxBalance < 5000 && !isAutocompounding && !hasProxy) ||
-                account == null
-              }
+              disabled={disabledCompoundingBtn}
             >
               {!isAutocompounding ? 'Autocompound' : 'Manage'}
             </button>

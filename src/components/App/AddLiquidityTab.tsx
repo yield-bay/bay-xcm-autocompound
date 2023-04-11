@@ -9,6 +9,7 @@ import {
   mangataHelperAtom,
   turingAddressAtom,
   trxnProcessAtom,
+  allLpBalancesAtom,
 } from '@store/commonAtoms';
 import { formatTokenSymbols, replaceTokenSymbols } from '@utils/farmMethods';
 import { TabProps, TokenType } from '@utils/types';
@@ -25,6 +26,7 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
   const signer = account?.wallet?.signer;
   const [account1] = useAtom(account1Atom);
   const [, setOpen] = useAtom(mainModalOpenAtom);
+  const [allLpBalances] = useAtom(allLpBalancesAtom);
 
   // Amount States
   const [firstTokenAmount, setFirstTokenAmount] = useState('');
@@ -45,7 +47,7 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
     null
   ); // temperory amount
   const [lpBalance, setLpBalance] = useState<any>(null);
-  const [lpBalanceNum, setLpBalanceNum] = useState<number | null>(null);
+  // const [lpBalanceNum, setLpBalanceNum] = useState<number | null>(null);
 
   const MAX_SLIPPAGE = 0.08; // 8% slippage; can’t be too large
   const [fees, setFees] = useState<number | null>(null);
@@ -54,6 +56,8 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
   const [token0, token1] = formatTokenSymbols(
     replaceTokenSymbols(farm?.asset.symbol)
   );
+
+  const lpBalanceNum: number = allLpBalances[`${token0}-${token1}`];
 
   // Mutation to add config as a createLiquidityEvent
   const [createLiquidityEventResult, createLiquidityEvent] = useMutation(
@@ -109,26 +113,26 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
   };
 
   // Fetch LP balance from mangataHelper
-  useEffect(() => {
-    (async () => {
-      try {
-        const lpBalance = await mangataHelper.mangata.getTokenBalance(
-          pool.liquidityTokenId,
-          account?.address
-        );
-        setLpBalance(lpBalance);
-        const decimal = mangataHelper.getDecimalsBySymbol(
-          `${token0}-${token1}`
-        );
-        const lpBalanceNum =
-          parseFloat(BigInt(lpBalance.reserved).toString(10)) / 10 ** decimal +
-          parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** decimal;
-        setLpBalanceNum(lpBalanceNum);
-      } catch (error) {
-        console.log('error in fetching LP balance', error);
-      }
-    })();
-  }, []);
+  // useEffect(() => {
+  //   (async () => {
+  //     try {
+  //       const lpBalance = await mangataHelper.mangata.getTokenBalance(
+  //         pool.liquidityTokenId,
+  //         account?.address
+  //       );
+  //       setLpBalance(lpBalance);
+  //       const decimal = mangataHelper.getDecimalsBySymbol(
+  //         `${token0}-${token1}`
+  //       );
+  //       const lpBalanceNum =
+  //         parseFloat(BigInt(lpBalance.reserved).toString(10)) / 10 ** decimal +
+  //         parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** decimal;
+  //       setLpBalanceNum(lpBalanceNum);
+  //     } catch (error) {
+  //       console.log('error in fetching LP balance', error);
+  //     }
+  //   })();
+  // }, []);
 
   useEffect(() => {
     (async () => {

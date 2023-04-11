@@ -23,6 +23,7 @@ import {
   turingAddressAtom,
   poolsAtom,
   isInitialisedAtom,
+  allLpBalancesAtom,
 } from '@store/commonAtoms';
 import { MangataRococo, TuringStaging } from '@utils/xcm/config';
 import TuringHelper from '@utils/xcm/common/turingHelper';
@@ -44,6 +45,7 @@ const Layout: FC<Props> = ({ children }) => {
   const [, setTuringAddress] = useAtom(turingAddressAtom);
   const [, setPools] = useAtom(poolsAtom);
   const [, setIsInitialised] = useAtom(isInitialisedAtom);
+  const [, setAllLpBalances] = useAtom(allLpBalancesAtom);
 
   // Initial turing and mangata Helper setup.
   // This is done only once when the app is loaded.
@@ -121,6 +123,31 @@ const Layout: FC<Props> = ({ children }) => {
       const pools = await mangataHelper.getPools({ isPromoted: true });
       console.log('Promoted Pools', pools);
       setPools(pools);
+
+      // await setupLpBalance(pools);
+      console.log('lp balance ----');
+      pools.forEach(async (pool: any) => {
+        const token0 = mangataHelper.getTokenSymbolById(pool.firstTokenId);
+        const token1 = mangataHelper.getTokenSymbolById(pool.secondTokenId);
+        if (token0 == 'ZLK') return;
+
+        const lpBalance = await mangataHelper.mangata?.getTokenBalance(
+          pool.liquidityTokenId,
+          account?.address
+        );
+        const decimal = mangataHelper.getDecimalsBySymbol(
+          `${token0}-${token1}`
+        );
+
+        const tokenAmount =
+          parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** decimal +
+          parseFloat(BigInt(lpBalance.reserved).toString(10)) / 10 ** decimal;
+
+        console.log(`${token0}-${token1}`, tokenAmount);
+
+        // Setting LP Symbol with it's balance in a global context object')
+        setAllLpBalances(`${token0}-${token1}`, tokenAmount);
+      });
       setIsInitialised(true);
     })(accountInit);
   }, [account]);

@@ -77,7 +77,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
   // const [isInProcess, setIsInProcess] = useState(false);
   const [isInProcess, setIsInProcess] = useAtom(trxnProcessAtom);
   const [isSigning, setIsSigning] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(true);
+  const [isSuccess, setIsSuccess] = useState(false);
   const [batchTxDone, setBatchTxDone] = useState(false);
 
   // const [isAutocompounding, setIsAutocompounding] = useState<boolean>(false);
@@ -964,12 +964,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
               }
               type="primary"
               disabled={isInProcess || lpBalanceNum == 0}
-              onClick={() => {
-                // if (frequency === duration) {
-                //   setFrequency(frequency - 1);
-                // }
-                handleCompounding();
-              }}
+              onClick={handleCompounding}
             />
           ) : (
             <Button

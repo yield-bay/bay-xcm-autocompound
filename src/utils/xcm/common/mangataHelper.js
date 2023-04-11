@@ -53,6 +53,11 @@ class MangataHelper {
     return token.id;
   }
 
+  getTokenSymbolById(tokenId) {
+    const token = _.find(this.assets, { id: tokenId });
+    return token.symbol;
+  }
+
   getDecimalsBySymbol(symbol) {
     const token = _.find(this.assets, { symbol });
     return token.decimals;
@@ -186,13 +191,9 @@ class MangataHelper {
 
     return this.api.tx.xyk.activateLiquidityV2(
       tokenId,
-      new BN(
-        BigInt(
-          Math.round(amount * 10 ** 18)
-        ).toString(10),
-        10
-      ),
-      undefined);
+      new BN(BigInt(Math.round(amount * 10 ** 18)).toString(10), 10),
+      undefined
+    );
   };
 
   deactivateLiquidityV2 = async (tokenId, amount) => {
@@ -203,10 +204,7 @@ class MangataHelper {
 
     return this.api.tx.xyk.deactivateLiquidityV2(
       tokenId,
-      new BN(
-        amount.toString(10),
-        10
-      )
+      new BN(amount.toString(10), 10)
     );
   };
 
@@ -263,10 +261,7 @@ class MangataHelper {
       //   ).toString(10),
       //   10
       // )
-      new BN(
-        liquidityAssetAmount.toString(10),
-        10
-      ),
+      new BN(liquidityAssetAmount.toString(10), 10)
     );
   };
 
@@ -453,14 +448,14 @@ class MangataHelper {
   ) => {
     const soldAssetId = this.getTokenIdBySymbol(sellSymbol);
     const boughtAssetId = this.getTokenIdBySymbol(buySymbol);
-    console.log("soldAssetId", soldAssetId, "boughtAssetId", boughtAssetId);
+    console.log('soldAssetId', soldAssetId, 'boughtAssetId', boughtAssetId);
     return this.api.tx.xyk.buyAsset(
       soldAssetId,
       boughtAssetId,
       // boughtAssetAmount,
       // maxAmountIn
-      new BN(BigInt(Math.round((boughtAssetAmount * 10 ** 10))).toString(10), 10),
-      new BN(BigInt(Math.round((maxAmountIn * 10 ** 18))).toString(10), 10)
+      new BN(BigInt(Math.round(boughtAssetAmount * 10 ** 10)).toString(10), 10),
+      new BN(BigInt(Math.round(maxAmountIn * 10 ** 18)).toString(10), 10)
       // new BN(
       //   BigInt(
       //     boughtAssetAmount * 10 ** 10
@@ -473,8 +468,8 @@ class MangataHelper {
       //   ).toString(10),
       //   10
       // ),
-    )
-  }
+    );
+  };
 
   /**
    *

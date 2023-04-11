@@ -45,6 +45,19 @@ export const taskModalOpenAtom = atom(
   }
 );
 
+export const lpBalancesAtom = atom(Object());
+// export const allLpBalancesAtom = atom(Object());
+export const allLpBalancesAtom = atom(
+  (get) => {
+    return get(lpBalancesAtom);
+  },
+  (get, set, key: string, value: number) => {
+    let prevObject = get(lpBalancesAtom);
+    prevObject[key] = value;
+    set(lpBalancesAtom, prevObject);
+  }
+);
+
 // export const stopCompModalOpenAtom = atom<boolean>(false);
 
 export const selectedTabModalAtom = atom<number>(0);

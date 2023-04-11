@@ -20,6 +20,7 @@ import {
   mgxBalanceAtom,
   selectedTaskAtom,
   account1Atom,
+  lpBalancesAtom,
 } from '@store/commonAtoms';
 import { accountAtom } from '@store/accountAtoms';
 import { FarmType } from '@utils/types';
@@ -61,6 +62,7 @@ const MainModal: FC = () => {
   const [selectedTask] = useAtom(selectedTaskAtom);
   const [account1] = useAtom(account1Atom);
   const [isAutocompounding, setIsAutocompounding] = useState(false);
+  const [allLpBalances, setAllLpBalances] = useAtom(lpBalancesAtom);
 
   useEffect(() => {
     setIsAutocompounding(selectedTask?.status == 'RUNNING' ? true : false);
@@ -69,6 +71,8 @@ const MainModal: FC = () => {
   const [pool, setPool] = useState<any>(null);
   const [hasProxy, setHasProxy] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  const [lpBalance, setLpBalance] = useState<any>(0);
 
   const toast = useToast();
 
@@ -81,6 +85,7 @@ const MainModal: FC = () => {
     const poolName = `${token0}-${token1}`;
     console.log('poolname', poolName);
 
+    setLpBalance(allLpBalances[poolName]);
     // Make a state for this
     const pool = _.find(pools, {
       firstTokenId: mangataHelper.getTokenIdBySymbol(token0),
@@ -215,14 +220,18 @@ const MainModal: FC = () => {
               >
                 <button
                   onClick={() => setSelectedTab(tab.id)}
-                  disabled={
-                    (tab.id == 0 &&
-                      mgxBalance < 5000 &&
-                      !isAutocompounding &&
-                      !hasProxy) ||
-                    ((tab.id == 1 || tab.id == 2) && isAutocompounding)
-                  }
+                  // disabled={
+                  //   (tab.id == 0 &&
+                  //     mgxBalance < 5000 &&
+                  //     !isAutocompounding &&
+                  //     !hasProxy) ||
+                  //   ((tab.id == 1 || tab.id == 2) && isAutocompounding)
+                  // }
                   className={clsx(
+                    ((tab.id == 0 || tab.id == 2) && lpBalance == 0) ||
+                      ((tab.id == 1 || tab.id == 2) && isAutocompounding)
+                      ? 'hidden'
+                      : 'block',
                     tab.id == selectedTab
                       ? 'ring-1 ring-primaryGreen  px-4'
                       : 'opacity-40',
