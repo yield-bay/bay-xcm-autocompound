@@ -93,7 +93,6 @@ class TuringHelper {
                   taskId
                 );
                 console.log('Task:', task);
-                setIsSuccess(true);
                 unsub();
                 resolve();
               } else if (status.isFinalized) {
@@ -114,7 +113,6 @@ class TuringHelper {
             console.log('sendXcmExtrinsic Err --\n', error);
             let errorString = `${error}`;
             setIsInProcess(false);
-            setIsSigning(false);
             setIsSigning(false);
             setIsSuccess(false);
             toast({

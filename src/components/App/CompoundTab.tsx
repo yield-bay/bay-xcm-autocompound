@@ -77,7 +77,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
   // const [isInProcess, setIsInProcess] = useState(false);
   const [isInProcess, setIsInProcess] = useAtom(trxnProcessAtom);
   const [isSigning, setIsSigning] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(true);
   const [batchTxDone, setBatchTxDone] = useState(false);
 
   // const [isAutocompounding, setIsAutocompounding] = useState<boolean>(false);
@@ -648,83 +648,97 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
     setIsInProcess(true);
 
     const signer = account?.wallet?.signer;
-    const { liquidityTokenId } = pool;
 
-    const xcmpCall = await turingHelper.api.tx.automationTime.scheduleXcmpTask(
-      providedId,
-      // {
-      //   Recurring: {
-      //     frequency: secondsInHour * 24 * frequency,
-      //     nextExecutionTime: executionTime,
-      //   },
-      // },
-      { Fixed: { executionTimes: executionTimes } },
-      mangataHelper.config.paraId,
-      0,
-      encodedMangataProxyCall,
-      parseInt(mangataProxyCallFees.weight.refTime, 10)
-    );
-    console.log('xcmpCall: ', xcmpCall);
+    try {
+      const { liquidityTokenId } = pool;
 
-    // Send extrinsic
-    setIsSigning(true);
-    console.log('\nc) Sign and send scheduleXcmpTask call ...');
-    await turingHelper.sendXcmExtrinsic(
-      xcmpCall,
-      account?.address,
-      signer,
-      taskId,
-      setIsSigning,
-      setIsInProcess,
-      setIsSuccess,
-      toast
-    );
+      const xcmpCall =
+        await turingHelper.api.tx.automationTime.scheduleXcmpTask(
+          providedId,
+          // {
+          //   Recurring: {
+          //     frequency: secondsInHour * 24 * frequency,
+          //     nextExecutionTime: executionTime,
+          //   },
+          // },
+          { Fixed: { executionTimes: executionTimes } },
+          mangataHelper.config.paraId,
+          0,
+          encodedMangataProxyCall,
+          parseInt(mangataProxyCallFees.weight.refTime, 10)
+        );
+      console.log('xcmpCall: ', xcmpCall);
 
-    console.log('\nWaiting 20 seconds before reading new chain states ...');
-    await delay(20000); // This is not how delay works
+      // Send extrinsic
+      setIsSigning(true);
+      console.log('\nc) Sign and send scheduleXcmpTask call ...');
+      await turingHelper.sendXcmExtrinsic(
+        xcmpCall,
+        account?.address,
+        signer,
+        taskId,
+        setIsSigning,
+        setIsInProcess,
+        setIsSuccess,
+        toast
+      );
 
-    setIsInProcess(false);
-    setIsSigning(false);
+      console.log('\nWaiting 20 seconds before reading new chain states ...');
+      await delay(20000); // This is not how delay works
 
-    // Account’s reserved LP token after auto-compound
-    const newLiquidityBalance = await mangataHelper.mangata.getTokenBalance(
-      liquidityTokenId,
-      account?.address
-    );
-    console.log(
-      `\nAfter auto-compound, reserved ${token0}-${token1} is: ${newLiquidityBalance.reserved.toString()} planck ...`
-    );
+      setIsInProcess(false);
+      setIsSigning(false);
 
-    const liquidityBalance = await mangataHelper.mangata?.getTokenBalance(
-      liquidityTokenId,
-      mangataAddress
-    );
+      // Account’s reserved LP token after auto-compound
+      const newLiquidityBalance = await mangataHelper.mangata.getTokenBalance(
+        liquidityTokenId,
+        account?.address
+      );
+      console.log(
+        `\nAfter auto-compound, reserved ${token0}-${token1} is: ${newLiquidityBalance.reserved.toString()} planck ...`
+      );
 
-    console.log(
-      `${account?.name} has compounded ${newLiquidityBalance.reserved
-        .sub(liquidityBalance.reserved)
-        .toString()} planck more ${token0}-${token1} ...`
-    );
-    console.log('Task has been executed!');
-    console.log('to cancel', taskId);
+      const liquidityBalance = await mangataHelper.mangata?.getTokenBalance(
+        liquidityTokenId,
+        mangataAddress
+      );
 
-    // Adding Xcmp Task of the completed compounding
-    addXcmpTaskHandler(taskId, turingAddress as string, lpName, 'ROCOCO');
-    // Creating Autocompounding Event
-    createAutocompoundingHandler(
-      turingAddress as string,
-      'ROCOCO',
-      taskId,
-      { symbol: lpName, amount: lpBalanceNum },
-      duration,
-      frequency,
-      moment().toISOString(),
-      executionFee,
-      xcmpFee,
-      'RUNNING',
-      'CREATE',
-      percentage
-    );
+      console.log(
+        `${account?.name} has compounded ${newLiquidityBalance.reserved
+          .sub(liquidityBalance.reserved)
+          .toString()} planck more ${token0}-${token1} ...`
+      );
+      console.log('Task has been executed!');
+      console.log('to cancel', taskId);
+
+      // Adding Xcmp Task of the completed compounding
+      addXcmpTaskHandler(taskId, turingAddress as string, lpName, 'ROCOCO');
+      // Creating Autocompounding Event
+      createAutocompoundingHandler(
+        turingAddress as string,
+        'ROCOCO',
+        taskId,
+        { symbol: lpName, amount: lpBalanceNum },
+        duration,
+        frequency,
+        moment().toISOString(),
+        executionFee,
+        xcmpFee,
+        'RUNNING',
+        'CREATE',
+        percentage
+      );
+    } catch (error) {
+      let errorString = `${error}`;
+      console.log('Error while scheduling Autocompounding:', errorString);
+      toast({
+        position: 'top',
+        duration: 3000,
+        render: () => <ToastWrapper title={errorString} status="error" />,
+      });
+      setIsInProcess(false);
+      setIsSigning(false);
+    }
   };
 
   // const [offsetHeight, setOffsetHeight] = useState(0);
@@ -984,7 +998,12 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
               {gasChoice == 0 ? 'Mangata' : 'Turing'} in your wallet.
             </span>
           )}
-          {isSuccess && <p>Autocompound Setup Successful!</p>}
+        </div>
+      )}
+      {isSuccess && (
+        <div className="flex flex-col gap-2 px-4 items-center justify-center text-base leading-[21.6px] bg-baseGray rounded-lg py-10 text-center">
+          <p>Autocompound Setup Successful!</p>
+          <p>Close modal & Refresh to update.</p>
         </div>
       )}
       {/* <DownSignal /> */}
