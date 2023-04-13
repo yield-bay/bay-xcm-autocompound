@@ -7,7 +7,7 @@ import { useAtom } from 'jotai';
 import { FC } from 'react';
 import Image from 'next/image';
 import clsx from 'clsx';
-import { pullWalletAccounts } from '@utils/polkadotMethods';
+import { APP_NAME } from '@utils/constants';
 
 const ConnectModal: FC = () => {
   const [isOpen, setIsOpen] = useAtom(walletModalOpenAtom);
@@ -30,14 +30,21 @@ const ConnectModal: FC = () => {
                   className="flex flex-row gap-x-5 items-center ring-1 ring-baseGray hover:ring-primaryGreen rounded-xl p-6 text-left border-0 focus:outline-0 transition duration-200"
                   key={wallet.extensionName}
                   onClick={async () => {
-                    pullWalletAccounts(
-                      wallet,
-                      setWalletAccounts,
-                      setAccount,
-                      setIsOpen
-                    );
-                    // jotai:: setting selected wallet
-                    setWallet(wallet);
+                    try {
+                      await wallet.enable(APP_NAME);
+                      await wallet.subscribeAccounts(
+                        (accounts: WalletAccount[] | undefined) => {
+                          // jotai:: setting accounts in selected wallet
+                          setWalletAccounts(accounts as WalletAccount[]);
+                          if (accounts?.length == 1) {
+                            setAccount(accounts[0]);
+                            setIsOpen(false);
+                          }
+                        }
+                      );
+                    } catch (err) {
+                      console.log('Error in subscribing accounts: ', err);
+                    }
                   }}
                 >
                   <Image
