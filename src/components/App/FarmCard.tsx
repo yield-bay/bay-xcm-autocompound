@@ -19,7 +19,6 @@ import {
   selectedTabModalAtom,
   selectedTaskAtom,
   viewPositionsAtom,
-  allLpBalancesAtom,
 } from '@store/commonAtoms';
 import Tooltip from '@components/Library/Tooltip';
 import _ from 'lodash';

@@ -8,7 +8,6 @@ import moment from 'moment';
 import CountUp from 'react-countup';
 import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@chakra-ui/react';
-// import DownSignal from '@components/Library/DownSignal';
 
 // Utils
 import {
@@ -90,7 +89,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
 
   useEffect(() => {
     console.log('hasEvent', hasEvent);
-    console.log('selected event', selectedEvent);
+    console.log(`selected event @${token0}-${token1}`, selectedEvent);
   }, [hasEvent]);
 
   const [token0, token1] = formatTokenSymbols(
@@ -331,14 +330,6 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       // Defining Signer to make trxns
       const signer = account?.wallet?.signer;
 
-      /*
-      const lpBalance = await mangataHelper.mangata.getTokenBalance(
-        pool.liquidityTokenId,
-        account?.address
-      ); // token0-token1
-  
-      console.log('lpBalance', lpBalance);
-      */
       const decimal = mangataHelper.getDecimalsBySymbol(`${token0}-${token1}`);
 
       // tokenAmount is the amount of locked liquidity token which are to be activated
@@ -761,6 +752,27 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       className="w-full relative flex flex-col gap-y-10 mt-10 text-xl leading-[27px]"
       // ref={mainmodalRef}
     >
+      {hasEvent && (
+        <div className="rounded-lg bg-[#0C0C0C] text-center text-lg leading-6">
+          <div className="py-7 text-[#C5C5C5] border-b border-[#2E2E2E]">
+            Autocompounding 100 MGX-TUR LP tokens{' '}
+          </div>
+          <div className="flex flex-row px-14 py-4 items-center w-full justify-between">
+            <div className="">
+              <p className="text-[#969595]">Last Harvested</p>
+              <p className="text-2xl leading-8">5/6/23</p>
+            </div>
+            <div className="">
+              <p className="text-[#969595]">Last estimated execution</p>
+              <p className="text-2xl leading-8">5/6/23</p>
+            </div>
+            <div className="">
+              <p className="text-[#969595]">Executions till now</p>
+              <p className="text-2xl leading-8">25</p>
+            </div>
+          </div>
+        </div>
+      )}
       <div>
         <p className="inline-flex items-center mb-8">
           Frequency
