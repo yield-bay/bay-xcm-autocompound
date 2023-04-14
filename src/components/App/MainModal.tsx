@@ -228,9 +228,9 @@ const MainModal: FC = () => {
                   //   ((tab.id == 1 || tab.id == 2) && isAutocompounding)
                   // }
                   className={clsx(
-                    ((tab.id == 0 || tab.id == 2) && lpBalance == 0) ||
-                      ((tab.id == 1 || tab.id == 2) && isAutocompounding)
-                      ? 'hidden'
+                    (tab.id == 0 || tab.id == 2) && lpBalance == 0
+                      ? // ((tab.id == 1 || tab.id == 2) && isAutocompounding)
+                        'hidden'
                       : 'block',
                     tab.id == selectedTab
                       ? 'ring-1 ring-primaryGreen  px-4'

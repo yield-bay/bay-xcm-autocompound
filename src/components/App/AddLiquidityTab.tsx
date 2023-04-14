@@ -300,6 +300,34 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
     }
   };
 
+  const handleMaxFirstToken = () => {
+    if ((firstTokenBalance as number) < 20) {
+      toast({
+        position: 'top',
+        duration: 3000,
+        render: () => (
+          <ToastWrapper
+            title="Insufficient balance to pay gas fees!"
+            status="warning"
+          />
+        ),
+      });
+      return;
+    }
+    if (token0 == 'MGR') {
+      setFirstTokenAmount(
+        firstTokenBalance
+          ? (firstTokenBalance - (fees ?? 0) - 20).toString()
+          : ''
+      );
+    } else {
+      setFirstTokenAmount(
+        firstTokenBalance ? firstTokenBalance.toString() : ''
+      );
+    }
+    updateSecondTokenAmount(firstTokenBalance as number);
+  };
+
   return (
     <div className="w-full flex flex-col gap-y-10 mt-10">
       <div className="w-full text-[#C5C5C5] py-3 text-base leading-[21.6px] text-center rounded-lg border border-black bg-[#0C0C0C]">
@@ -334,12 +362,7 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
               )}
             </p>
             <button
-              onClick={() => {
-                setFirstTokenAmount(
-                  firstTokenBalance ? firstTokenBalance.toString() : ''
-                );
-                updateSecondTokenAmount(firstTokenBalance as number);
-              }}
+              onClick={handleMaxFirstToken}
               disabled={firstTokenBalance == null}
               className="p-[10px] rounded-lg bg-baseGray text-base leading-5"
             >
@@ -386,19 +409,13 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
           </div>
         </div>
       </div>
-      {/* Fee and Share */}
+      {/* Fee */}
       <div className="flex flex-col gap-y-5 pr-[19px] text-sm leading-[19px]">
         {fees !== null ? (
-          <>
-            <div className="flex flex-row justify-between">
-              <p className="inline-flex items-center">Fee</p>
-              <p>{fees.toFixed(3)} MGR</p>
-            </div>
-            {/* <div className="flex flex-row justify-between">
-              <p className="inline-flex items-center">Expected Share of Pool</p>
-              <p>&lt;0.001%</p>
-            </div> */}
-          </>
+          <div className="flex flex-row justify-between">
+            <p className="inline-flex items-center">Fee</p>
+            <p>{fees.toFixed(3)} MGR</p>
+          </div>
         ) : firstTokenAmount.length > 0 && secondTokenAmount.length > 0 ? (
           <div className="text-center font-medium tracking-wide">
             <p>fetching best price...</p>
