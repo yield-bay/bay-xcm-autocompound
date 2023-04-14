@@ -800,7 +800,12 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
             isSelected={frequency === 30}
             label="Monthly"
             value={30}
-            disabled={hasEvent && selectedEvent?.frequency !== 30}
+            disabled={
+              (hasEvent && selectedEvent?.frequency !== 30) || 30 > duration
+            }
+            tooltip={
+              30 > duration ? 'Frequency must be less than duration!' : ''
+            }
           />
         </div>
       </div>
@@ -817,7 +822,12 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
             isSelected={duration === 7}
             label="1 Week"
             value={7}
-            disabled={hasEvent && selectedEvent?.duration !== 7}
+            disabled={
+              (hasEvent && selectedEvent?.duration !== 7) || 7 < frequency
+            }
+            tooltip={
+              7 < frequency ? 'Frequency must be less than duration!' : ''
+            }
           />
           <RadioButton
             changed={setDuration}
