@@ -164,7 +164,7 @@ const FarmCard: FC<Props> = ({
         {/* Right Right */}
         <div className="relative flex flex-col justify-between">
           {account && isAutocompounding && (
-            <div className="hidden lg:inline-flex select-none drop-shadow-xl gap-x-2 absolute right-[186px] font-medium text-[#868686] text-base leading-[21.6px]">
+            <div className="hidden absolute -left-[190px] lg:inline-flex select-none drop-shadow-xl gap-x-2 font-medium text-[#868686] text-base leading-[21.6px]">
               <Image
                 src="/icons/ThunderIcon.svg"
                 alt="active autocompounding"
