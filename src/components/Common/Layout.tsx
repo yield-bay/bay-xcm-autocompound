@@ -1,5 +1,5 @@
 // Library Imports
-import { FC, ReactNode, useEffect, useMemo, useState } from 'react';
+import { FC, ReactNode, useEffect } from 'react';
 import { useAtom } from 'jotai';
 import clsx from 'clsx';
 import _ from 'lodash';
@@ -24,12 +24,14 @@ import {
   poolsAtom,
   isInitialisedAtom,
   allLpBalancesAtom,
+  userHasProxyAtom,
 } from '@store/commonAtoms';
 import { MangataRococo, TuringStaging } from '@utils/xcm/config';
 import TuringHelper from '@utils/xcm/common/turingHelper';
 import MangataHelper from '@utils/xcm/common/mangataHelper';
 import Account from '@utils/xcm/common/account';
 import StopCompoundingModal from '@components/App/StopCompoundingModal';
+// import AddLiquidityModal from '@components/App/AddLiquidityModal';
 
 interface Props {
   children: ReactNode;
@@ -46,6 +48,7 @@ const Layout: FC<Props> = ({ children }) => {
   const [, setPools] = useAtom(poolsAtom);
   const [, setIsInitialised] = useAtom(isInitialisedAtom);
   const [, setAllLpBalances] = useAtom(allLpBalancesAtom);
+  const [, setUserHasProxy] = useAtom(userHasProxyAtom);
 
   // Initial turing and mangata Helper setup.
   // This is done only once when the app is loaded.
@@ -139,6 +142,19 @@ const Layout: FC<Props> = ({ children }) => {
           `${token0}-${token1}`
         );
 
+        // Checks if the user's account has proxy setup
+        if (account1) {
+          console.log('acc1');
+          const proxies = await mangataHelper.api?.query.proxy.proxies(
+            account1?.address
+          );
+          proxies.toHuman()[0].forEach((p: any) => {
+            if (p.proxyType == 'AutoCompound') {
+              setUserHasProxy(true);
+            }
+          });
+        }
+
         const tokenAmount =
           parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** decimal +
           parseFloat(BigInt(lpBalance.reserved).toString(10)) / 10 ** decimal;
@@ -166,6 +182,7 @@ const Layout: FC<Props> = ({ children }) => {
       <ConnectModal />
       <MainModal />
       <StopCompoundingModal />
+      {/* <AddLiquidityModal /> */}
       <div className="flex flex-col flex-1">
         <Header />
         {children}

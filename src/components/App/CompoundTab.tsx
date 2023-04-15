@@ -21,6 +21,7 @@ import {
   selectedEventAtom,
   taskModalOpenAtom,
   trxnProcessAtom,
+  userHasProxyAtom,
 } from '@store/commonAtoms';
 import { delay, getDecimalBN } from '@utils/xcm/common/utils';
 import { accountAtom } from '@store/accountAtoms';
@@ -48,6 +49,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
   const [selectedTask] = useAtom(selectedTaskAtom);
   const [selectedEvent] = useAtom(selectedEventAtom);
   const [, setStopModalOpen] = useAtom(taskModalOpenAtom);
+  const [userHasProxy] = useAtom(userHasProxyAtom);
 
   const [frequency, setFrequency] = useState<number>(1); // default day
   const [duration, setDuration] = useState<number>(7); // default week
@@ -804,7 +806,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
               (hasEvent && selectedEvent?.frequency !== 30) || 30 > duration
             }
             tooltip={
-              30 > duration ? 'Frequency must be less than duration!' : ''
+              30 > duration ? 'Frequency can not be more than duration!' : ''
             }
           />
         </div>
@@ -826,7 +828,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
               (hasEvent && selectedEvent?.duration !== 7) || 7 < frequency
             }
             tooltip={
-              7 < frequency ? 'Frequency must be less than duration!' : ''
+              7 < frequency ? 'Frequency can not be more than duration!' : ''
             }
           />
           <RadioButton
@@ -979,7 +981,9 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
             <Button
               text={
                 isInProcess
-                  ? 'Activating Liquidity & proxy setup...'
+                  ? userHasProxy
+                    ? 'Activating Liquidity...'
+                    : 'Activating Liquidity & proxy setup...'
                   : lpBalanceNum == 0
                   ? 'No balance, Please add liquidity'
                   : 'Autocompound'

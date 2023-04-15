@@ -13,18 +13,17 @@ import {
   poolsAtom,
   selectedFarmAtom,
   selectedTabModalAtom,
-  turingHelperAtom,
   mangataHelperAtom,
   mangataAddressAtom,
   isInitialisedAtom,
   mgxBalanceAtom,
   selectedTaskAtom,
-  account1Atom,
   lpBalancesAtom,
+  userHasProxyAtom,
 } from '@store/commonAtoms';
 import { accountAtom } from '@store/accountAtoms';
 import { FarmType } from '@utils/types';
-import { delay, getDecimalBN } from '@utils/xcm/common/utils';
+import { getDecimalBN } from '@utils/xcm/common/utils';
 import { formatTokenSymbols, replaceTokenSymbols } from '@utils/farmMethods';
 
 // Component Imports
@@ -54,22 +53,20 @@ const MainModal: FC = () => {
   const [selectedFarm, setSelectedFarm] = useAtom(selectedFarmAtom);
   const [account] = useAtom(accountAtom);
   const [pools] = useAtom(poolsAtom);
-  const [turingHelper] = useAtom(turingHelperAtom);
   const [mangataHelper] = useAtom(mangataHelperAtom);
   const [mangataAddress] = useAtom(mangataAddressAtom);
   const [isInitialised] = useAtom(isInitialisedAtom);
   const [mgxBalance] = useAtom(mgxBalanceAtom);
   const [selectedTask] = useAtom(selectedTaskAtom);
-  const [account1] = useAtom(account1Atom);
   const [isAutocompounding, setIsAutocompounding] = useState(false);
   const [allLpBalances, setAllLpBalances] = useAtom(lpBalancesAtom);
+  const [userHasProxy] = useAtom(userHasProxyAtom);
 
   useEffect(() => {
     setIsAutocompounding(selectedTask?.status == 'RUNNING' ? true : false);
   }, [selectedTask]);
 
   const [pool, setPool] = useState<any>(null);
-  const [hasProxy, setHasProxy] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   const [lpBalance, setLpBalance] = useState<any>(0);
@@ -157,24 +154,6 @@ const MainModal: FC = () => {
   };
 
   useEffect(() => {
-    // Checks if the user's account has proxy setup
-    (async () => {
-      if (account1) {
-        console.log('acc1');
-        const proxies = await mangataHelper.api.query.proxy.proxies(
-          account1?.address
-        );
-        proxies.toHuman()[0].forEach((p: any) => {
-          if (p.proxyType == 'AutoCompound') {
-            setHasProxy(true);
-            console.log('hasproxy mm');
-          }
-        });
-      }
-    })();
-  }, [account1]);
-
-  useEffect(() => {
     console.log('isInitialised', isInitialised);
     console.log('selectedFarm', selectedFarm);
     if (isInitialised && selectedFarm != null) {
@@ -207,7 +186,7 @@ const MainModal: FC = () => {
                   tab.id == 0 &&
                   mgxBalance < 5000 &&
                   !isAutocompounding &&
-                  !hasProxy
+                  !userHasProxy
                     ? 'Need a minimum of 5000 MGR as free balance to autocompound.'
                     : tab.id == 1 && isAutocompounding
                     ? 'Stop current autocompounding task to add liquidity'
@@ -220,20 +199,20 @@ const MainModal: FC = () => {
               >
                 <button
                   onClick={() => setSelectedTab(tab.id)}
-                  // disabled={
-                  //   (tab.id == 0 &&
-                  //     mgxBalance < 5000 &&
-                  //     !isAutocompounding &&
-                  //     !hasProxy) ||
-                  //   ((tab.id == 1 || tab.id == 2) && isAutocompounding)
-                  // }
+                  disabled={
+                    (tab.id == 0 &&
+                      mgxBalance < 5000 &&
+                      !isAutocompounding &&
+                      !userHasProxy) ||
+                    ((tab.id == 1 || tab.id == 2) && isAutocompounding)
+                  }
                   className={clsx(
-                    (tab.id == 0 || tab.id == 2) && lpBalance == 0
-                      ? // ((tab.id == 1 || tab.id == 2) && isAutocompounding)
-                        'hidden'
+                    ((tab.id == 0 || tab.id == 2) && lpBalance == 0) ||
+                      ((tab.id == 1 || tab.id == 2) && isAutocompounding)
+                      ? 'hidden'
                       : 'block',
                     tab.id == selectedTab
-                      ? 'ring-1 ring-primaryGreen  px-4'
+                      ? 'ring-1 ring-primaryGreen px-4'
                       : 'opacity-40',
                     'rounded-md px-4 py-[10px] transition duration-300 ease-in-out'
                   )}

@@ -40,6 +40,7 @@ const ConnectModal: FC = () => {
                             setAccount(accounts[0]);
                             setIsOpen(false);
                           }
+                          setWallet(wallet);
                         }
                       );
                     } catch (err) {

@@ -80,3 +80,5 @@ export const turingAddressAtom = atom<string | null>(null);
 
 export const viewPositionsAtom = atom<boolean>(false);
 export const mgxBalanceAtom = atom<number>(0);
+
+export const userHasProxyAtom = atom<boolean>(false);
