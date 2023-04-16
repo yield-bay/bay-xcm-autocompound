@@ -20,10 +20,10 @@ const Button: FC<ButtonProps> = ({
     <button
       disabled={disabled}
       className={clsx(
-        'text-center text-base leading-[21.6px] py-[9px] transition duration-100 ease-in-out rounded-lg',
+        'text-center text-base leading-[21.6px] py-[13px] transition duration-100 ease-in-out rounded-lg',
         type === 'primary' && 'bg-white hover:bg-offWhite text-black',
         type === 'secondary' &&
-          'bg-white bg-opacity-0 hover:bg-opacity-5 active:bg-opacity-0',
+          'bg-[#1E1E1E] hover:bg-[#252525] active:bg-[#1E1E1E]',
         type === 'warning' && 'bg-warningRed hover:bg-[#e53c3c]',
         disabled ? 'opacity-50 pointer-events-none' : '',
         className ?? ''

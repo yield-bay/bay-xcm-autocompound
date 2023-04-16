@@ -42,7 +42,7 @@ const App = () => {
       userAddress: turingAddress,
       chain: 'ROCOCO',
     },
-    pause: account == null,
+    pause: turingAddress == null,
   });
   const { data: xcmpTasksData, fetching: xcmpTasksFetching } = xcmpTasksResult;
 
@@ -58,7 +58,7 @@ const App = () => {
         userAddress: turingAddress,
         chain: 'ROCOCO',
       },
-      pause: account == null,
+      pause: turingAddress == null,
     }
   );
   const { data: autocompoundEventsData, fetching: autocompoundEventsFetching } =
