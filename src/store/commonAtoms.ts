@@ -54,6 +54,15 @@ export const addLiquidityConfigAtom = atom({
   fees: 0,
 });
 
+// Remove Liquidity Modal
+export const removeLiqModalOpenAtom = atom<boolean>(false);
+export const removeLiquidityConfigAtom = atom({
+  method: 0, // 0 = Percentage, 1 = Token Numbers
+  percentage: '0',
+  firstTokenNumber: 0,
+  secondTokenNumber: 0,
+});
+
 // Atom which hold a Hash map of balances of All LPs
 export const lpBalancesAtom = atom(Object());
 export const allLpBalancesAtom = atom(

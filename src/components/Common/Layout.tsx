@@ -32,6 +32,7 @@ import MangataHelper from '@utils/xcm/common/mangataHelper';
 import Account from '@utils/xcm/common/account';
 import StopCompoundingModal from '@components/App/StopCompoundingModal';
 import AddLiquidityModal from '@components/App/AddLiquidityModal';
+import RemoveLiquidityModal from '@components/App/RemoveLiquidityModal';
 
 interface Props {
   children: ReactNode;
@@ -183,6 +184,7 @@ const Layout: FC<Props> = ({ children }) => {
       <MainModal />
       <StopCompoundingModal />
       <AddLiquidityModal />
+      <RemoveLiquidityModal />
       <div className="flex flex-col flex-1">
         <Header />
         {children}
