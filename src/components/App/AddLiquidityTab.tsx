@@ -7,47 +7,32 @@ import {
   account1Atom,
   mainModalOpenAtom,
   mangataHelperAtom,
-  turingAddressAtom,
-  trxnProcessAtom,
   allLpBalancesAtom,
+  addLiqModalOpenAtom,
+  addLiquidityConfigAtom,
 } from '@store/commonAtoms';
 import { formatTokenSymbols, replaceTokenSymbols } from '@utils/farmMethods';
-import { TabProps, TokenType } from '@utils/types';
-import Loader from '@components/Library/Loader';
+import { TabProps } from '@utils/types';
 import ToastWrapper from '@components/Library/ToastWrapper';
-import { createLiquidityEventMutation } from '@utils/api';
-import { useMutation } from 'urql';
-import moment from 'moment';
-import Stepper from '@components/Library/Stepper';
 
 const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
   const [mangataHelper] = useAtom(mangataHelperAtom);
-  const [turingAddress] = useAtom(turingAddressAtom);
-  const signer = account?.wallet?.signer;
   const [account1] = useAtom(account1Atom);
-  const [, setOpen] = useAtom(mainModalOpenAtom);
+  const [, setIsOpen] = useAtom(mainModalOpenAtom);
   const [allLpBalances] = useAtom(allLpBalancesAtom);
+  const [, setIsModalOpen] = useAtom(addLiqModalOpenAtom);
+  const [, setConfig] = useAtom(addLiquidityConfigAtom);
 
   // Amount States
   const [firstTokenAmount, setFirstTokenAmount] = useState('');
   const [secondTokenAmount, setSecondTokenAmount] = useState('');
-  const [tempFirstAmount, setTempFirstAmount] = useState('');
-  const [tempSecondAmount, setTempSecondAmount] = useState('');
-
-  // Process States
-  // const [isInProcess, setIsInProcess] = useState(false);
-  const [isInProcess, setIsInProcess] = useAtom(trxnProcessAtom);
-  const [isSigning, setIsSigning] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
 
   const [firstTokenBalance, setFirstTokenBalance] = useState<number | null>(
     null
-  ); // temperory amount
+  );
   const [secondTokenBalance, setSecondTokenBalance] = useState<number | null>(
     null
-  ); // temperory amount
-  const [lpBalance, setLpBalance] = useState<any>(null);
-  // const [lpBalanceNum, setLpBalanceNum] = useState<number | null>(null);
+  );
 
   const MAX_SLIPPAGE = 0.08; // 8% slippage; can’t be too large
   const [fees, setFees] = useState<number | null>(null);
@@ -58,36 +43,6 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
   );
 
   const lpBalanceNum: number = allLpBalances[`${token0}-${token1}`];
-
-  // Mutation to add config as a createLiquidityEvent
-  const [createLiquidityEventResult, createLiquidityEvent] = useMutation(
-    createLiquidityEventMutation
-  );
-  const createLiquidityEventHandler = async (
-    userAddress: string,
-    chain: string,
-    token0: TokenType,
-    token1: TokenType,
-    lp: TokenType,
-    timestamp: string,
-    gasFee: number,
-    eventType: string
-  ) => {
-    const variables = {
-      userAddress,
-      chain,
-      token0,
-      token1,
-      lp,
-      timestamp,
-      gasFee,
-      eventType,
-    };
-    console.log('Updating the createLiquidityEvent...');
-    createLiquidityEvent(variables).then((result) => {
-      console.log('createLiquidityEvent Result', result);
-    });
-  };
 
   // Estimate of fees; no need to be accurate
   // Method to fetch trnx fees based on token Amounts
@@ -112,32 +67,10 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
     }
   };
 
-  // Fetch LP balance from mangataHelper
-  // useEffect(() => {
-  //   (async () => {
-  //     try {
-  //       const lpBalance = await mangataHelper.mangata.getTokenBalance(
-  //         pool.liquidityTokenId,
-  //         account?.address
-  //       );
-  //       setLpBalance(lpBalance);
-  //       const decimal = mangataHelper.getDecimalsBySymbol(
-  //         `${token0}-${token1}`
-  //       );
-  //       const lpBalanceNum =
-  //         parseFloat(BigInt(lpBalance.reserved).toString(10)) / 10 ** decimal +
-  //         parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** decimal;
-  //       setLpBalanceNum(lpBalanceNum);
-  //     } catch (error) {
-  //       console.log('error in fetching LP balance', error);
-  //     }
-  //   })();
-  // }, []);
-
+  // Fetch Balances of both tokens on Mangata Chain
   useEffect(() => {
     (async () => {
       if (account1) {
-        // Balance of both tokens on Mangata Chain
         const token0Bal = await mangataHelper.mangata?.getTokenBalance(
           pool.firstTokenId,
           account1.address
@@ -198,106 +131,6 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
     const expectedSecondTokenAmount = updateSecondTokenAmount(firstTokenAmount);
 
     await handleFees(firstTokenAmount, expectedSecondTokenAmount);
-  };
-
-  // Method to call to Add Liquidity confirmation
-  const handleAddLiquidity = async () => {
-    setIsInProcess(true);
-    console.log(
-      'pool.firstTokenAmountFloat',
-      pool.firstTokenAmountFloat,
-      'pool.secondTokenAmountFloat',
-      pool.secondTokenAmountFloat,
-      'firstTokenAmount',
-      firstTokenAmount,
-      'expectedSecondTokenAmount',
-      secondTokenAmount // expectedSecondTokenAmount
-    );
-
-    try {
-      // Method to Add Liquidity
-      const mintLiquidityTxn = await mangataHelper.mintLiquidityTx(
-        pool.firstTokenId,
-        pool.secondTokenId,
-        parseFloat(firstTokenAmount),
-        parseFloat(secondTokenAmount) // expectedSecondTokenAmount
-      );
-      setIsSigning(true);
-
-      await mintLiquidityTxn
-        .signAndSend(
-          account1?.address,
-          { signer: signer },
-          ({ status }: any) => {
-            if (status.isInBlock) {
-              console.log(
-                `Mint liquidity trxn is in Block with hash ${status.asInBlock.toHex()}`
-              );
-              // unsub();
-            } else if (status.isFinalized) {
-              setIsSuccess(true);
-              setIsInProcess(false);
-              setIsSigning(false);
-              console.log('Mint liquidity trxn finalised.');
-              toast({
-                position: 'top',
-                duration: 3000,
-                render: () => (
-                  <ToastWrapper
-                    title={`Liquidity successfully added in ${token0}-${token1} pool.`}
-                    status="info"
-                  />
-                ),
-              });
-              // unsub();
-              // Calling the ADD_LIQUIDITY tracker in isFinalised status
-              createLiquidityEventHandler(
-                turingAddress as string,
-                'ROCOCO',
-                { symbol: token0, amount: parseFloat(firstTokenAmount) },
-                { symbol: token1, amount: parseFloat(secondTokenAmount) },
-                { symbol: `${token0}-${token1}`, amount: 0 },
-                moment().valueOf().toString(),
-                fees as number,
-                'ADD_LIQUIDITY'
-              );
-            } else {
-              console.log('Status:', status.type);
-              setIsSigning(false);
-              setTempFirstAmount(firstTokenAmount);
-              setTempSecondAmount(secondTokenAmount);
-              setFirstTokenAmount('');
-              setSecondTokenAmount('');
-            }
-          }
-        )
-        .catch((err: any) => {
-          console.log('Error while minting liquidity: ', err);
-          setIsInProcess(false);
-          setIsSigning(false);
-          setIsSuccess(false);
-          toast({
-            position: 'top',
-            duration: 3000,
-            render: () => (
-              <ToastWrapper
-                title="Error while minting Liquidity!"
-                status="error"
-              />
-            ),
-          });
-        });
-    } catch (error) {
-      let errorString = `${error}`;
-      console.log('error while adding liquidity:', errorString);
-      toast({
-        position: 'top',
-        duration: 3000,
-        render: () => <ToastWrapper title={errorString} status="error" />,
-      });
-      setIsInProcess(false);
-      setIsSigning(false);
-    }
   };
 
   const handleMaxFirstToken = () => {
@@ -423,62 +256,42 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
         ) : null}
       </div>
       {/* Buttons */}
-      {!isInProcess && (
-        <div className="flex flex-col gap-y-2">
-          <Button
-            type="primary"
-            disabled={
-              firstTokenAmount == '' ||
-              secondTokenAmount == '' ||
-              parseFloat(firstTokenAmount) <= 0 ||
-              parseFloat(secondTokenAmount) <= 0 ||
-              parseFloat(firstTokenAmount) > (firstTokenBalance as number) ||
-              parseFloat(secondTokenAmount) > (secondTokenBalance as number) ||
-              isInProcess
-            }
-            text={
-              parseFloat(firstTokenAmount) > (firstTokenBalance as number) ||
-              parseFloat(secondTokenAmount) > (secondTokenBalance as number)
-                ? 'Not enough funds'
-                : 'Confirm'
-            }
-            onClick={handleAddLiquidity}
-          />
-          <Button
-            type="secondary"
-            text="Go Back"
-            disabled={isInProcess}
-            onClick={() => {
-              setOpen(false);
-            }}
-          />
-        </div>
-      )}
-      <Stepper
-        activeStep={isSuccess ? 2 : isSigning ? 1 : 0}
-        steps={[{ label: 'Confirm' }, { label: 'Sign' }, { label: 'Complete' }]}
-      />
-      {isInProcess && (
-        <div className="flex flex-row px-4 items-center justify-center text-base leading-[21.6px] bg-baseGray rounded-lg py-10 text-center">
-          {(isSigning || !isSuccess) && <Loader size="md" />}
-          {isSigning && (
-            <span className="ml-6">
-              Please sign the transaction in your wallet.
-            </span>
-          )}
-        </div>
-      )}
-      {isSuccess && (
-        <div className="flex flex-col gap-2 px-4 items-center justify-center text-base leading-[21.6px] bg-baseGray rounded-lg py-10 text-center">
-          <p>
-            Liquidity Added: {tempFirstAmount} {token0} with {tempSecondAmount}{' '}
-            {token1} successfully.
-          </p>
-          <p className="opacity-60">
-            Go back and refresh to see updated Balance.
-          </p>
-        </div>
-      )}
+
+      <div className="flex flex-col gap-y-2">
+        <Button
+          type="primary"
+          disabled={
+            firstTokenAmount == '' ||
+            secondTokenAmount == '' ||
+            parseFloat(firstTokenAmount) <= 0 ||
+            parseFloat(secondTokenAmount) <= 0 ||
+            parseFloat(firstTokenAmount) > (firstTokenBalance as number) ||
+            parseFloat(secondTokenAmount) > (secondTokenBalance as number)
+          }
+          text={
+            parseFloat(firstTokenAmount) > (firstTokenBalance as number) ||
+            parseFloat(secondTokenAmount) > (secondTokenBalance as number)
+              ? 'Not enough funds'
+              : 'Confirm'
+          }
+          onClick={() => {
+            setConfig({
+              firstTokenAmount: parseFloat(firstTokenAmount),
+              secondTokenAmount: parseFloat(secondTokenAmount),
+              fees: fees as number,
+            });
+            setIsOpen(false);
+            setIsModalOpen(true);
+          }}
+        />
+        <Button
+          type="secondary"
+          text="Go Back"
+          onClick={() => {
+            setIsOpen(false);
+          }}
+        />
+      </div>
     </div>
   );
 };

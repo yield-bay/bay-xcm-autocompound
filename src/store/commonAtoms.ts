@@ -5,6 +5,7 @@ import { atomWithStorage } from 'jotai/utils';
 
 export const walletModalOpenAtom = atom<boolean>(false);
 
+// won't need this, as modal model isn't gonna hold any transactions in itself
 export const trxnProcessAtom = atomWithStorage<boolean>(
   'jotai:trxn_process',
   false
@@ -45,8 +46,16 @@ export const taskModalOpenAtom = atom(
   }
 );
 
+// Add Liquidity Modal
+export const addLiqModalOpenAtom = atom<boolean>(false);
+export const addLiquidityConfigAtom = atom({
+  firstTokenAmount: 0,
+  secondTokenAmount: 0,
+  fees: 0,
+});
+
+// Atom which hold a Hash map of balances of All LPs
 export const lpBalancesAtom = atom(Object());
-// export const allLpBalancesAtom = atom(Object());
 export const allLpBalancesAtom = atom(
   (get) => {
     return get(lpBalancesAtom);
