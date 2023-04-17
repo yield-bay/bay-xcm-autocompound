@@ -192,9 +192,11 @@ const MainModal: FC = () => {
                     ? 'Stop current autocompounding task to add liquidity'
                     : tab.id == 2 && isAutocompounding
                     ? 'Stop current autocompounding task to remove liquidity'
+                    : (tab.id == 0 || tab.id == 2) && lpBalance == 0
+                    ? 'No LP balance. Add Liquidity first.'
                     : ''
                 }
-                placement="auto"
+                placement="top"
                 key={tab.name}
               >
                 <button
@@ -204,13 +206,14 @@ const MainModal: FC = () => {
                       mgxBalance < 5000 &&
                       !isAutocompounding &&
                       !userHasProxy) ||
-                    ((tab.id == 1 || tab.id == 2) && isAutocompounding)
+                    ((tab.id == 1 || tab.id == 2) && isAutocompounding) ||
+                    ((tab.id == 0 || tab.id == 2) && lpBalance == 0)
                   }
                   className={clsx(
-                    ((tab.id == 0 || tab.id == 2) && lpBalance == 0) ||
-                      ((tab.id == 1 || tab.id == 2) && isAutocompounding)
-                      ? 'hidden'
-                      : 'block',
+                    // ((tab.id == 0 || tab.id == 2) && lpBalance == 0) ||
+                    //   ((tab.id == 1 || tab.id == 2) && isAutocompounding)
+                    //   ? 'hidden'
+                    //   : 'block',
                     tab.id == selectedTab
                       ? 'ring-1 ring-primaryGreen px-4'
                       : 'opacity-40',
