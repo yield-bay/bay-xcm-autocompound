@@ -8,7 +8,6 @@ import {
   selectedTaskAtom,
   taskTrxnProcessAtom,
   taskModalOpenAtom,
-  trxnProcessAtom,
   turingAddressAtom,
   turingHelperAtom,
 } from '@store/commonAtoms';

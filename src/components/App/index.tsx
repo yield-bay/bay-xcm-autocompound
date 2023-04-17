@@ -16,6 +16,7 @@ import useFilteredFarms from '@hooks/useFilteredFarms';
 import { accountAtom } from '@store/accountAtoms';
 import {
   account1Atom,
+  isInitialisedAtom,
   turingAddressAtom,
   viewPositionsAtom,
 } from '@store/commonAtoms';
@@ -26,6 +27,7 @@ const App = () => {
   const [turingAddress] = useAtom(turingAddressAtom);
   const [viewPositions] = useAtom(viewPositionsAtom);
   const [account1] = useAtom(account1Atom);
+  const [isInitialised] = useAtom(isInitialisedAtom);
 
   const [farmsResult, reexecuteQuery] = useQuery({
     query: FarmsQuery,
@@ -42,7 +44,7 @@ const App = () => {
       userAddress: turingAddress,
       chain: 'ROCOCO',
     },
-    pause: turingAddress == null,
+    pause: turingAddress == null && !isInitialised,
   });
   const { data: xcmpTasksData, fetching: xcmpTasksFetching } = xcmpTasksResult;
 
@@ -58,7 +60,7 @@ const App = () => {
         userAddress: turingAddress,
         chain: 'ROCOCO',
       },
-      pause: turingAddress == null,
+      pause: turingAddress == null && !isInitialised,
     }
   );
   const { data: autocompoundEventsData, fetching: autocompoundEventsFetching } =

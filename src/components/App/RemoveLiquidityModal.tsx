@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from 'react';
+import { FC, memo, useEffect, useState } from 'react';
 import { useAtom } from 'jotai';
 import Button from '@components/Library/Button';
 import Loader from '@components/Library/Loader';
@@ -13,6 +13,7 @@ import {
   account1Atom,
   poolsAtom,
   removeLiquidityConfigAtom,
+  isInitialisedAtom,
 } from '@store/commonAtoms';
 import { formatTokenSymbols, replaceTokenSymbols } from '@utils/farmMethods';
 import moment from 'moment';
@@ -34,6 +35,7 @@ const RemoveLiquidityModal: FC = () => {
   const [turingAddress] = useAtom(turingAddressAtom);
   const [pools] = useAtom(poolsAtom);
   const [config] = useAtom(removeLiquidityConfigAtom);
+  const [isInitialised] = useAtom(isInitialisedAtom);
 
   const [lpBalance, setLpBalance] = useState<any>(null);
 
@@ -42,7 +44,7 @@ const RemoveLiquidityModal: FC = () => {
   // Process states
   const [isInProcess, setIsInProcess] = useState(false);
   const [isSigning, setIsSigning] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(true);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const [token0, token1] = formatTokenSymbols(
     replaceTokenSymbols(farm?.asset.symbol ?? 'MGR-TUR LP')
@@ -50,6 +52,7 @@ const RemoveLiquidityModal: FC = () => {
 
   // Fetch LP balance from mangataHelper
   useEffect(() => {
+    if (!isInitialised) return;
     (async () => {
       const pool = _.find(pools, {
         firstTokenId: mangataHelper.getTokenIdBySymbol(token0),
@@ -361,4 +364,4 @@ const TokenLabels = ({
   </div>
 );
 
-export default RemoveLiquidityModal;
+export default memo(RemoveLiquidityModal);

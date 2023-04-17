@@ -33,6 +33,7 @@ import Account from '@utils/xcm/common/account';
 import StopCompoundingModal from '@components/App/StopCompoundingModal';
 import AddLiquidityModal from '@components/App/AddLiquidityModal';
 import RemoveLiquidityModal from '@components/App/RemoveLiquidityModal';
+import CompoundModal from '@components/App/CompoundModal';
 
 interface Props {
   children: ReactNode;
@@ -128,8 +129,7 @@ const Layout: FC<Props> = ({ children }) => {
       console.log('Promoted Pools', pools);
       setPools(pools);
 
-      // await setupLpBalance(pools);
-      console.log('lp balance ----');
+      // LP Balance
       pools.forEach(async (pool: any) => {
         const token0 = mangataHelper.getTokenSymbolById(pool.firstTokenId);
         const token1 = mangataHelper.getTokenSymbolById(pool.secondTokenId);
@@ -185,6 +185,7 @@ const Layout: FC<Props> = ({ children }) => {
       <StopCompoundingModal />
       <AddLiquidityModal />
       <RemoveLiquidityModal />
+      <CompoundModal />
       <div className="flex flex-col flex-1">
         <Header />
         {children}

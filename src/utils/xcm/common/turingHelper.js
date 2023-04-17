@@ -93,8 +93,8 @@ class TuringHelper {
                   taskId
                 );
                 console.log('Task:', task);
-                unsub();
-                resolve();
+                // unsub();
+                // resolve();
               } else if (status.isFinalized) {
                 consnole, log('Transaction is Finalized!');
                 console.log(
