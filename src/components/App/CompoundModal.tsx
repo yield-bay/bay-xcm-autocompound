@@ -69,13 +69,12 @@ const CompoundModal: FC = () => {
   const [isSuccess, setIsSuccess] = useState(false);
 
   const [lpBalance, setLpBalance] = useState<any>();
-  // const [lpBalanceNum, setLpBalanceNum] = useState<number>(0);
+  const [lpBalanceNum, setLpBalanceNum] = useState<number>(0);
 
   const [token0, token1] = formatTokenSymbols(
     replaceTokenSymbols(farm?.asset.symbol ?? 'MGR-TUR LP')
   );
   const lpName = `${token0}-${token1}`;
-  const lpBalanceNum: number = allLpBalances[`${token0}-${token1}`];
 
   const { frequency, duration, percentage, gasChoice } = config;
 
@@ -138,6 +137,8 @@ const CompoundModal: FC = () => {
       console.log('Error while createCompounding call:', error);
     }
   };
+
+  useEffect(() => allLpBalances[`${token0}-${token1}`], [allLpBalances]);
 
   // Calculate LP balance
   useEffect(() => {

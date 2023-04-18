@@ -328,11 +328,9 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
         </div>
       </div>
       <div>
-        <p className="inline-flex items-center mb-8">
-          Percentage
-          <Tooltip label="Percentage of yield to be compounded">
-            <QuestionMarkCircleIcon className="h-5 w-5 opacity-50 ml-3" />
-          </Tooltip>
+        <p className="mb-3">Percentage</p>
+        <p className="text-[#868686] mb-8 text-base leading-[21.6px]">
+          Percentage of MGX reward to be Autocompounded
         </p>
         <div className="flex flex-row gap-x-8">
           <RadioButton
@@ -456,7 +454,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
         />
         <Button
           text="Cancel"
-          type="secondary"
+          type="transparent"
           onClick={() => {
             setOpen(false);
           }}
