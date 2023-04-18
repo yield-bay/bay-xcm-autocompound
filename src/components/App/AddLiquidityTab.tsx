@@ -1,7 +1,8 @@
 import Image from 'next/image';
 import { useAtom } from 'jotai';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useToast } from '@chakra-ui/react';
+import clsx from 'clsx';
 import Button from '@components/Library/Button';
 import {
   account1Atom,
@@ -22,6 +23,9 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
   const [allLpBalances] = useAtom(allLpBalancesAtom);
   const [, setIsModalOpen] = useAtom(addLiqModalOpenAtom);
   const [, setConfig] = useAtom(addLiquidityConfigAtom);
+
+  const refFirstInput = useRef<HTMLInputElement>(null);
+  const refSecondInput = useRef<HTMLInputElement>(null);
 
   // Amount States
   const [firstTokenAmount, setFirstTokenAmount] = useState('');
@@ -67,6 +71,19 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
     }
   };
 
+  useEffect(() => {
+    console.log('activeElement', document.activeElement);
+    console.log('firsteelement', refFirstInput.current);
+    console.log('secondelement', refSecondInput.current);
+    if (document.activeElement == refFirstInput.current) {
+      console.log('firsttoken focused');
+    } else if (document.activeElement == refSecondInput.current) {
+      console.log('secondtoken focused');
+    } else {
+      console.log('nothing focused');
+    }
+  }, [document]);
+
   // Fetch Balances of both tokens on Mangata Chain
   useEffect(() => {
     (async () => {
@@ -103,6 +120,7 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
     })();
   }, [account1, pool]);
 
+  // Method to update second token amount based on first token amount
   const updateSecondTokenAmount = (firstTokenAmount: number): string => {
     const poolRatio = pool.firstTokenAmountFloat / pool.secondTokenAmountFloat;
     console.log('poolRatio', poolRatio);
@@ -119,7 +137,25 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
     return secondTokenAmount;
   };
 
-  // Method to update token values and fetch fees based on firstToken Inpout
+  // Method to update first token amount based on second token amount
+  const updateFirstTokenAmount = (secondTokenAmount: number): string => {
+    const poolRatio = pool.firstTokenAmountFloat / pool.secondTokenAmountFloat;
+    console.log('poolRatio', poolRatio);
+
+    // Calculate first token amount
+    const expectedFirstTokenAmount =
+      (secondTokenAmount / (1 + MAX_SLIPPAGE)) * poolRatio;
+
+    console.log('Second Token Amount:', expectedFirstTokenAmount);
+    const firstTokenAmount = isNaN(expectedFirstTokenAmount)
+      ? '0'
+      : expectedFirstTokenAmount.toFixed(5);
+
+    setFirstTokenAmount(firstTokenAmount);
+    return firstTokenAmount;
+  };
+
+  // Method to update token values and fetch fees based on firstToken Input
   const handleChangeFirstTokenAmount = async (e: any) => {
     setFirstTokenAmount(e.target.value);
     const firstTokenAmount = parseFloat(e.target.value);
@@ -133,6 +169,21 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
     await handleFees(firstTokenAmount, expectedSecondTokenAmount);
   };
 
+  // Method to update token values and fetch fees based on secondToken Input
+  const handleChangeSecondTokenAmount = async (e: any) => {
+    setSecondTokenAmount(e.target.value);
+    const secondTokenAmount = parseFloat(e.target.value);
+
+    if (e.target.value == '') {
+      setFees(null);
+    }
+
+    const expectedFirstTokenAmount = updateFirstTokenAmount(secondTokenAmount);
+
+    await handleFees(secondTokenAmount, expectedFirstTokenAmount);
+  };
+
+  // Method to handle max button for first token
   const handleMaxFirstToken = () => {
     if ((firstTokenBalance as number) < 20) {
       toast({
@@ -161,6 +212,36 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
     updateSecondTokenAmount(firstTokenBalance as number);
   };
 
+  // Method to handle max button for second token
+  const handleMaxSecondToken = () => {
+    // Checking if user has enough balance to pay gas fees
+    if ((secondTokenBalance as number) < 20) {
+      toast({
+        position: 'top',
+        duration: 3000,
+        render: () => (
+          <ToastWrapper
+            title="Insufficient balance to pay gas fees!"
+            status="warning"
+          />
+        ),
+      });
+      return;
+    }
+    if (token1 == 'MGR') {
+      setSecondTokenAmount(
+        secondTokenBalance
+          ? (secondTokenBalance - (fees ?? 0) - 20).toString()
+          : ''
+      );
+    } else {
+      setSecondTokenAmount(
+        secondTokenBalance ? secondTokenBalance.toString() : ''
+      );
+    }
+    updateFirstTokenAmount(secondTokenBalance as number);
+  };
+
   return (
     <div className="w-full flex flex-col gap-y-10 mt-10">
       <div className="w-full text-[#C5C5C5] py-3 text-base leading-[21.6px] text-center rounded-lg border border-black bg-[#0C0C0C]">
@@ -173,7 +254,13 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
         )}
       </div>
       {/* MGX Container */}
-      <div className="flex flex-row justify-between p-4 border border-primaryGreen rounded-lg">
+      <div
+        className={clsx(
+          'flex flex-row justify-between p-4 border border-[#727272] rounded-lg',
+          document.activeElement === refFirstInput.current &&
+            'border-primaryGreen'
+        )}
+      >
         <div className="flex flex-row gap-x-5 items-center">
           <Image
             src={farm?.asset.logos[0]}
@@ -191,7 +278,7 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
               {firstTokenBalance == null ? (
                 <span>loading...</span>
               ) : (
-                <span>{`${firstTokenBalance.toFixed(2)} ${token0}`}</span>
+                <span>{`${firstTokenBalance.toFixed(6)} ${token0}`}</span>
               )}
             </p>
             <button
@@ -209,13 +296,21 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
               min={0}
               onChange={handleChangeFirstTokenAmount}
               value={firstTokenAmount}
+              autoFocus
+              ref={refFirstInput}
             />
           </div>
         </div>
       </div>
       <span className="text-center select-none">+</span>
       {/* TUR Container */}
-      <div className="flex flex-row justify-between p-4 border border-[#727272] rounded-lg">
+      <div
+        className={clsx(
+          'flex flex-row justify-between p-4 border border-[#727272] rounded-lg',
+          document.activeElement === refSecondInput.current &&
+            'border-primaryGreen'
+        )}
+      >
         <div className="flex flex-row gap-x-5 items-center">
           <Image
             src={farm?.asset.logos[1]}
@@ -233,12 +328,26 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
               {secondTokenBalance == null ? (
                 <span>loading...</span>
               ) : (
-                <span>{`${secondTokenBalance.toFixed(2)} ${token1}`}</span>
+                <span>{`${secondTokenBalance.toFixed(6)} ${token1}`}</span>
               )}
             </p>
+            <button
+              onClick={handleMaxSecondToken}
+              disabled={firstTokenBalance == null}
+              className="p-[10px] rounded-lg bg-baseGray text-base leading-5"
+            >
+              MAX
+            </button>
           </div>
           <div className="text-right">
-            <p>{secondTokenAmount}</p>
+            <input
+              placeholder="0"
+              className="text-xl leading-[27px] bg-transparent text-right focus:outline-none"
+              min={0}
+              onChange={handleChangeSecondTokenAmount}
+              value={secondTokenAmount}
+              ref={refFirstInput}
+            />
           </div>
         </div>
       </div>
@@ -285,7 +394,7 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
           }}
         />
         <Button
-          type="secondary"
+          type="transparent"
           text="Go Back"
           onClick={() => {
             setIsOpen(false);

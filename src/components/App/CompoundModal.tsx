@@ -160,8 +160,7 @@ const CompoundModal: FC = () => {
         parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** decimal +
         parseFloat(BigInt(lpBalance.reserved).toString(10)) / 10 ** decimal;
       console.log('tokenAmount total', tokenAmount);
-      // setLpBalance(tokenAmount);
-      // setLpBalanceNum(tokenAmount);
+      setLpBalanceNum(tokenAmount);
     })();
   }, []);
 
