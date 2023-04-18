@@ -190,7 +190,7 @@ const FarmCard: FC<Props> = ({
                   ? 'stop current task to add OR remove liquidity.'
                   : ''
               }
-              placement="bottom"
+              placement="left"
             >
               <button
                 className={clsx(

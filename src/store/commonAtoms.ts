@@ -61,6 +61,7 @@ export const removeLiquidityConfigAtom = atom({
   percentage: '0',
   firstTokenNumber: 0,
   secondTokenNumber: 0,
+  lpAmount: '0',
 });
 
 // Compound Modal

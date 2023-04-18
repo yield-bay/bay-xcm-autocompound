@@ -38,6 +38,10 @@ const RemoveLiquidityModal: FC = () => {
   const [isInitialised] = useAtom(isInitialisedAtom);
 
   const [lpBalance, setLpBalance] = useState<any>(null);
+  const [lpBalanceNum, setLpBalanceNum] = useState<number | null>(null);
+
+  const { method, percentage, firstTokenNumber, secondTokenNumber, lpAmount } =
+    config;
 
   const toast = useToast();
 
@@ -64,6 +68,12 @@ const RemoveLiquidityModal: FC = () => {
       );
       setLpBalance(lpBalance);
       console.log('LP Balance: ', lpBalance);
+      const decimal = mangataHelper.getDecimalsBySymbol(`${token0}-${token1}`);
+      const lpBalanceNum =
+        parseFloat(BigInt(lpBalance.reserved).toString(10)) / 10 ** decimal +
+        parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** decimal;
+      console.log('lpBalanceNum: ', lpBalanceNum);
+      setLpBalanceNum(lpBalanceNum);
     })();
   }, []);
 
@@ -118,7 +128,7 @@ const RemoveLiquidityModal: FC = () => {
         lpBalance.reserved,
         lpBalReserved,
         'percentage',
-        config.percentage
+        percentage
       );
 
       let txns = [];
@@ -154,32 +164,42 @@ const RemoveLiquidityModal: FC = () => {
         parseFloat(BigInt(lpBalance.free).toString(10)) +
           parseFloat(BigInt(lpBalance.reserved).toString(10)),
         BigInt(lpBalance.free) + BigInt(lpBalance.reserved),
-        BigInt(parseInt(config.percentage, 10) / 100) *
+        BigInt(parseInt(percentage, 10) / 100) *
           (BigInt(lpBalance.free) + BigInt(lpBalance.reserved))
       );
       console.log(
         'blstuff',
         BigInt(
-          (parseInt(config.percentage, 10) / 100) *
+          (parseInt(percentage, 10) / 100) *
             parseFloat(BigInt(lpBalance.free).toString(10))
         ).toString(10),
         'onlyres',
         BigInt(lpBalReserved * 10 ** 18).toString(10)
       );
       if (
-        BigInt(parseInt(config.percentage, 10) / 100) *
+        BigInt(parseInt(percentage, 10) / 100) *
           (BigInt(lpBalance.free) + BigInt(lpBalance.reserved)) ==
         BigInt(0)
       ) {
         console.log('totalburnbal is zero');
       } else {
-        const bltx = await mangataHelper.burnLiquidityTx(
-          pool.firstTokenId,
-          pool.secondTokenId,
-          BigInt(parseInt(config.percentage, 10) / 100) *
-            (BigInt(lpBalance.free) + BigInt(lpBalance.reserved)),
-          parseInt(config.percentage, 10)
-        );
+        let bltx;
+        if (method == 0) {
+          bltx = await mangataHelper.burnLiquidityTx(
+            pool.firstTokenId,
+            pool.secondTokenId,
+            BigInt(parseInt(config.percentage, 10) / 100) *
+              (BigInt(lpBalance.free) + BigInt(lpBalance.reserved)),
+            parseInt(config.percentage, 10)
+          );
+        } else if (method == 1) {
+          bltx = await mangataHelper.burnLiquidityTx(
+            pool.firstTokenId,
+            pool.secondTokenId,
+            BigInt(parseInt(lpAmount, 10)),
+            parseInt(percentage, 10) // Not used in burnLiquidityTx
+          );
+        }
         txns.push(bltx);
       }
 
@@ -216,14 +236,15 @@ const RemoveLiquidityModal: FC = () => {
               createLiquidityEventHandler(
                 turingAddress as string,
                 'ROCOCO',
-                { symbol: token0, amount: config.firstTokenNumber },
-                { symbol: token1, amount: config.secondTokenNumber },
+                { symbol: token0, amount: firstTokenNumber },
+                { symbol: token1, amount: secondTokenNumber },
                 {
                   symbol: `${token0}-${token1}`,
                   amount:
-                    ((lpBalReserved + lpBalFree) *
-                      parseFloat(config.percentage)) /
-                    100,
+                    method == 0
+                      ? ((lpBalanceNum as number) * parseFloat(percentage)) /
+                        100
+                      : parseFloat(lpAmount),
                 }, // Amount of Liquidity burnt
                 moment().valueOf().toString(),
                 0.0,
@@ -272,21 +293,15 @@ const RemoveLiquidityModal: FC = () => {
       {!isInProcess && !isSuccess && (
         <div className="w-full flex flex-col gap-y-12">
           <p className="text-left w-full">
-            Removing Liquidity from {token0}-{token1} Pool. You get:
+            Removing{' '}
+            {method == 0
+              ? (
+                  ((lpBalanceNum as number) * parseFloat(percentage)) /
+                  100
+                ).toFixed(2)
+              : lpAmount}{' '}
+            LP Tokens from {token0}-{token1} Pool.
           </p>
-          <div className="flex flex-col items-start">
-            <p className="mb-3">From</p>
-            <div className="inline-flex justify-start gap-x-8">
-              <TokenLabels symbol={token0} amount={0.001} />
-              <TokenLabels symbol={token1} amount={0.002} />
-            </div>
-          </div>
-          <div className="flex flex-col items-start">
-            <p className="mb-3">To</p>
-            <div className="inline-flex justify-start gap-x-8">
-              <TokenLabels symbol={`${token0}-${token1}`} amount={0} />
-            </div>
-          </div>
           <div className="inline-flex gap-x-2 w-full">
             <Button
               type="secondary"
@@ -323,9 +338,11 @@ const RemoveLiquidityModal: FC = () => {
       )}
       {isSuccess && (
         <div className="flex flex-col gap-y-12">
-          <div className="py-14 text-center text-xl leading-[27px] bg-baseGray ro`unded-lg">
-            Liquidity Removed: {config.firstTokenNumber} {token0} with{' '}
-            {config.secondTokenNumber} {token1}.
+          <div className="py-14 text-center text-xl leading-[27px] bg-baseGray rounded-lg">
+            {method == 0
+              ? ((lpBalanceNum as number) * parseFloat(percentage)) / 100
+              : parseFloat(lpAmount)}{' '}
+            LP Tokens removed successfully!
           </div>
           <button
             className="w-full py-[13px] text-base leading-[21.6px] rounded-lg border border-[#7D7D7D]"
