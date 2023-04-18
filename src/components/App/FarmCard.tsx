@@ -57,6 +57,7 @@ const FarmCard: FC<Props> = ({
   const [token0, token1] = tokenNames;
 
   useEffect(() => {
+    console.log(`${token0}-${token1} xcmptask`, xcmpTask);
     setIsAutocompounding(xcmpTask?.status == 'RUNNING' ? true : false);
   }, [xcmpTask]);
 
@@ -105,9 +106,6 @@ const FarmCard: FC<Props> = ({
         <div className="flex flex-col gap-y-[10px]">
           <div className="flex flex-row gap-x-3">
             <FarmAssets logos={farm?.asset.logos} />
-            {/* <div className="py-[9px] select-none px-4 bg-white text-xs text-black rounded-full">
-              {formatFarmType(farm?.farmType)}
-            </div> */}
           </div>
           <p className="text-2xl text-offWhite">
             {tokenNames.map((tokenName, index) => (
@@ -128,9 +126,7 @@ const FarmCard: FC<Props> = ({
           />
         </button> */}
       </div>
-      {/* RIGHT SIDE */}
       <div className="flex flex-row pl-8 pr-7 py-6 justify-between w-full rounded-r-lg">
-        {/* Right Left */}
         <div className="flex flex-col justify-between">
           <div className="flex flex-col">
             <p className="font-medium text-base leading-5 opacity-50">TVL</p>
@@ -161,8 +157,8 @@ const FarmCard: FC<Props> = ({
             </div>
           </div>
         </div>
-        {/* Right Right */}
-        <div className="relative flex flex-col justify-between">
+        {/* RIGHT */}
+        <div className="relative inline-flex gap-x-4">
           {account && isAutocompounding && (
             <div className="hidden absolute -left-[190px] lg:inline-flex select-none drop-shadow-xl gap-x-2 font-medium text-[#868686] text-base leading-[21.6px]">
               <Image
@@ -174,16 +170,27 @@ const FarmCard: FC<Props> = ({
               <span>Autocompounding</span>
             </div>
           )}
-          {lpBalanceNum == 0 || isNaN(lpBalanceNum) ? (
+          {lpBalanceNum !== 0 && (
+            <div className="flex flex-col gap-y-[6px] h-full items-center justify-center bg-[#151414] py-2 px-[23px] ring-1 ring-primaryGreen rounded-lg transition duration-200">
+              <p className="text-[#868686] font-medium text-base leading-[#21.6px]">
+                You Deposited
+              </p>
+              <p className="text-2xl leading-8 text-white">
+                {lpBalanceNum.toFixed(2)} LP
+              </p>
+            </div>
+          )}
+          {/* Right Right */}
+          <div className="flex flex-col justify-between">
             <Tooltip
               label={
                 account == null
                   ? 'Please connect wallet to add Liquidity.'
                   : isAutocompounding
-                  ? 'Stop autocompounding if you wish to Add/Remove liquidity.'
+                  ? 'stop current task to add OR remove liquidity.'
                   : ''
               }
-              placement="left"
+              placement="bottom"
             >
               <button
                 className={clsx(
@@ -201,68 +208,47 @@ const FarmCard: FC<Props> = ({
                 }}
                 disabled={isAutocompounding || account == null}
               >
-                <p>Add Liquidity</p>
+                {lpBalanceNum != 0 ? (
+                  <>
+                    <p>Add/Remove</p>
+                    <p>Liquidity</p>
+                  </>
+                ) : (
+                  <p>Add Liquidity</p>
+                )}
               </button>
             </Tooltip>
-          ) : (
             <Tooltip
               label={
-                isAutocompounding
-                  ? 'Stop autocompounding to add or remove liquidity'
+                account == null
+                  ? 'Please connect wallet to manage Autocompounding.'
+                  : lpBalanceNum == 0
+                  ? 'Add liquidity to autocompound'
+                  : mgxBalance < 5000 && !isAutocompounding && !hasProxy
+                  ? 'Need a minimum of 5000 MGX as free balance to autocompound.'
                   : ''
               }
               placement="left"
             >
               <button
-                className="flex flex-col items-center bg-[#151414] py-2 px-5 ring-1 ring-primaryGreen rounded-lg transition duration-200"
+                className={clsx(
+                  'px-4 py-3 rounded-lg bg-white hover:bg-offWhite hover:ring-1 ring-offWhite active:ring-0 text-black transition duration-200',
+                  disabledCompoundingBtn &&
+                    'hover:ring-0 hover:bg-white opacity-50 cursor-default'
+                )}
                 onClick={() => {
+                  setSelectedTab(0);
                   setOpen(true);
-                  setSelectedTab(1);
                   setSelectedFarm(farm);
                   setSelectedTask(xcmpTask);
                   setSelectedEvent(autocompoundEvent);
                 }}
-                disabled={isAutocompounding}
+                disabled={disabledCompoundingBtn}
               >
-                <p className="text-[#868686] font-medium text-base leading-[#21.6px]">
-                  You Deposited
-                </p>
-                <p className="text-2xl leading-8 text-white">
-                  {lpBalanceNum.toFixed(2)} LP
-                </p>
+                {!isAutocompounding ? 'Autocompound' : 'Manage'}
               </button>
             </Tooltip>
-          )}
-          <Tooltip
-            label={
-              account == null
-                ? 'Please connect wallet to manage Autocompounding.'
-                : lpBalanceNum == 0
-                ? 'Add liquidity to autocompound'
-                : mgxBalance < 5000 && !isAutocompounding && !hasProxy
-                ? 'Need a minimum of 5000 MGX as free balance to autocompound.'
-                : ''
-            }
-            placement="left"
-          >
-            <button
-              className={clsx(
-                'px-4 py-3 rounded-lg bg-white hover:bg-offWhite hover:ring-1 ring-offWhite active:ring-0 text-black transition duration-200',
-                disabledCompoundingBtn &&
-                  'hover:ring-0 hover:bg-white opacity-50 cursor-default'
-              )}
-              onClick={() => {
-                setSelectedTab(0);
-                setOpen(true);
-                setSelectedFarm(farm);
-                setSelectedTask(xcmpTask);
-                setSelectedEvent(autocompoundEvent);
-              }}
-              disabled={disabledCompoundingBtn}
-            >
-              {!isAutocompounding ? 'Autocompound' : 'Manage'}
-            </button>
-          </Tooltip>
+          </div>
         </div>
       </div>
     </div>

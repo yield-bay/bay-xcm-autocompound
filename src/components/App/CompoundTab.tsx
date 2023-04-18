@@ -16,16 +16,13 @@ import {
   mangataHelperAtom,
   turingHelperAtom,
   turingAddressAtom,
-  mangataAddressAtom,
   selectedTaskAtom,
   selectedEventAtom,
   taskModalOpenAtom,
-  trxnProcessAtom,
-  userHasProxyAtom,
   compoundModalOpenAtom,
   compoundConfigAtom,
 } from '@store/commonAtoms';
-import { delay, getDecimalBN } from '@utils/xcm/common/utils';
+import { getDecimalBN } from '@utils/xcm/common/utils';
 import { accountAtom } from '@store/accountAtoms';
 import { formatTokenSymbols, replaceTokenSymbols } from '@utils/farmMethods';
 import { turTotalFees } from '@utils/turTotalFees';
@@ -34,13 +31,6 @@ import Tooltip from '@components/Library/Tooltip';
 import RadioButton from '@components/Library/RadioButton';
 import Button from '@components/Library/Button';
 import ToastWrapper from '@components/Library/ToastWrapper';
-import Loader from '@components/Library/Loader';
-import { useMutation } from 'urql';
-import {
-  AddXcmpTaskMutation,
-  createAutocompoundEventMutation,
-} from '@utils/api';
-import Stepper from '@components/Library/Stepper';
 
 const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
   const [, setOpen] = useAtom(mainModalOpenAtom);
@@ -53,6 +43,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
   const [, setStopModalOpen] = useAtom(taskModalOpenAtom);
   const [, setIsOpenModal] = useAtom(compoundModalOpenAtom);
   const [, setCompoundConfig] = useAtom(compoundConfigAtom);
+  const [turingAddress] = useAtom(turingAddressAtom);
 
   const [frequency, setFrequency] = useState<number>(1); // default day
   const [duration, setDuration] = useState<number>(7); // default week
@@ -64,13 +55,17 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
   const [lpBalanceNum, setLpBalanceNum] = useState<number>(0);
   const [mgxBalance, setMgxBalance] = useState<number>(0);
   const [turBalance, setTurBalance] = useState<number>(0);
-  const [turingAddress] = useAtom(turingAddressAtom);
+  const [isAutocompounding, setIsAutocompounding] = useState<boolean>(false);
+  const [hasEvent, setHasEvent] = useState<boolean>(false);
 
   const toast = useToast();
-  const isAutocompounding = selectedTask?.status == 'RUNNING' ? true : false;
-  const hasEvent = selectedEvent != undefined ? true : false;
 
   useEffect(() => {
+    setIsAutocompounding(selectedTask?.status == 'RUNNING' ? true : false);
+  }, [selectedTask]);
+
+  useEffect(() => {
+    setHasEvent(selectedEvent != undefined ? true : false);
     console.log('hasEvent', hasEvent);
     console.log(`selected event @${token0}-${token1}`, selectedEvent);
   }, [hasEvent]);
@@ -436,30 +431,42 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
           </Link>
         </div>
       )}
-
-      <div className="flex flex-col gap-y-2">
-        <Button
-          text="Confirm"
-          type="primary"
-          onClick={() => {
-            setOpen(false);
-            setIsOpenModal(true);
-            setCompoundConfig({
-              frequency,
-              duration,
-              percentage,
-              gasChoice,
-            });
-          }}
-        />
-        <Button
-          text="Cancel"
-          type="transparent"
-          onClick={() => {
-            setOpen(false);
-          }}
-        />
-      </div>
+      {isAutocompounding ? (
+        <div className="flex flex-col gap-y-2">
+          <Button
+            text="Stop Autocompounding"
+            type="warning"
+            onClick={() => {
+              setOpen(false);
+              setStopModalOpen(true);
+            }}
+          />
+        </div>
+      ) : (
+        <div className="flex flex-col gap-y-2">
+          <Button
+            text="Confirm"
+            type="primary"
+            onClick={() => {
+              setOpen(false);
+              setIsOpenModal(true);
+              setCompoundConfig({
+                frequency,
+                duration,
+                percentage,
+                gasChoice,
+              });
+            }}
+          />
+          <Button
+            text="Cancel"
+            type="transparent"
+            onClick={() => {
+              setOpen(false);
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 };
