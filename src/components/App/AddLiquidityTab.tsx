@@ -242,6 +242,11 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
     updateFirstTokenAmount(secondTokenBalance as number);
   };
 
+  const token0BalNotAvailable =
+    parseFloat(firstTokenAmount) > (firstTokenBalance as number);
+  const token1BalNotAvailable =
+    parseFloat(secondTokenAmount) > (secondTokenBalance as number);
+
   return (
     <div className="w-full flex flex-col gap-y-10 mt-10">
       <div className="w-full text-[#C5C5C5] py-3 text-base leading-[21.6px] text-center rounded-lg border border-black bg-[#0C0C0C]">
@@ -254,103 +259,144 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
         )}
       </div>
       {/* MGX Container */}
-      <div
-        className={clsx(
-          'flex flex-row justify-between p-4 border border-[#727272] rounded-lg',
-          document.activeElement === refFirstInput.current &&
-            'border-primaryGreen'
-        )}
-      >
-        <div className="flex flex-row gap-x-5 items-center">
-          <Image
-            src={farm?.asset.logos[0]}
-            alt={token0}
-            height={32}
-            width={32}
-            className="rounded-full"
-          />
-          <span>{token0}</span>
-        </div>
-        <div className="flex flex-col gap-y-3">
-          <div className="flex flex-row justify-end items-center gap-x-3">
-            <p className="flex flex-col items-end text-sm leading-[19px] opacity-50">
-              <span>Balance</span>
-              {firstTokenBalance == null ? (
-                <span>loading...</span>
-              ) : (
-                <span>{`${firstTokenBalance.toFixed(6)} ${token0}`}</span>
-              )}
-            </p>
-            <button
-              onClick={handleMaxFirstToken}
-              disabled={firstTokenBalance == null}
-              className="p-[10px] rounded-lg bg-baseGray text-base leading-5"
-            >
-              MAX
-            </button>
-          </div>
-          <div className="text-right">
-            <input
-              placeholder="0"
-              className="text-xl leading-[27px] bg-transparent text-right focus:outline-none"
-              min={0}
-              onChange={handleChangeFirstTokenAmount}
-              value={firstTokenAmount}
-              autoFocus
-              ref={refFirstInput}
+      <div className="flex flex-col gap-y-3">
+        <div
+          className={clsx(
+            'flex flex-row justify-between p-4 border border-[#727272] rounded-lg',
+            document.activeElement === refFirstInput.current &&
+              'border-primaryGreen'
+          )}
+        >
+          <div className="flex flex-row gap-x-5 items-center">
+            <Image
+              src={farm?.asset.logos[0]}
+              alt={token0}
+              height={32}
+              width={32}
+              className="rounded-full"
             />
+            <span>{token0}</span>
+          </div>
+          <div className="flex flex-col gap-y-3">
+            <div className="flex flex-row justify-end items-center gap-x-3">
+              <p className="flex flex-col items-end text-sm leading-[19px] opacity-50">
+                <span>Balance</span>
+                {firstTokenBalance == null ? (
+                  <span>loading...</span>
+                ) : (
+                  <span>{`${firstTokenBalance.toFixed(6)} ${token0}`}</span>
+                )}
+              </p>
+              <button
+                onClick={handleMaxFirstToken}
+                disabled={firstTokenBalance == null}
+                className="p-[10px] rounded-lg bg-baseGray text-base leading-5"
+              >
+                MAX
+              </button>
+            </div>
+            <div className="text-right">
+              <input
+                placeholder="0"
+                className={clsx(
+                  'text-xl leading-[27px] bg-transparent text-right focus:outline-none',
+                  token0BalNotAvailable && 'text-[#FF8787]'
+                )}
+                min={0}
+                onChange={handleChangeFirstTokenAmount}
+                value={firstTokenAmount}
+                autoFocus
+                ref={refFirstInput}
+              />
+            </div>
           </div>
         </div>
+        {token0BalNotAvailable && (
+          <div className="text-base leading-[21.6px] text-[#FF8787]">
+            <p>
+              You need{' '}
+              {(
+                parseFloat(firstTokenAmount) - (firstTokenBalance as number)
+              ).toFixed(2)}{' '}
+              {token0} for creating an LP token with{' '}
+              {parseFloat(secondTokenAmount).toFixed(2)} {token1}.
+            </p>
+            <a href="#" className="underline">
+              Swap here for more
+            </a>
+          </div>
+        )}
       </div>
       <span className="text-center select-none">+</span>
       {/* TUR Container */}
-      <div
-        className={clsx(
-          'flex flex-row justify-between p-4 border border-[#727272] rounded-lg',
-          document.activeElement === refSecondInput.current &&
-            'border-primaryGreen'
-        )}
-      >
-        <div className="flex flex-row gap-x-5 items-center">
-          <Image
-            src={farm?.asset.logos[1]}
-            alt={token1}
-            height={32}
-            width={32}
-            className="rounded-full"
-          />
-          <span>{token1}</span>
-        </div>
-        <div className="flex flex-col gap-y-3">
-          <div className="flex flex-row justify-end items-center gap-x-3">
-            <p className="flex flex-col items-end text-sm leading-[19px] opacity-50">
-              <span>Balance</span>
-              {secondTokenBalance == null ? (
-                <span>loading...</span>
-              ) : (
-                <span>{`${secondTokenBalance.toFixed(6)} ${token1}`}</span>
-              )}
-            </p>
-            <button
-              onClick={handleMaxSecondToken}
-              disabled={firstTokenBalance == null}
-              className="p-[10px] rounded-lg bg-baseGray text-base leading-5"
-            >
-              MAX
-            </button>
-          </div>
-          <div className="text-right">
-            <input
-              placeholder="0"
-              className="text-xl leading-[27px] bg-transparent text-right focus:outline-none"
-              min={0}
-              onChange={handleChangeSecondTokenAmount}
-              value={secondTokenAmount}
-              ref={refFirstInput}
+      <div className="flex flex-col gap-y-3">
+        <div
+          className={clsx(
+            'flex flex-row justify-between p-4 border border-[#727272] rounded-lg',
+            document.activeElement === refSecondInput.current &&
+              'border-primaryGreen'
+          )}
+        >
+          <div className="flex flex-row gap-x-5 items-center">
+            <Image
+              src={farm?.asset.logos[1]}
+              alt={token1}
+              height={32}
+              width={32}
+              className="rounded-full"
             />
+            <span>{token1}</span>
+          </div>
+          <div className="flex flex-col gap-y-3">
+            <div className="flex flex-row justify-end items-center gap-x-3">
+              <p className="flex flex-col items-end text-sm leading-[19px] opacity-50">
+                <span>Balance</span>
+                {secondTokenBalance == null ? (
+                  <span>loading...</span>
+                ) : (
+                  <span>{`${secondTokenBalance.toFixed(6)} ${token1}`}</span>
+                )}
+              </p>
+              <button
+                onClick={handleMaxSecondToken}
+                disabled={firstTokenBalance == null}
+                className="p-[10px] rounded-lg bg-baseGray text-base leading-5"
+              >
+                MAX
+              </button>
+            </div>
+            <div className="text-right">
+              <input
+                placeholder="0"
+                className={clsx(
+                  'text-xl leading-[27px] bg-transparent text-right focus:outline-none',
+                  token1BalNotAvailable && 'text-[#FF8787]'
+                )}
+                min={0}
+                onChange={handleChangeSecondTokenAmount}
+                value={secondTokenAmount}
+                ref={refFirstInput}
+              />
+            </div>
           </div>
         </div>
+        {token1BalNotAvailable && (
+          <div className="text-base leading-[21.6px] text-[#FF8787]">
+            <p>
+              You need{' '}
+              {(
+                parseFloat(secondTokenAmount) - (secondTokenBalance as number)
+              ).toFixed(2)}{' '}
+              {token1} for creating an LP token with{' '}
+              {parseFloat(firstTokenAmount).toFixed(2)} {token0}.
+            </p>
+            <a href="#" className="underline">
+              Swap here for more
+            </a>
+          </div>
+        )}
       </div>
+
       {/* Fee */}
       <div className="flex flex-col gap-y-5 pr-[19px] text-sm leading-[19px]">
         {fees !== null ? (
