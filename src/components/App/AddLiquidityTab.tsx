@@ -8,7 +8,6 @@ import {
   account1Atom,
   mainModalOpenAtom,
   mangataHelperAtom,
-  allLpBalancesAtom,
   addLiqModalOpenAtom,
   addLiquidityConfigAtom,
 } from '@store/commonAtoms';
@@ -20,12 +19,13 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
   const [mangataHelper] = useAtom(mangataHelperAtom);
   const [account1] = useAtom(account1Atom);
   const [, setIsOpen] = useAtom(mainModalOpenAtom);
-  const [allLpBalances] = useAtom(allLpBalancesAtom);
   const [, setIsModalOpen] = useAtom(addLiqModalOpenAtom);
   const [, setConfig] = useAtom(addLiquidityConfigAtom);
 
   const refFirstInput = useRef<HTMLInputElement>(null);
   const refSecondInput = useRef<HTMLInputElement>(null);
+
+  const [lpBalanceNum, setLpBalanceNum] = useState<number | null>(null);
 
   // Amount States
   const [firstTokenAmount, setFirstTokenAmount] = useState('');
@@ -45,8 +45,6 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
   const [token0, token1] = formatTokenSymbols(
     replaceTokenSymbols(farm?.asset.symbol)
   );
-
-  const lpBalanceNum: number = allLpBalances[`${token0}-${token1}`];
 
   // Estimate of fees; no need to be accurate
   // Method to fetch trnx fees based on token Amounts
@@ -70,6 +68,21 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
       console.log('error in handleFees', error);
     }
   };
+
+  // Fetch LP balance from mangataHelper
+  useEffect(() => {
+    (async () => {
+      const lpBalance = await mangataHelper.mangata.getTokenBalance(
+        pool.liquidityTokenId,
+        account?.address
+      );
+      const decimal = mangataHelper.getDecimalsBySymbol(`${token0}-${token1}`);
+      const lpBalanceNum =
+        parseFloat(BigInt(lpBalance.reserved).toString(10)) / 10 ** decimal +
+        parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** decimal;
+      setLpBalanceNum(lpBalanceNum);
+    })();
+  }, []);
 
   useEffect(() => {
     console.log('activeElement', document.activeElement);

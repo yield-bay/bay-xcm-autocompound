@@ -13,6 +13,7 @@ import {
   account1Atom,
   poolsAtom,
   addLiquidityConfigAtom,
+  lpUpdatedAtom,
 } from '@store/commonAtoms';
 import { formatTokenSymbols, replaceTokenSymbols } from '@utils/farmMethods';
 import moment from 'moment';
@@ -34,6 +35,7 @@ const AddLiquidityModal: FC = () => {
   const [turingAddress] = useAtom(turingAddressAtom);
   const [pools] = useAtom(poolsAtom);
   const [config] = useAtom(addLiquidityConfigAtom);
+  const [lpUpdated, setLpUpdated] = useAtom(lpUpdatedAtom);
 
   const toast = useToast();
 
@@ -121,6 +123,7 @@ const AddLiquidityModal: FC = () => {
               setIsSuccess(true);
               setIsInProcess(false);
               setIsSigning(false);
+              setLpUpdated(lpUpdated + 1);
               console.log('Mint liquidity trxn finalised.');
               toast({
                 position: 'top',

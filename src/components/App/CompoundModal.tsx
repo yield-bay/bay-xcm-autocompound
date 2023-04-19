@@ -17,7 +17,6 @@ import {
   compoundConfigAtom,
   turingHelperAtom,
   isInitialisedAtom,
-  allLpBalancesAtom,
 } from '@store/commonAtoms';
 import { formatTokenSymbols, replaceTokenSymbols } from '@utils/farmMethods';
 import moment from 'moment';
@@ -45,7 +44,6 @@ const CompoundModal: FC = () => {
   const [config] = useAtom(compoundConfigAtom);
   const [turingHelper] = useAtom(turingHelperAtom);
   const [isInitialised] = useAtom(isInitialisedAtom);
-  const [allLpBalances] = useAtom(allLpBalancesAtom);
 
   const [pool, setPool] = useState<any>(null);
   const [taskId, setTaskId] = useState<any>('');
@@ -596,7 +594,9 @@ const CompoundModal: FC = () => {
   return (
     <ModalWrapper
       open={isModalOpen || isInProcess || (batchTxDone && !isSuccess)}
-      setOpen={isInProcess ? () => {} : setIsModalOpen}
+      setOpen={
+        isInProcess || (batchTxDone && !isSuccess) ? () => {} : setIsModalOpen
+      }
     >
       {!isInProcess && !isSuccess && (
         <div className="flex flex-col gap-y-8">

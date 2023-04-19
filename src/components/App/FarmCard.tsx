@@ -4,7 +4,9 @@ import clsx from 'clsx';
 import { useAtom } from 'jotai';
 import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
 import FarmAssets from '@components/Library/FarmAssets';
-import toDollarUnits, {
+import {
+  toDollarUnits,
+  toNumberUnits,
   formatTokenSymbols,
   replaceTokenSymbols,
 } from '@utils/farmMethods';
@@ -48,7 +50,7 @@ const FarmCard: FC<Props> = ({
   const [mangataHelper] = useAtom(mangataHelperAtom);
   const [pools] = useAtom(poolsAtom);
 
-  const [lpBalanceNum, setLpBalanceNum] = useState(0.0);
+  const [lpBalanceNum, setLpBalanceNum] = useState(0);
   const [isAutocompounding, setIsAutocompounding] = useState(false);
 
   const tokenNames = formatTokenSymbols(
@@ -176,7 +178,7 @@ const FarmCard: FC<Props> = ({
                 You Deposited
               </p>
               <p className="text-2xl leading-8 text-white">
-                {lpBalanceNum.toFixed(2)} LP
+                {toNumberUnits(lpBalanceNum)} LP
               </p>
             </div>
           )}

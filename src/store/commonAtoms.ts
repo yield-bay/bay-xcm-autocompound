@@ -75,6 +75,8 @@ export const mgxBalanceAtom = atom<number>(0);
 
 export const userHasProxyAtom = atom<boolean>(false);
 
+export const lpUpdatedAtom = atom<number>(0);
+
 // won't need this, as main model isn't gonna hold any transactions in itself
 // export const trxnProcessAtom = atomWithStorage<boolean>(
 //   'jotai:trxn_process',

@@ -145,7 +145,6 @@ const Layout: FC<Props> = ({ children }) => {
 
         // Checks if the user's account has proxy setup
         if (account1) {
-          console.log('acc1');
           const proxies = await mangataHelper.api?.query.proxy.proxies(
             account1?.address
           );

@@ -19,6 +19,7 @@ import {
   isInitialisedAtom,
   turingAddressAtom,
   viewPositionsAtom,
+  lpUpdatedAtom,
 } from '@store/commonAtoms';
 
 const App = () => {
@@ -28,6 +29,7 @@ const App = () => {
   const [viewPositions] = useAtom(viewPositionsAtom);
   const [account1] = useAtom(account1Atom);
   const [isInitialised] = useAtom(isInitialisedAtom);
+  const [lpUpdated] = useAtom(lpUpdatedAtom);
 
   const [farmsResult, reexecuteQuery] = useQuery({
     query: FarmsQuery,
@@ -37,6 +39,10 @@ const App = () => {
     },
   });
   const { data: farmsData, fetching: farmsFetching, error } = farmsResult;
+
+  useEffect(() => {
+    reexecuteQuery({ requestPolicy: 'network-only' });
+  }, [lpUpdated]);
 
   const [xcmpTasksResult, reexecuteXcmpTasksQuery] = useQuery({
     query: XcmpTasksQuery,
