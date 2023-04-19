@@ -97,7 +97,7 @@ class TuringHelper {
                 // unsub();
                 // resolve();
               } else if (status.isFinalized) {
-                consnole, log('Transaction is Finalized!');
+                console.log('Transaction is Finalized!');
                 console.log(
                   `Finalized block hash ${status.asFinalized.toHex()}`
                 );

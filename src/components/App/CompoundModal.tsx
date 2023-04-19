@@ -48,17 +48,17 @@ const CompoundModal: FC = () => {
   const [allLpBalances] = useAtom(allLpBalancesAtom);
 
   const [pool, setPool] = useState<any>(null);
-  // const [taskId, setTaskId] = useState<any>('');
-  // const [executionFee, setExecutionFee] = useState<number>(0);
-  // const [xcmpFee, setXcmpFee] = useState<number>(0);
-  // const [totalFees, setTotalFees] = useState<number>(0);
-  // const [mangataProxyCallFees, setMangataProxyCallFees] = useState<any>(null);
-  // const [encodedMangataProxyCall, setEncodedMangataProxyCall] =
-  //   useState<any>(null);
-  // const [executionTimes, setExecutionTimes] = useState<any>(null);
-  // const [providedId, setProvidedId] = useState<string>();
-  // const [mgxBalance, setMgxBalance] = useState<number>(0);
-  // const [turBalance, setTurBalance] = useState<number>(0);
+  const [taskId, setTaskId] = useState<any>('');
+  const [executionFee, setExecutionFee] = useState<number>(0);
+  const [xcmpFee, setXcmpFee] = useState<number>(0);
+  const [totalFees, setTotalFees] = useState<number>(0);
+  const [mangataProxyCallFees, setMangataProxyCallFees] = useState<any>(null);
+  const [encodedMangataProxyCall, setEncodedMangataProxyCall] =
+    useState<any>(null);
+  const [executionTimes, setExecutionTimes] = useState<any>(null);
+  const [providedId, setProvidedId] = useState<string>();
+  const [mgxBalance, setMgxBalance] = useState<number>(0);
+  const [turBalance, setTurBalance] = useState<number>(0);
 
   const toast = useToast();
 
@@ -139,8 +139,6 @@ const CompoundModal: FC = () => {
     }
   };
 
-  useEffect(() => allLpBalances[`${token0}-${token1}`], [allLpBalances]);
-
   // Calculate LP balance
   useEffect(() => {
     if (!isInitialised) return;
@@ -151,7 +149,7 @@ const CompoundModal: FC = () => {
     console.log('pool:', pool);
     setPool(pool);
 
-    (async () => {
+    const asyncFn = async () => {
       try {
         const lpBalance = await mangataHelper.mangata.getTokenBalance(
           pool?.liquidityTokenId,
@@ -169,7 +167,8 @@ const CompoundModal: FC = () => {
       } catch (error) {
         console.log('Error while getting LP balance');
       }
-    })();
+    };
+    asyncFn();
   }, [isModalOpen]);
 
   // Function which performs Autocompounding
@@ -304,7 +303,7 @@ const CompoundModal: FC = () => {
       const providedId = `xcmp_automation_test_${(Math.random() + 1)
         .toString(36)
         .substring(7)}`;
-      // setProvidedId(providedId);
+      setProvidedId(providedId);
 
       // frequency
       const executionTimes = [];
@@ -326,9 +325,9 @@ const CompoundModal: FC = () => {
         executionTimes.push(et + secondsInHour * 24 * index);
       }
 
-      // setExecutionTimes(executionTimes);
-      // setEncodedMangataProxyCall(encodedMangataProxyCall);
-      // setMangataProxyCallFees(mangataProxyCallFees);
+      setExecutionTimes(executionTimes);
+      setEncodedMangataProxyCall(encodedMangataProxyCall);
+      setMangataProxyCallFees(mangataProxyCallFees);
 
       console.log('providedId', providedId);
       console.log('executionTimes', executionTimes);
@@ -390,8 +389,8 @@ const CompoundModal: FC = () => {
         xcmpFee.toNumber()
       );
 
-      // setExecutionFee(executionFee.toNumber());
-      // setXcmpFee(xcmpFee.toNumber());
+      setExecutionFee(executionFee.toNumber());
+      setXcmpFee(xcmpFee.toNumber());
 
       if (gasChoice === 0) {
         // pay with MGX // MGR on Rococo
@@ -456,7 +455,7 @@ const CompoundModal: FC = () => {
               console.log(
                 `Batch Tx finalized with hash ${status.asFinalized.toHex()}`
               );
-              // setIsInProcess(false); // Process will be done when ScheduleXCMP Txn is done
+              setIsInProcess(false); // Process will be done when ScheduleXCMP Txn is done
               setBatchTxDone(true);
             } else {
               setIsSigning(false); // Reaching here means the trxn is signed
@@ -484,26 +483,42 @@ const CompoundModal: FC = () => {
         providedId
       );
       console.log('TaskId:', taskId);
-      // setTaskId(taskId?.toHuman() ?? taskId);
+      setTaskId(taskId?.toHuman() ?? taskId);
+    } catch (error) {
+      let errorString = `${error}`;
+      console.log('error while create compounding task:', errorString);
+      toast({
+        position: 'top',
+        duration: 3000,
+        render: () => <ToastWrapper title={errorString} status="error" />,
+      });
+      setIsInProcess(false);
+      setIsSigning(false);
+    }
+  };
 
-      // const { liquidityTokenId } = pool;
+  const handleXcmpScheduling = async () => {
+    setIsInProcess(true);
+    const signer = account?.wallet?.signer;
+    const { liquidityTokenId } = pool;
 
-      // const xcmpCall =
-      //   await turingHelper.api.tx.automationTime.scheduleXcmpTask(
-      //     providedId,
-      //     // {
-      //     //   Recurring: {
-      //     //     frequency: secondsInHour * 24 * frequency,
-      //     //     nextExecutionTime: executionTime,
-      //     //   },
-      //     // },
-      //     { Fixed: { executionTimes: executionTimes } },
-      //     mangataHelper.config.paraId,
-      //     0,
-      //     encodedMangataProxyCall,
-      //     parseInt(mangataProxyCallFees.weight.refTime, 10)
-      //   );
-      // console.log('xcmpCall: ', xcmpCall);
+    try {
+      const xcmpCall =
+        await turingHelper.api.tx.automationTime.scheduleXcmpTask(
+          providedId,
+          // {
+          //   Recurring: {
+          //     frequency: secondsInHour * 24 * frequency,
+          //     nextExecutionTime: executionTime,
+          //   },
+          // },
+          { Fixed: { executionTimes: executionTimes } },
+          mangataHelper.config.paraId,
+          0,
+          encodedMangataProxyCall,
+          parseInt(mangataProxyCallFees.weight.refTime, 10)
+        );
+      console.log('xcmpCall: ', xcmpCall);
 
       // Send extrinsic
       setIsSigning(true);
@@ -559,8 +574,8 @@ const CompoundModal: FC = () => {
         duration,
         frequency,
         moment().toISOString(),
-        executionFee.toNumber(),
-        xcmpFee.toNumber(),
+        executionFee,
+        xcmpFee,
         'RUNNING',
         'CREATE',
         percentage
@@ -580,7 +595,7 @@ const CompoundModal: FC = () => {
 
   return (
     <ModalWrapper
-      open={isModalOpen || isInProcess}
+      open={isModalOpen || isInProcess || (batchTxDone && !isSuccess)}
       setOpen={isInProcess ? () => {} : setIsModalOpen}
     >
       {!isInProcess && !isSuccess && (
@@ -595,24 +610,32 @@ const CompoundModal: FC = () => {
               <InfoLabel label="percentage" value={config.percentage} />
             </div>
           </div>
-          <div>
-            <div className="inline-flex gap-x-2 w-full">
+          <div className="inline-flex justify-between gap-x-2">
+            {!batchTxDone ? (
               <Button
-                type="secondary"
                 text="Confirm"
+                type="secondary"
+                className="w-1/2"
                 onClick={handleCompounding}
-                className="w-1/2"
               />
+            ) : (
               <Button
-                type="warning"
-                text="Cancel"
+                text="Schedule Compounding"
+                type="secondary"
                 className="w-1/2"
-                onClick={() => {
-                  setOpenMainModal(true);
-                  setIsModalOpen(false);
-                }}
+                onClick={handleXcmpScheduling}
               />
-            </div>
+            )}
+            <Button
+              type="warning"
+              text="Cancel"
+              className="w-1/2"
+              disabled={batchTxDone} // Modal should be unclosable after batchTxn is done
+              onClick={() => {
+                setOpenMainModal(true);
+                setIsModalOpen(false);
+              }}
+            />
           </div>
         </div>
       )}
@@ -644,7 +667,8 @@ const CompoundModal: FC = () => {
             <p>Autocompound setup successful.</p>
           </div>
           <div className="w-full text-[#C5C5C5] py-3 text-base leading-[21.6px] text-center rounded-lg bg-[#0C0C0C]">
-            Autocompounding {lpBalanceNum} {token0}-{token1} LP tokens
+            Autocompounding {lpBalanceNum.toFixed(3)} {token0}-{token1} LP
+            tokens
           </div>
           <div className="inline-flex justify-between gap-x-8">
             <InfoLabel label="frequency" value={config.frequency} />
@@ -661,16 +685,26 @@ const CompoundModal: FC = () => {
           </button>
         </div>
       )}
-      {!isSuccess && (
+      {!isSuccess && !batchTxDone ? (
         <Stepper
-          activeStep={!isInProcess ? 0 : isSigning ? (!batchTxDone ? 1 : 2) : 3}
+          activeStep={!isInProcess ? 0 : isSigning ? 1 : 2}
           steps={[
             { label: 'Confirm' },
             { label: 'MGR' },
-            { label: 'TUR' },
             { label: 'Complete' },
           ]}
         />
+      ) : (
+        !isSuccess && (
+          <Stepper
+            activeStep={!isInProcess ? 0 : isSigning ? 1 : 2}
+            steps={[
+              { label: 'Confirm' },
+              { label: 'TUR' },
+              { label: 'Complete' },
+            ]}
+          />
+        )
       )}
     </ModalWrapper>
   );
