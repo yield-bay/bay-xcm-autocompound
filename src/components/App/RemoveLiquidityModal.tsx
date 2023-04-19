@@ -14,6 +14,7 @@ import {
   poolsAtom,
   removeLiquidityConfigAtom,
   isInitialisedAtom,
+  lpUpdatedAtom,
 } from '@store/commonAtoms';
 import { formatTokenSymbols, replaceTokenSymbols } from '@utils/farmMethods';
 import moment from 'moment';
@@ -36,6 +37,7 @@ const RemoveLiquidityModal: FC = () => {
   const [pools] = useAtom(poolsAtom);
   const [config] = useAtom(removeLiquidityConfigAtom);
   const [isInitialised] = useAtom(isInitialisedAtom);
+  const [lpUpdated, setLpUpdated] = useAtom(lpUpdatedAtom);
 
   const [lpBalance, setLpBalance] = useState<any>(null);
   const [lpBalanceNum, setLpBalanceNum] = useState<number | null>(null);
@@ -218,6 +220,7 @@ const RemoveLiquidityModal: FC = () => {
               setIsSuccess(true);
               setIsInProcess(false);
               setIsSigning(false);
+              setLpUpdated(lpUpdated + 1);
               console.log(
                 `Liquidity Successfully removed from ${token0}-${token1} with hash ${status.asFinalized.toHex()}`
               );
