@@ -1,5 +1,5 @@
 // Library Imports
-import { FC, useEffect, useState, memo } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { useAtom } from 'jotai';
 import clsx from 'clsx';
 import _ from 'lodash';
@@ -242,4 +242,4 @@ const MainModal: FC = () => {
   );
 };
 
-export default memo(MainModal);
+export default MainModal;

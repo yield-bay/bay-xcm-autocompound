@@ -18,9 +18,9 @@ import {
   turingAddressAtom,
   selectedTaskAtom,
   selectedEventAtom,
-  taskModalOpenAtom,
   compoundModalOpenAtom,
   compoundConfigAtom,
+  stopCompModalOpenAtom,
 } from '@store/commonAtoms';
 import { getDecimalBN } from '@utils/xcm/common/utils';
 import { accountAtom } from '@store/accountAtoms';
@@ -40,7 +40,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
   const [turingHelper] = useAtom(turingHelperAtom);
   const [selectedTask] = useAtom(selectedTaskAtom);
   const [selectedEvent] = useAtom(selectedEventAtom);
-  const [, setStopModalOpen] = useAtom(taskModalOpenAtom);
+  const [, setStopModalOpen] = useAtom(stopCompModalOpenAtom);
   const [, setIsOpenModal] = useAtom(compoundModalOpenAtom);
   const [, setCompoundConfig] = useAtom(compoundConfigAtom);
   const [turingAddress] = useAtom(turingAddressAtom);
@@ -149,12 +149,13 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
     })();
   }, [account1]);
 
-  // Fetching TUR price in Dollar
+  // Fetching TUR price in Dollar using react-query
   const { isLoading: isTurpriceLoading, data: turprice } = useQuery({
     queryKey: ['turprice'],
     queryFn: async () => {
       try {
         const tokenPrices = await fetchTokenPrices();
+        console.log(`TUR price ${tokenPrices[2].price}`);
         return tokenPrices[2].price; // TUR price in Dollar
       } catch (error) {
         console.log('error: fetching turprice', error);
@@ -222,7 +223,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       const tokenAmount =
         parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** decimal +
         parseFloat(BigInt(lpBalance.reserved).toString(10)) / 10 ** decimal;
-      console.log('tokenAmount total', tokenAmount);
+      console.log('lpBalanceNum', tokenAmount);
       setLpBalanceNum(tokenAmount);
     })();
   }, []);
@@ -383,9 +384,11 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
           ) : (
             <p className="text-[#B9B9B9]">
               Costs{' '}
-              <span className="text-white">
-                ${(totalFees * turprice).toFixed(2)}
-              </span>{' '}
+              {!isNaN(turprice) && (
+                <span className="text-white">
+                  ${(totalFees * turprice).toFixed(2)}
+                </span>
+              )}{' '}
               <span className="text-white">({totalFees?.toFixed(2)} TUR)</span>{' '}
               including Gas Fees
             </p>
@@ -415,9 +418,11 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
             ) : (
               <p>
                 {turBalance ?? 'loading...'} TUR
-                <span className="text-[#8A8A8A] ml-2">
-                  ${!isNaN(turprice) && (turBalance * turprice).toFixed(3)}
-                </span>
+                {!isNaN(turprice) && (
+                  <span className="text-[#8A8A8A] ml-2">
+                    ${(turBalance * turprice).toFixed(3)}
+                  </span>
+                )}
               </p>
             )}
           </div>

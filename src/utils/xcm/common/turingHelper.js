@@ -73,6 +73,7 @@ class TuringHelper {
     setIsSigning,
     setIsInProcess,
     setIsSuccess,
+    setIsFailed,
     toast
   ) =>
     new Promise((resolve) => {
@@ -115,15 +116,11 @@ class TuringHelper {
             setIsInProcess(false);
             setIsSigning(false);
             setIsSuccess(false);
+            setIsFailed(true);
             toast({
               position: 'top',
               duration: 3000,
-              render: () => (
-                <ToastWrapper
-                  title={errorString}
-                  status="error"
-                />
-              ),
+              render: () => <ToastWrapper title={errorString} status="error" />,
             });
           });
       };

@@ -67,6 +67,7 @@ const CompoundModal: FC = () => {
   const [isSigning, setIsSigning] = useState(false);
   const [batchTxDone, setBatchTxDone] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isFailed, setIsFailed] = useState(false);
 
   const [lpBalance, setLpBalance] = useState<any>();
   const [lpBalanceNum, setLpBalanceNum] = useState<number>(0);
@@ -142,27 +143,34 @@ const CompoundModal: FC = () => {
 
   // Calculate LP balance
   useEffect(() => {
-    (async () => {
-      if (!isInitialised) return;
-      const pool = _.find(pools, {
-        firstTokenId: mangataHelper.getTokenIdBySymbol(token0),
-        secondTokenId: mangataHelper.getTokenIdBySymbol(token1),
-      });
-      setPool(pool);
+    if (!isInitialised) return;
+    const pool = _.find(pools, {
+      firstTokenId: mangataHelper.getTokenIdBySymbol(token0),
+      secondTokenId: mangataHelper.getTokenIdBySymbol(token1),
+    });
+    console.log('pool:', pool);
+    setPool(pool);
 
-      const lpBalance = await mangataHelper.mangata.getTokenBalance(
-        pool.liquidityTokenId,
-        account?.address
-      );
-      setLpBalance(lpBalance);
-      const decimal = mangataHelper.getDecimalsBySymbol(`${token0}-${token1}`);
-      const tokenAmount =
-        parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** decimal +
-        parseFloat(BigInt(lpBalance.reserved).toString(10)) / 10 ** decimal;
-      console.log('tokenAmount total', tokenAmount);
-      setLpBalanceNum(tokenAmount);
+    (async () => {
+      try {
+        const lpBalance = await mangataHelper.mangata.getTokenBalance(
+          pool?.liquidityTokenId,
+          account?.address
+        );
+        setLpBalance(lpBalance);
+        const decimal = mangataHelper.getDecimalsBySymbol(
+          `${token0}-${token1}`
+        );
+        const tokenAmount =
+          parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** decimal +
+          parseFloat(BigInt(lpBalance.reserved).toString(10)) / 10 ** decimal;
+        console.log('tokenAmount total', tokenAmount);
+        setLpBalanceNum(tokenAmount);
+      } catch (error) {
+        console.log('Error while getting LP balance');
+      }
     })();
-  }, []);
+  }, [isModalOpen]);
 
   // Function which performs Autocompounding
   const handleCompounding = async () => {
@@ -508,6 +516,7 @@ const CompoundModal: FC = () => {
         setIsSigning,
         setIsInProcess,
         setIsSuccess,
+        setIsFailed,
         toast
       );
 

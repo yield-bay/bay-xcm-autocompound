@@ -390,7 +390,12 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
               {token1} for creating an LP token with{' '}
               {parseFloat(firstTokenAmount).toFixed(2)} {token0}.
             </p>
-            <a href="#" className="underline">
+            <a
+              href="https://mangata-finance.notion.site/How-to-Swap-Tokens-b936ec5330404638a3078cafc275dcec"
+              target="_blank"
+              rel="noreferrer"
+              className="underline"
+            >
               Swap here for more
             </a>
           </div>
