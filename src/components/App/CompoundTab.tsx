@@ -49,10 +49,15 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
   const [duration, setDuration] = useState<number>(7); // default week
   const [percentage, setPercentage] = useState<number>(100); // default 100%
 
+  // Autocompounding states
+  const [lastHarvested, setLastHarvested] = useState<any>(null);
+  const [lastEstimatedExecTime, setLastEstimatedExecTime] = useState<any>(null);
+  const [executionsTillNow, setExecutionsTillNow] = useState<any>(null);
+
   const [gasChoice, setGasChoice] = useState<number>(1); // default 0 == "MGX" / 1 == "TUR"
   const [totalFees, setTotalFees] = useState<number>(0);
 
-  const [lpBalanceNum, setLpBalanceNum] = useState<number>(0);
+  // const [lpBalanceNum, setLpBalanceNum] = useState<number>(0);
   const [mgxBalance, setMgxBalance] = useState<number>(0);
   const [turBalance, setTurBalance] = useState<number>(0);
   const [isAutocompounding, setIsAutocompounding] = useState<boolean>(false);
@@ -108,6 +113,11 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
           10
         ) * 1000;
       const executionsTillNow = etslen - executionsLeft;
+
+      setLastHarvested(new Date(lastHarvestTime));
+      setLastEstimatedExecTime(new Date(lastEstimatedExecTime));
+      setExecutionsTillNow(executionsTillNow);
+
       console.log(
         'lastHarvestTime',
         lastHarvestTime,
@@ -211,23 +221,6 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
     fetchTurTotalFees();
   }, [frequency, duration, percentage]);
 
-  // Calculate LP balance
-  useEffect(() => {
-    (async () => {
-      const lpBalance = await mangataHelper.mangata.getTokenBalance(
-        pool.liquidityTokenId,
-        account?.address
-      );
-      // setLpBalance(lpBalance);
-      const decimal = mangataHelper.getDecimalsBySymbol(`${token0}-${token1}`);
-      const tokenAmount =
-        parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** decimal +
-        parseFloat(BigInt(lpBalance.reserved).toString(10)) / 10 ** decimal;
-      console.log('lpBalanceNum', tokenAmount);
-      setLpBalanceNum(tokenAmount);
-    })();
-  }, []);
-
   return (
     <div className="w-full relative flex flex-col gap-y-10 mt-10 text-xl leading-[27px]">
       {hasEvent && (
@@ -238,15 +231,15 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
           <div className="flex flex-row px-14 py-4 items-center w-full justify-between">
             <div className="">
               <p className="text-[#969595]">Last Harvested</p>
-              <p className="text-2xl leading-8">5/6/23</p>
+              <p className="text-2xl leading-8">{lastHarvested}</p>
             </div>
             <div className="">
               <p className="text-[#969595]">Last estimated execution</p>
-              <p className="text-2xl leading-8">5/6/23</p>
+              <p className="text-2xl leading-8">{lastEstimatedExecTime}</p>
             </div>
             <div className="">
               <p className="text-[#969595]">Executions till now</p>
-              <p className="text-2xl leading-8">25</p>
+              <p className="text-2xl leading-8">{executionsTillNow}</p>
             </div>
           </div>
         </div>
