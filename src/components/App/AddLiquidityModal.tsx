@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { useAtom } from 'jotai';
 import Button from '@components/Library/Button';
 import Loader from '@components/Library/Loader';
@@ -16,7 +16,6 @@ import {
   lpUpdatedAtom,
 } from '@store/commonAtoms';
 import { formatTokenSymbols, replaceTokenSymbols } from '@utils/farmMethods';
-import moment from 'moment';
 import { accountAtom } from '@store/accountAtoms';
 import _ from 'lodash';
 import { useToast } from '@chakra-ui/react';
@@ -182,6 +181,13 @@ const AddLiquidityModal: FC = () => {
       setIsSigning(false);
     }
   };
+
+  useEffect(() => {
+    // Resetting all states to default on open/close
+    setIsInProcess(false);
+    setIsSigning(false);
+    setIsSuccess(false);
+  }, [isModalOpen]);
 
   return (
     <ModalWrapper

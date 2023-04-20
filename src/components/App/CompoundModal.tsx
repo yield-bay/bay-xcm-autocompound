@@ -140,6 +140,13 @@ const CompoundModal: FC = () => {
 
   // Calculate LP balance
   useEffect(() => {
+    // Resetting all states to default on open/close
+    setIsInProcess(false);
+    setIsSigning(false);
+    setBatchTxDone(false);
+    setIsSuccess(false);
+    setIsFailed(false);
+
     if (!isInitialised) return;
     const pool = _.find(pools, {
       firstTokenId: mangataHelper.getTokenIdBySymbol(token0),
@@ -170,6 +177,37 @@ const CompoundModal: FC = () => {
     asyncFn();
   }, [isModalOpen]);
 
+  // Run the API calls when the isSuccess is updated and is true
+  useEffect(() => {
+    if (isSuccess) {
+      console.log(
+        'Calling addXcmpTaskHandler and createAutocompoundingHandler...'
+      );
+
+      // Adding Xcmp Task of the completed compounding
+      addXcmpTaskHandler(taskId, turingAddress as string, lpName, 'ROCOCO');
+
+      // Creating Autocompounding Event
+      createAutocompoundingHandler(
+        turingAddress as string,
+        'ROCOCO',
+        taskId,
+        { symbol: lpName, amount: lpBalanceNum },
+        duration,
+        frequency,
+        getTimestamp(),
+        executionFee,
+        xcmpFee,
+        'RUNNING',
+        'CREATE',
+        percentage
+      );
+      console.log(
+        'compounding task added in xcmpTasks and createAutocompounding'
+      );
+    }
+  }, [isSuccess]);
+
   // Function which performs Autocompounding
   const handleCompounding = async () => {
     console.log('frequency', frequency);
@@ -179,12 +217,6 @@ const CompoundModal: FC = () => {
     setIsInProcess(true);
 
     try {
-      // Pool is filtered on load from pools array
-      // const pool = _.find(pools, {
-      //   firstTokenId: mangataHelper.getTokenIdBySymbol(token0),
-      //   secondTokenId: mangataHelper.getTokenIdBySymbol(token1),
-      // });
-
       let mangataTransactions = [];
 
       const { liquidityTokenId } = pool;
@@ -205,14 +237,6 @@ const CompoundModal: FC = () => {
         );
         mangataTransactions.push(activateLiquidityTxn);
       }
-
-      // Now as liquidity is activated, tokenAmoumt is total amount of liquidity
-      /*
-        tokenAmount =
-          parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** decimal +
-          parseFloat(BigInt(lpBalance.reserved).toString(10)) / 10 ** decimal;
-        setLpBalance(tokenAmount);
-        */
 
       console.log(
         'tokenAmount',
@@ -262,9 +286,7 @@ const CompoundModal: FC = () => {
           `Adding a proxy for paraId ${turingHelper.config.paraId}. Proxy address: ${proxyAddress} ...`
         );
         const aptx = await mangataHelper.addProxyTx(proxyAddress, proxyType);
-        // await aptx.signAndSend(account1.address, { signer: signer });
         mangataTransactions.push(aptx);
-
         // const addProxyTx = api.tx.proxy.addProxy(proxyAccount, proxyType, 0)
       }
 
@@ -537,9 +559,6 @@ const CompoundModal: FC = () => {
       console.log('\nWaiting 20 seconds before reading new chain states ...');
       await delay(20000); // This is not how delay works
 
-      // setIsInProcess(false);
-      // setIsSigning(false);
-
       // Account’s reserved LP token after auto-compound
       const newLiquidityBalance = await mangataHelper.mangata.getTokenBalance(
         liquidityTokenId,
@@ -561,24 +580,6 @@ const CompoundModal: FC = () => {
       );
       console.log('Task has been executed!');
       console.log('to cancel', taskId);
-
-      // Adding Xcmp Task of the completed compounding
-      addXcmpTaskHandler(taskId, turingAddress as string, lpName, 'ROCOCO');
-      // Creating Autocompounding Event
-      createAutocompoundingHandler(
-        turingAddress as string,
-        'ROCOCO',
-        taskId,
-        { symbol: lpName, amount: lpBalanceNum },
-        duration,
-        frequency,
-        getTimestamp(),
-        executionFee,
-        xcmpFee,
-        'RUNNING',
-        'CREATE',
-        percentage
-      );
     } catch (error) {
       let errorString = `${error}`;
       console.log('error while create compounding task:', errorString);

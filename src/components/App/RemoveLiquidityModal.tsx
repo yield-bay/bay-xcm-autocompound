@@ -1,4 +1,4 @@
-import { FC, memo, useEffect, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { useAtom } from 'jotai';
 import Button from '@components/Library/Button';
 import Loader from '@components/Library/Loader';
@@ -17,7 +17,6 @@ import {
   lpUpdatedAtom,
 } from '@store/commonAtoms';
 import { formatTokenSymbols, replaceTokenSymbols } from '@utils/farmMethods';
-import moment from 'moment';
 import { accountAtom } from '@store/accountAtoms';
 import _ from 'lodash';
 import { useToast } from '@chakra-ui/react';
@@ -46,10 +45,6 @@ const RemoveLiquidityModal: FC = () => {
   const { method, percentage, firstTokenNumber, secondTokenNumber, lpAmount } =
     config;
 
-  useEffect(() => {
-    console.log('config', config);
-  }, [config]);
-
   const toast = useToast();
 
   // Process states
@@ -60,6 +55,13 @@ const RemoveLiquidityModal: FC = () => {
   const [token0, token1] = formatTokenSymbols(
     replaceTokenSymbols(farm?.asset.symbol ?? 'MGR-TUR LP')
   );
+
+  useEffect(() => {
+    // Resetting all states to default on open/close
+    setIsInProcess(false);
+    setIsSigning(false);
+    setIsSuccess(false);
+  }, [isModalOpen]);
 
   // Fetch LP balance from mangataHelper
   useEffect(() => {
@@ -395,4 +397,4 @@ const TokenLabels = ({
   </div>
 );
 
-export default memo(RemoveLiquidityModal);
+export default RemoveLiquidityModal;

@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { useAtom } from 'jotai';
 import Button from '@components/Library/Button';
 import ModalWrapper from '@components/Library/ModalWrapper';
@@ -35,6 +35,50 @@ const StopCompoundingModal: FC = () => {
   const [isSigning, setIsSigning] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [isFailed, setIsFailed] = useState(false);
+
+  useEffect(() => {
+    // Resetting all states to default on open/close
+    setIsInProcess(false);
+    setIsSigning(false);
+    setIsSuccess(false);
+    setIsFailed(false);
+  }, [isModalOpen]);
+
+  useEffect(() => {
+    if (isSuccess) {
+      console.log(
+        'Calling addXcmpTaskHandler and createAutocompoundingHandler...'
+      );
+
+      console.log('variables to stop compounding', {
+        taskId: currentTask?.taskId,
+        userAddress: turingAddress,
+        lpName: currentTask?.lpName,
+        chain: currentTask?.chain,
+        newStatus: 'CANCELLED',
+      });
+
+      updateXcmpTaskHandler(
+        currentTask?.taskId as string,
+        turingAddress as string,
+        currentTask?.lpName as string,
+        currentTask?.chain as string,
+        'CANCELLED'
+      );
+      // Update Autocompounding Event in Tracking
+      updateAutocompoundingHandler(
+        turingAddress as string,
+        'ROCOCO',
+        currentTask?.taskId as string,
+        {
+          symbol: currentTask?.lpName as string,
+          amount: 100, // Need to confirm what to put here.
+        },
+        'CANCELLED'
+      );
+      console.log('XcmpTask and UpdateAutocompounding updated successfully');
+    }
+  }, [isSuccess]);
 
   const toast = useToast();
 
@@ -103,29 +147,6 @@ const StopCompoundingModal: FC = () => {
         setIsSuccess,
         setIsFailed,
         toast
-      );
-
-      setIsInProcess(false);
-      setIsSigning(false);
-
-      updateXcmpTaskHandler(
-        currentTask?.taskId as string,
-        turingAddress as string,
-        currentTask?.lpName as string,
-        currentTask?.chain as string,
-        'CANCELLED'
-      );
-
-      // Update Autocompounding Event in Tracking
-      updateAutocompoundingHandler(
-        turingAddress as string,
-        'ROCOCO',
-        currentTask?.taskId as string,
-        {
-          symbol: currentTask?.lpName as string,
-          amount: 100, // Need to confirm what to put here.
-        },
-        'CANCELLED'
       );
       console.log(`Task cancelled withtaskId ${currentTask?.taskId}`);
     } catch (error) {

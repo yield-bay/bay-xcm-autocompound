@@ -73,7 +73,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
     setHasEvent(selectedEvent != undefined ? true : false);
     console.log('hasEvent', hasEvent);
     console.log(`selected event @${token0}-${token1}`, selectedEvent);
-  }, [hasEvent]);
+  }, []);
 
   const [token0, token1] = formatTokenSymbols(
     replaceTokenSymbols(farm?.asset.symbol)
@@ -88,48 +88,53 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
   // Do this if task is already running (user is shown "Stop Autocompounding")
   useEffect(() => {
     (async () => {
-      if (!isAutocompounding) return;
-      console.log('turingAddress', turingAddress);
+      if (hasEvent) {
+        console.log('turingAddress', turingAddress);
 
-      const accTasks = await turingHelper.api.query.automationTime.accountTasks(
-        turingAddress,
-        '0x5d101a7f34d2b6471b6a0ae962d7c4504d59ca708e03953f4d4da24a50d6b33c' // get taskId from graphql autocompoundEvents query: https://github.com/yield-bay/bay-api/blob/c9b35801543bcc6d325920ab3158e20a6f91c153/src/schema.graphql#L110
-      );
-      const task: any = accTasks.toHuman();
-      console.log('accTasks', task, accTasks);
-      const etslen = task?.schedule?.Fixed?.executionTimes?.length;
-      const lastEstimatedExecTime =
-        parseInt(
-          task?.schedule?.Fixed?.executionTimes[etslen - 1].replaceAll(',', ''),
-          10
-        ) * 1000;
-      console.log('lastEstimatedExecTime', lastEstimatedExecTime);
-      const executionsLeft = parseInt(task?.schedule?.Fixed?.executionsLeft);
-      const lastHarvestTime =
-        parseInt(
-          task?.schedule?.Fixed?.executionTimes[
-            etslen - executionsLeft - 1
-          ].replaceAll(',', ''),
-          10
-        ) * 1000;
-      const executionsTillNow = etslen - executionsLeft;
+        const accTasks =
+          await turingHelper.api.query.automationTime.accountTasks(
+            turingAddress,
+            selectedEvent?.taskId // got taskId from graphql autocompoundEvents query: https://github.com/yield-bay/bay-api/blob/c9b35801543bcc6d325920ab3158e20a6f91c153/src/schema.graphql#L110
+          );
+        const task: any = accTasks.toHuman();
+        console.log('accTasks', task, accTasks);
+        const etslen = task?.schedule?.Fixed?.executionTimes?.length;
+        const lastEstimatedExecTime =
+          parseInt(
+            task?.schedule?.Fixed?.executionTimes[etslen - 1].replaceAll(
+              ',',
+              ''
+            ),
+            10
+          ) * 1000;
+        console.log('lastEstimatedExecTime', lastEstimatedExecTime);
+        const executionsLeft = parseInt(task?.schedule?.Fixed?.executionsLeft);
+        const lastHarvestTime =
+          parseInt(
+            task?.schedule?.Fixed?.executionTimes[
+              etslen - executionsLeft - 1
+            ].replaceAll(',', ''),
+            10
+          ) * 1000;
+        const executionsTillNow = etslen - executionsLeft;
 
-      setLastHarvested(new Date(lastHarvestTime));
-      setLastEstimatedExecTime(new Date(lastEstimatedExecTime));
-      setExecutionsTillNow(executionsTillNow);
+        setLastHarvested(new Date(lastHarvestTime));
+        setLastEstimatedExecTime(new Date(lastEstimatedExecTime));
+        setExecutionsTillNow(executionsTillNow);
 
-      console.log(
-        'lastHarvestTime',
-        lastHarvestTime,
-        new Date(lastHarvestTime),
-        'lastEstimatedExecTime',
-        lastEstimatedExecTime,
-        new Date(lastEstimatedExecTime),
-        'executionsLeft',
-        executionsLeft,
-        'executionsTillNow',
-        executionsTillNow
-      );
+        console.log(
+          'lastHarvestTime',
+          lastHarvestTime,
+          new Date(lastHarvestTime),
+          'lastEstimatedExecTime',
+          lastEstimatedExecTime,
+          new Date(lastEstimatedExecTime),
+          'executionsLeft',
+          executionsLeft,
+          'executionsTillNow',
+          executionsTillNow
+        );
+      }
     })();
   }, [account1, turingAddress]);
 
@@ -226,18 +231,19 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       {hasEvent && (
         <div className="rounded-lg bg-[#0C0C0C] text-center text-lg leading-6">
           <div className="py-7 text-[#C5C5C5] border-b border-[#2E2E2E]">
-            Autocompounding 100 MGX-TUR LP tokens{' '}
+            Autocompounding {selectedEvent?.lp.amount.toFixed(2)}{' '}
+            {selectedEvent?.lp.symbol} LP tokens{' '}
           </div>
           <div className="flex flex-row px-14 py-4 items-center w-full justify-between">
-            <div className="">
+            <div>
               <p className="text-[#969595]">Last Harvested</p>
               <p className="text-2xl leading-8">{lastHarvested}</p>
             </div>
-            <div className="">
+            <div>
               <p className="text-[#969595]">Last estimated execution</p>
               <p className="text-2xl leading-8">{lastEstimatedExecTime}</p>
             </div>
-            <div className="">
+            <div>
               <p className="text-[#969595]">Executions till now</p>
               <p className="text-2xl leading-8">{executionsTillNow}</p>
             </div>

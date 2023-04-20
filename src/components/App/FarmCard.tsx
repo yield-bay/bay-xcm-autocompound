@@ -168,6 +168,7 @@ const FarmCard: FC<Props> = ({
                 alt="active autocompounding"
                 width={16}
                 height={16}
+                className="w-auto h-auto"
               />
               <span>Autocompounding</span>
             </div>
