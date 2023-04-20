@@ -84,7 +84,7 @@ const RemoveLiquidityModal: FC = () => {
       console.log('lpBalanceNum: ', lpBalanceNum);
       setLpBalanceNum(lpBalanceNum);
     })();
-  }, []);
+  }, [isModalOpen]);
 
   // Mutation to add config as a createLiquidityEvent
   const [createLiquidityEventResult, createLiquidityEvent] = useMutation(

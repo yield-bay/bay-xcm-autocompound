@@ -94,7 +94,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
         const accTasks =
           await turingHelper.api.query.automationTime.accountTasks(
             turingAddress,
-            selectedEvent?.taskId // got taskId from graphql autocompoundEvents query: https://github.com/yield-bay/bay-api/blob/c9b35801543bcc6d325920ab3158e20a6f91c153/src/schema.graphql#L110
+            selectedEvent?.taskId as string // got taskId from graphql autocompoundEvents query: https://github.com/yield-bay/bay-api/blob/c9b35801543bcc6d325920ab3158e20a6f91c153/src/schema.graphql#L110
           );
         const task: any = accTasks.toHuman();
         console.log('accTasks', task, accTasks);
