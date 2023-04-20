@@ -25,6 +25,7 @@ import ToastWrapper from '@components/Library/ToastWrapper';
 import { TokenType } from '@utils/types';
 import { useMutation } from 'urql';
 import { createLiquidityEventMutation } from '@utils/api';
+import getTimestamp from '@utils/getTimestamp';
 
 const RemoveLiquidityModal: FC = () => {
   const [, setOpenMainModal] = useAtom(mainModalOpenAtom);
@@ -255,7 +256,7 @@ const RemoveLiquidityModal: FC = () => {
                         100
                       : parseFloat(lpAmount),
                 }, // Amount of Liquidity burnt
-                moment().valueOf().toString(),
+                getTimestamp(),
                 0.0,
                 'REMOVE_LIQUIDITY'
               );

@@ -24,6 +24,7 @@ import ToastWrapper from '@components/Library/ToastWrapper';
 import { TokenType } from '@utils/types';
 import { createLiquidityEventMutation } from '@utils/api';
 import { useMutation } from 'urql';
+import getTimestamp from '@utils/getTimestamp';
 
 const AddLiquidityModal: FC = () => {
   const [, setOpenMainModal] = useAtom(mainModalOpenAtom);
@@ -143,7 +144,7 @@ const AddLiquidityModal: FC = () => {
                 { symbol: token0, amount: config.firstTokenAmount },
                 { symbol: token1, amount: config.secondTokenAmount },
                 { symbol: `${token0}-${token1}`, amount: 0 },
-                moment().valueOf().toString(),
+                getTimestamp(),
                 config.fees,
                 'ADD_LIQUIDITY'
               );

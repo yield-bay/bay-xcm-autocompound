@@ -30,6 +30,7 @@ import {
   createAutocompoundEventMutation,
 } from '@utils/api';
 import { useMutation } from 'urql';
+import getTimestamp from '@utils/getTimestamp';
 
 const CompoundModal: FC = () => {
   const [, setOpenMainModal] = useAtom(mainModalOpenAtom);
@@ -571,7 +572,7 @@ const CompoundModal: FC = () => {
         { symbol: lpName, amount: lpBalanceNum },
         duration,
         frequency,
-        moment().toISOString(),
+        getTimestamp(),
         executionFee,
         xcmpFee,
         'RUNNING',
