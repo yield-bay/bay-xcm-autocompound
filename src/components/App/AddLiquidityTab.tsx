@@ -22,6 +22,14 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
   const [, setIsModalOpen] = useAtom(addLiqModalOpenAtom);
   const [, setConfig] = useAtom(addLiquidityConfigAtom);
 
+  enum InputType {
+    Off = -1,
+    First = 0,
+    Second = 1,
+  }
+
+  // Input focus states
+  const [focusedInput, setFocusedInput] = useState<InputType>(InputType.First);
   const refFirstInput = useRef<HTMLInputElement>(null);
   const refSecondInput = useRef<HTMLInputElement>(null);
 
@@ -71,6 +79,8 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
 
   // Fetch LP balance from mangataHelper
   useEffect(() => {
+    // Setting first input as Focused
+    refFirstInput.current?.focus();
     (async () => {
       const lpBalance = await mangataHelper.mangata.getTokenBalance(
         pool.liquidityTokenId,
@@ -83,19 +93,6 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
       setLpBalanceNum(lpBalanceNum);
     })();
   }, []);
-
-  useEffect(() => {
-    console.log('activeElement', document.activeElement);
-    console.log('firsteelement', refFirstInput.current);
-    console.log('secondelement', refSecondInput.current);
-    if (document.activeElement == refFirstInput.current) {
-      console.log('firsttoken focused');
-    } else if (document.activeElement == refSecondInput.current) {
-      console.log('secondtoken focused');
-    } else {
-      console.log('nothing focused');
-    }
-  }, [document]);
 
   // Fetch Balances of both tokens on Mangata Chain
   useEffect(() => {
@@ -320,6 +317,8 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
                 value={firstTokenAmount}
                 autoFocus
                 ref={refFirstInput}
+                onBlur={() => setFocusedInput(InputType.Off)}
+                onFocus={() => setFocusedInput(InputType.First)}
               />
             </div>
           </div>
@@ -334,7 +333,12 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
               {token0} for creating an LP token with{' '}
               {parseFloat(secondTokenAmount).toFixed(2)} {token1}.
             </p>
-            <a href="#" className="underline">
+            <a
+              href="https://mangata-finance.notion.site/How-to-Swap-Tokens-b936ec5330404638a3078cafc275dcec"
+              target="_blank"
+              rel="noreferrer"
+              className="underline"
+            >
               Swap here for more
             </a>
           </div>
@@ -388,7 +392,9 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
                 min={0}
                 onChange={handleChangeSecondTokenAmount}
                 value={secondTokenAmount}
-                ref={refFirstInput}
+                ref={refSecondInput}
+                onBlur={() => setFocusedInput(InputType.Off)}
+                onFocus={() => setFocusedInput(InputType.Second)}
               />
             </div>
           </div>

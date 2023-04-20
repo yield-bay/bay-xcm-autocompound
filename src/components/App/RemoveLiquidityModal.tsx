@@ -46,6 +46,10 @@ const RemoveLiquidityModal: FC = () => {
   const { method, percentage, firstTokenNumber, secondTokenNumber, lpAmount } =
     config;
 
+  useEffect(() => {
+    console.log('config', config);
+  }, [config]);
+
   const toast = useToast();
 
   // Process states
