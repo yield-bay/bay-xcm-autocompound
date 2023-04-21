@@ -178,20 +178,28 @@ const RemoveLiquidityModal: FC = () => {
           BigInt((lpBalance.reserved * parseInt(percentage, 10)) / 100)
       );
       console.log(
-        'blstuff',
-        BigInt(
-          (parseInt(percentage, 10) / 100) *
-            parseFloat(BigInt(lpBalance.free).toString(10))
-        ).toString(10),
-        'onlyres',
-        BigInt(lpBalReserved * 10 ** 18).toString(10)
+        'blstuff'
+        // BigInt(
+        //   (parseInt(percentage, 10) / 100) *
+        //     parseFloat(BigInt(lpBalance.free).toString(10))
+        // ).toString(10),
+        // 'onlyres',
+        // BigInt(lpBalReserved * 10 ** 18).toString(10)
+      );
+      console.log(
+        'myval',
+        percentage,
+        BigInt((lpBalance.free * parseInt(percentage, 10)) / 100),
+        BigInt(lpBalance.reserved) * BigInt(parseInt(percentage, 10) / 100),
+        BigInt((lpBalance.reserved * parseFloat(percentage)) / 100),
+        parseInt((parseFloat(lpAmount) * 10 ** 18, 10).toString())
       );
       if (
         // BigInt(parseInt(percentage, 10) / 100) *
         //   (BigInt(lpBalance.free) + BigInt(lpBalance.reserved)) ==
         // BigInt(0)
-        BigInt((lpBalance.free * parseInt(percentage, 10)) / 100) +
-          BigInt((lpBalance.reserved * parseInt(percentage, 10)) / 100) ==
+        BigInt(lpBalance.free) * BigInt(parseInt(percentage, 10) / 100) +
+          BigInt(lpBalance.reserved) * BigInt(parseInt(percentage, 10) / 100) ==
         BigInt(0)
       ) {
         console.log('totalburnbal is zero');
@@ -203,8 +211,9 @@ const RemoveLiquidityModal: FC = () => {
             pool.secondTokenId,
             // BigInt(parseInt(percentage, 10) / 100) *
             //   (BigInt(lpBalance.free) + BigInt(lpBalance.reserved)),
-            BigInt((lpBalance.free * parseInt(percentage, 10)) / 100) +
-              BigInt((lpBalance.reserved * parseInt(percentage, 10)) / 100),
+            BigInt(lpBalance.free) * BigInt(parseInt(percentage, 10) / 100) +
+              BigInt(lpBalance.reserved) *
+                BigInt(parseInt(percentage, 10) / 100),
             parseInt(config.percentage, 10)
           );
         } else if (method == 1) {
