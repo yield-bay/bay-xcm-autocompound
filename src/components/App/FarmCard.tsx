@@ -173,7 +173,7 @@ const FarmCard: FC<Props> = ({
               <span>Autocompounding</span>
             </div>
           )}
-          {lpBalanceNum !== 0 && (
+          {lpBalanceNum >= 0.001 && (
             <div className="flex flex-col gap-y-[6px] h-full items-center justify-center bg-[#151414] py-2 px-[23px] ring-1 ring-primaryGreen rounded-lg transition duration-200">
               <p className="text-[#868686] font-medium text-base leading-[#21.6px]">
                 You Deposited
