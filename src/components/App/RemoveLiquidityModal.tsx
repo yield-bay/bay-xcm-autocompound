@@ -124,6 +124,12 @@ const RemoveLiquidityModal: FC = () => {
       secondTokenId: mangataHelper.getTokenIdBySymbol(token1),
     });
 
+    let perc = percentage;
+    if (percentage == '') {
+      console.log('perccase');
+      perc = '100';
+    }
+
     try {
       const signer = account?.wallet?.signer;
       setIsSigning(true);
@@ -133,11 +139,14 @@ const RemoveLiquidityModal: FC = () => {
         parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** 18;
 
       console.log(
+        'amamamam',
+        lpAmount,
         'lpBalance.reserved',
         lpBalance.reserved,
         lpBalReserved,
         'percentage',
-        percentage
+        percentage,
+        'heroo'
       );
 
       let txns = [];
@@ -158,27 +167,29 @@ const RemoveLiquidityModal: FC = () => {
         );
         txns.push(deactx);
       }
+      // console.log(
+      //   'res',
+      //   lpBalReserved,
+      //   BigInt(lpBalance.reserved),
+      //   'free',
+      //   BigInt(lpBalance.free),
+      //   BigInt(lpBalance.free).toString(10),
+      //   parseInt(BigInt(lpBalance.free).toString(10)),
+      //   lpBalFree,
+      //   'free+res',
+      //   lpBalReserved + lpBalFree,
+      //   'thiss',
+      //   parseFloat(BigInt(lpBalance.free).toString(10)) +
+      //     parseFloat(BigInt(lpBalance.reserved).toString(10)),
+      //   BigInt(lpBalance.free) + BigInt(lpBalance.reserved),
+      //   // BigInt(parseInt(percentage, 10) / 100) *
+      //   BigInt((lpBalance.free * parseInt(percentage, 10)) / 100) +
+      //     BigInt((lpBalance.reserved * parseInt(percentage, 10)) / 100)
+      // );
       console.log(
-        'res',
-        lpBalReserved,
-        BigInt(lpBalance.reserved),
-        'free',
-        BigInt(lpBalance.free),
-        BigInt(lpBalance.free).toString(10),
-        parseInt(BigInt(lpBalance.free).toString(10)),
-        lpBalFree,
-        'free+res',
-        lpBalReserved + lpBalFree,
-        'thiss',
-        parseFloat(BigInt(lpBalance.free).toString(10)) +
-          parseFloat(BigInt(lpBalance.reserved).toString(10)),
-        BigInt(lpBalance.free) + BigInt(lpBalance.reserved),
-        // BigInt(parseInt(percentage, 10) / 100) *
-        BigInt((lpBalance.free * parseInt(percentage, 10)) / 100) +
-          BigInt((lpBalance.reserved * parseInt(percentage, 10)) / 100)
-      );
-      console.log(
-        'blstuff'
+        'blstuff',
+        lpBalance,
+        perc
         // BigInt(
         //   (parseInt(percentage, 10) / 100) *
         //     parseFloat(BigInt(lpBalance.free).toString(10))
@@ -186,20 +197,22 @@ const RemoveLiquidityModal: FC = () => {
         // 'onlyres',
         // BigInt(lpBalReserved * 10 ** 18).toString(10)
       );
-      console.log(
-        'myval',
-        percentage,
-        BigInt((lpBalance.free * parseInt(percentage, 10)) / 100),
-        BigInt(lpBalance.reserved) * BigInt(parseInt(percentage, 10) / 100),
-        BigInt((lpBalance.reserved * parseFloat(percentage)) / 100),
-        parseInt((parseFloat(lpAmount) * 10 ** 18, 10).toString())
-      );
+      // console.log(
+      //   'myval',
+      //   perc,
+      //   BigInt((lpBalance.free * parseInt(perc, 10)) / 100),
+      //   BigInt(lpBalance.reserved) * BigInt(parseInt(perc, 10) / 100),
+      //   BigInt((lpBalance.reserved * parseFloat(perc)) / 100)
+      //   // parseInt((parseFloat(lpAmount) * 10 ** 18, 10).toString()),
+      //   // lpAmount
+      // );
       if (
         // BigInt(parseInt(percentage, 10) / 100) *
         //   (BigInt(lpBalance.free) + BigInt(lpBalance.reserved)) ==
         // BigInt(0)
-        BigInt(lpBalance.free) * BigInt(parseInt(percentage, 10) / 100) +
-          BigInt(lpBalance.reserved) * BigInt(parseInt(percentage, 10) / 100) ==
+        (BigInt(lpBalance.free) * BigInt(parseInt(perc, 10))) / BigInt(100) +
+          (BigInt(lpBalance.reserved) * BigInt(parseInt(perc, 10))) /
+            BigInt(100) ==
         BigInt(0)
       ) {
         console.log('totalburnbal is zero');
@@ -211,17 +224,18 @@ const RemoveLiquidityModal: FC = () => {
             pool.secondTokenId,
             // BigInt(parseInt(percentage, 10) / 100) *
             //   (BigInt(lpBalance.free) + BigInt(lpBalance.reserved)),
-            BigInt(lpBalance.free) * BigInt(parseInt(percentage, 10) / 100) +
-              BigInt(lpBalance.reserved) *
-                BigInt(parseInt(percentage, 10) / 100),
+            (BigInt(lpBalance.free) * BigInt(parseInt(perc, 10))) /
+              BigInt(100) +
+              (BigInt(lpBalance.reserved) * BigInt(parseInt(perc, 10))) /
+                BigInt(100),
             parseInt(config.percentage, 10)
           );
         } else if (method == 1) {
           bltx = await mangataHelper.burnLiquidityTx(
             pool.firstTokenId,
             pool.secondTokenId,
-            BigInt(parseInt(lpAmount, 10)),
-            parseInt(percentage, 10) // Not used in burnLiquidityTx
+            BigInt(parseInt((parseFloat(lpAmount) * 10 ** 18).toString(), 10)),
+            parseInt(perc, 10) // Not used in burnLiquidityTx
           );
         }
         txns.push(bltx);
