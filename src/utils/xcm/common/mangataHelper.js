@@ -40,6 +40,10 @@ class MangataHelper {
     console.log('Assets on Mangata chain: ', this.assets);
   };
 
+  getBalances = async () => {
+    return await this.mangata.getBalances();
+  }
+
   getBalance = async (address, symbol) => {
     const tokenId = _.find(this.assets, { symbol }).id;
     const balance = await this.mangata.getTokenBalance(tokenId, address);
