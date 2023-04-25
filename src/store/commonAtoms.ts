@@ -14,6 +14,7 @@ export const addLiqModalOpenAtom = atom<boolean>(false);
 export const addLiquidityConfigAtom = atom({
   firstTokenAmount: 0,
   secondTokenAmount: 0,
+  lpAmount: 0,
   fees: 0,
 });
 
@@ -76,24 +77,3 @@ export const mgxBalanceAtom = atom<number>(0);
 export const userHasProxyAtom = atom<boolean>(false);
 
 export const lpUpdatedAtom = atom<number>(0);
-
-// won't need this, as main model isn't gonna hold any transactions in itself
-// export const trxnProcessAtom = atomWithStorage<boolean>(
-//   'jotai:trxn_process',
-//   false
-// );
-// export const modalOpenAtom = atomWithStorage<boolean>(
-//   'jotai:modal_open',
-//   false
-// );
-// export const mainModalOpenAtom = atom(
-//   (get) => {
-//     return get(trxnProcessAtom) || get(modalOpenAtom);
-//   },
-//   (get, set, update: boolean) => {
-//     const isInProcess = get(trxnProcessAtom);
-//     if (!isInProcess) {
-//       set(modalOpenAtom, update);
-//     }
-//   }
-// );

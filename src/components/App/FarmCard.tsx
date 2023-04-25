@@ -67,7 +67,7 @@ const FarmCard: FC<Props> = ({
   useEffect(() => {
     (async () => {
       if (pools == null) return;
-      if (token0 == 'ZLK') return;
+      if (token0 == 'ZLK' || token1 == 'RMRK') return;
       if (account == null) return;
 
       // Make a state for this

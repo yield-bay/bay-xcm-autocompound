@@ -209,7 +209,10 @@ const AddLiquidityModal: FC = () => {
           <div className="flex flex-col items-start">
             <p className="mb-3">To</p>
             <div className="inline-flex justify-start gap-x-8">
-              <TokenLabels symbol={`${token0}-${token1}`} amount={0} />
+              <TokenLabels
+                symbol={`${token0}-${token1}`}
+                amount={config.lpAmount}
+              />
             </div>
           </div>
           <div className="inline-flex gap-x-2 w-full">
