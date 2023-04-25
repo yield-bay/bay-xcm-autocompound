@@ -57,5 +57,5 @@ export function toNumberUnits(num: number): string {
   } else if (tempNum >= 10000 && tempNum < 1000000) {
     return (tempNum / 1000).toFixed(2) + 'K';
   }
-  return tempNum.toFixed(tempNum < 1 ? 3 : 2);
+  return tempNum.toFixed(2);
 }
