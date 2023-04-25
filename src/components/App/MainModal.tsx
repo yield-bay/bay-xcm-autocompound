@@ -192,7 +192,7 @@ const MainModal: FC = () => {
                     ? 'Stop current autocompounding task to add liquidity'
                     : tab.id == 2 && isAutocompounding
                     ? 'Stop current autocompounding task to remove liquidity'
-                    : (tab.id == 0 || tab.id == 2) && lpBalance == 0
+                    : tab.id == 2 && lpBalance == 0
                     ? 'No LP balance. Add Liquidity first.'
                     : ''
                 }
@@ -207,7 +207,7 @@ const MainModal: FC = () => {
                       !isAutocompounding &&
                       !userHasProxy) ||
                     ((tab.id == 1 || tab.id == 2) && isAutocompounding) ||
-                    ((tab.id == 0 || tab.id == 2) && lpBalance == 0)
+                    (tab.id == 2 && lpBalance == 0)
                   }
                   className={clsx(
                     // ((tab.id == 0 || tab.id == 2) && lpBalance == 0) ||

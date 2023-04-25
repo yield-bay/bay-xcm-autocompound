@@ -57,7 +57,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
   const [gasChoice, setGasChoice] = useState<number>(1); // default 0 == "MGX" / 1 == "TUR"
   const [totalFees, setTotalFees] = useState<number>(0);
 
-  // const [lpBalanceNum, setLpBalanceNum] = useState<number>(0);
+  const [lpBalanceNum, setLpBalanceNum] = useState<number>(0);
   const [mgxBalance, setMgxBalance] = useState<number>(0);
   const [turBalance, setTurBalance] = useState<number>(0);
   const [isAutocompounding, setIsAutocompounding] = useState<boolean>(false);
@@ -73,6 +73,21 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
     setHasEvent(selectedEvent != undefined ? true : false);
     console.log('hasEvent', hasEvent);
     console.log(`selected event @${token0}-${token1}`, selectedEvent);
+  }, []);
+
+  // Calculate LP balance
+  useEffect(() => {
+    (async (pool) => {
+      const lpBalance = await mangataHelper.mangata.getTokenBalance(
+        pool.liquidityTokenId,
+        account?.address
+      );
+      const decimal = mangataHelper.getDecimalsBySymbol(`${token0}-${token1}`);
+      const tokenAmount =
+        parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** decimal +
+        parseFloat(BigInt(lpBalance.reserved).toString(10)) / 10 ** decimal;
+      setLpBalanceNum(tokenAmount);
+    })(pool);
   }, []);
 
   const [token0, token1] = formatTokenSymbols(
@@ -449,8 +464,11 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       ) : (
         <div className="flex flex-col gap-y-2">
           <Button
-            text="Confirm"
+            text={
+              lpBalanceNum < 0.01 ? 'Insufficient LP Token balance' : 'Confirm'
+            }
             type="primary"
+            disabled={lpBalanceNum < 0.01}
             onClick={() => {
               setOpen(false);
               setIsOpenModal(true);

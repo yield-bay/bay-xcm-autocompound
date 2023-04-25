@@ -87,13 +87,11 @@ const FarmCard: FC<Props> = ({
         parseFloat(BigInt(lpBalance.reserved).toString(10)) / 10 ** decimal;
       setLpBalanceNum(tokenAmount);
     })();
-  }, [pools]);
+  }, []);
 
   // Conditions for disabling Autocompounding button
   const disabledCompoundingBtn =
-    (mgxBalance < 5000 && !isAutocompounding && !hasProxy) ||
-    lpBalanceNum == 0 ||
-    account == null;
+    (mgxBalance < 5000 && !isAutocompounding && !hasProxy) || account == null;
 
   return (
     <div
@@ -213,7 +211,8 @@ const FarmCard: FC<Props> = ({
                 }}
                 disabled={isAutocompounding || account == null}
               >
-                {lpBalanceNum != 0 ? (
+                {lpBalanceNum != 0 && lpBalanceNum >= 0.01 ? (
+                  // Remove liquidity only when user have significant LP tokens
                   <>
                     <p>Add/Remove</p>
                     <p>Liquidity</p>
@@ -227,8 +226,6 @@ const FarmCard: FC<Props> = ({
               label={
                 account == null
                   ? 'Please connect wallet to manage Autocompounding.'
-                  : lpBalanceNum == 0
-                  ? 'Add liquidity to autocompound'
                   : mgxBalance < 5000 && !isAutocompounding && !hasProxy
                   ? 'Need a minimum of 5000 MGX as free balance to autocompound.'
                   : ''
