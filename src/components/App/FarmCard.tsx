@@ -177,7 +177,7 @@ const FarmCard: FC<Props> = ({
                 You Deposited
               </p>
               <p className="text-2xl leading-8 text-white">
-                {lpBalanceNum > 0 && lpBalanceNum < 0.01
+                {lpBalanceNum < 0.01
                   ? '<0.01 LP'
                   : `${toNumberUnits(lpBalanceNum)} LP`}
               </p>
