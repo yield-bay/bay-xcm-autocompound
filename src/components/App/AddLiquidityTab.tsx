@@ -45,6 +45,8 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
   const [secondTokenBalance, setSecondTokenBalance] = useState<number | null>(
     null
   );
+  const [lpTotalBalance, setLpTotalBalance] = useState<number>(0);
+  const [estimateLpMinted, setEstimateLpMinted] = useState<number>(0);
 
   const MAX_SLIPPAGE = 0.08; // 8% slippage; can’t be too large
   const [fees, setFees] = useState<number | null>(null);
@@ -76,6 +78,32 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
       console.log('error in handleFees', error);
     }
   };
+
+  useEffect(() => {
+    (async () => {
+      let assetsInfo = await mangataHelper.mangata.getAssetsInfo();
+      // console.log("assetsInfo", assetsInfo);
+      const balances = await mangataHelper.getBalances();
+      for (const key in balances) {
+        if (Object.hasOwnProperty.call(balances, key)) {
+          const element = balances[key];
+          // console.log("ai", assetsInfo[key]);
+
+          // console.log("----------\nkey:", key, "balhex:", element);
+          if (assetsInfo[key] !== undefined) {
+            const e =
+              BigInt(element).toString(10) / 10 ** assetsInfo[key]['decimals'];
+            // console.log('bal:', e, '\n----------');
+            if (pool.liquidityTokenId == key) {
+              console.log('bal:', e, '\n----------');
+              console.log('match id');
+              setLpTotalBalance(e);
+            }
+          }
+        }
+      }
+    })();
+  });
 
   // Fetch LP balance from mangataHelper
   useEffect(() => {
@@ -133,7 +161,20 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
   // Method to update second token amount based on first token amount
   const updateSecondTokenAmount = (firstTokenAmount: number): string => {
     const poolRatio = pool.firstTokenAmountFloat / pool.secondTokenAmountFloat;
-    console.log('poolRatio', poolRatio);
+    console.log(
+      'poolRatio',
+      poolRatio,
+      lpTotalBalance,
+      firstTokenAmount,
+      pool.firstTokenAmountFloat.toString(),
+      pool.secondTokenAmountFloat.toString(),
+      pool
+    );
+    const amt =
+      (firstTokenAmount * lpTotalBalance) /
+      parseFloat(pool.firstTokenAmountFloat.toString());
+    console.log('amtttt1', amt);
+    setEstimateLpMinted(amt);
 
     // Calculate second token amount
     const expectedSecondTokenAmount =
@@ -151,6 +192,12 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
   const updateFirstTokenAmount = (secondTokenAmount: number): string => {
     const poolRatio = pool.firstTokenAmountFloat / pool.secondTokenAmountFloat;
     console.log('poolRatio', poolRatio);
+
+    const amt =
+      (secondTokenAmount * lpTotalBalance) /
+      parseFloat(pool.secondTokenAmountFloat.toString());
+    console.log('amtttt2', amt);
+    setEstimateLpMinted(amt);
 
     // Calculate first token amount
     const expectedFirstTokenAmount =
