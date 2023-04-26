@@ -52,6 +52,7 @@ const FarmCard: FC<Props> = ({
 
   const [lpBalanceNum, setLpBalanceNum] = useState(0);
   const [isAutocompounding, setIsAutocompounding] = useState(false);
+  const [insufficientBal, setInsufficientBal] = useState(false);
 
   const tokenNames = formatTokenSymbols(
     replaceTokenSymbols(farm?.asset.symbol)
@@ -86,8 +87,9 @@ const FarmCard: FC<Props> = ({
         parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** decimal +
         parseFloat(BigInt(lpBalance.reserved).toString(10)) / 10 ** decimal;
       setLpBalanceNum(tokenAmount);
+      setInsufficientBal(tokenAmount < 0.01);
     })();
-  }, []);
+  }, [pools]);
 
   // Conditions for disabling Autocompounding button
   const disabledCompoundingBtn =
@@ -177,7 +179,7 @@ const FarmCard: FC<Props> = ({
                 You Deposited
               </p>
               <p className="text-2xl leading-8 text-white">
-                {lpBalanceNum < 0.01
+                {insufficientBal
                   ? '<0.01 LP'
                   : `${toNumberUnits(lpBalanceNum)} LP`}
               </p>
@@ -211,8 +213,7 @@ const FarmCard: FC<Props> = ({
                 }}
                 disabled={isAutocompounding || account == null}
               >
-                {lpBalanceNum != 0 && lpBalanceNum >= 0.01 ? (
-                  // Remove liquidity only when user have significant LP tokens
+                {lpBalanceNum !== 0 && !insufficientBal ? (
                   <>
                     <p>Add/Remove</p>
                     <p>Liquidity</p>

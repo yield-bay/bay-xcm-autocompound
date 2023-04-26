@@ -69,7 +69,8 @@ const MainModal: FC = () => {
   const [pool, setPool] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const [lpBalance, setLpBalance] = useState<any>(0);
+  // const [lpBalance, setLpBalance] = useState<any>(0);
+  const lpBalance = 7e-17;
 
   const toast = useToast();
 
@@ -82,7 +83,8 @@ const MainModal: FC = () => {
     const poolName = `${token0}-${token1}`;
     console.log('poolname', poolName);
 
-    setLpBalance(allLpBalances[poolName]);
+    console.log('balance in componding tab', allLpBalances[poolName]);
+    // setLpBalance(allLpBalances[poolName]);
     // Make a state for this
     const pool = _.find(pools, {
       firstTokenId: mangataHelper.getTokenIdBySymbol(token0),
@@ -154,8 +156,6 @@ const MainModal: FC = () => {
   };
 
   useEffect(() => {
-    console.log('isInitialised', isInitialised);
-    console.log('selectedFarm', selectedFarm);
     if (isInitialised && selectedFarm != null) {
       initialiseHelperSetup();
     }
@@ -192,8 +192,8 @@ const MainModal: FC = () => {
                     ? 'Stop current autocompounding task to add liquidity'
                     : tab.id == 2 && isAutocompounding
                     ? 'Stop current autocompounding task to remove liquidity'
-                    : tab.id == 2 && lpBalance == 0
-                    ? 'No LP balance. Add Liquidity first.'
+                    : tab.id == 2 && lpBalance < 0.01
+                    ? 'Insufficient LP token balance. Add Liquidity first.'
                     : ''
                 }
                 placement="top"
@@ -207,13 +207,9 @@ const MainModal: FC = () => {
                       !isAutocompounding &&
                       !userHasProxy) ||
                     ((tab.id == 1 || tab.id == 2) && isAutocompounding) ||
-                    (tab.id == 2 && lpBalance == 0)
+                    (tab.id == 2 && lpBalance <= 0.01)
                   }
                   className={clsx(
-                    // ((tab.id == 0 || tab.id == 2) && lpBalance == 0) ||
-                    //   ((tab.id == 1 || tab.id == 2) && isAutocompounding)
-                    //   ? 'hidden'
-                    //   : 'block',
                     tab.id == selectedTab
                       ? 'ring-1 ring-primaryGreen px-4'
                       : 'opacity-40',
