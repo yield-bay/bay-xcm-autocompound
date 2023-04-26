@@ -31,6 +31,7 @@ import {
 } from '@utils/api';
 import { useMutation } from 'urql';
 import getTimestamp from '@utils/getTimestamp';
+import { IS_PRODUCTION } from '@utils/constants';
 
 const CompoundModal: FC = () => {
   const [, setOpenMainModal] = useAtom(mainModalOpenAtom);
@@ -72,7 +73,9 @@ const CompoundModal: FC = () => {
   const [lpBalanceNum, setLpBalanceNum] = useState<number>(0);
 
   const [token0, token1] = formatTokenSymbols(
-    replaceTokenSymbols(farm?.asset.symbol ?? 'MGR-TUR LP')
+    IS_PRODUCTION
+      ? farm?.asset.symbol ?? 'MGX-TUR LP'
+      : replaceTokenSymbols(farm?.asset.symbol ?? 'MGR-TUR LP')
   );
   const lpName = `${token0}-${token1}`;
 
@@ -185,12 +188,17 @@ const CompoundModal: FC = () => {
       );
 
       // Adding Xcmp Task of the completed compounding
-      addXcmpTaskHandler(taskId, turingAddress as string, lpName, 'ROCOCO');
+      addXcmpTaskHandler(
+        taskId,
+        turingAddress as string,
+        lpName,
+        IS_PRODUCTION ? 'KUSAMA' : 'ROCOCO'
+      );
 
       // Creating Autocompounding Event
       createAutocompoundingHandler(
         turingAddress as string,
-        'ROCOCO',
+        IS_PRODUCTION ? 'KUSAMA' : 'ROCOCO',
         taskId,
         { symbol: lpName, amount: lpBalanceNum },
         duration,
@@ -704,7 +712,7 @@ const CompoundModal: FC = () => {
           activeStep={!isInProcess ? 0 : isSigning ? 1 : 2}
           steps={[
             { label: 'Confirm' },
-            { label: 'MGR' },
+            { label: IS_PRODUCTION ? 'MGX' : 'MGR' },
             { label: 'Complete' },
           ]}
         />

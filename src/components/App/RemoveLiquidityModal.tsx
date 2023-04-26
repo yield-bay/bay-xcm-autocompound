@@ -25,6 +25,7 @@ import { TokenType } from '@utils/types';
 import { useMutation } from 'urql';
 import { createLiquidityEventMutation } from '@utils/api';
 import getTimestamp from '@utils/getTimestamp';
+import { IS_PRODUCTION } from '@utils/constants';
 
 const RemoveLiquidityModal: FC = () => {
   const [, setOpenMainModal] = useAtom(mainModalOpenAtom);
@@ -53,7 +54,9 @@ const RemoveLiquidityModal: FC = () => {
   const [isSuccess, setIsSuccess] = useState(false);
 
   const [token0, token1] = formatTokenSymbols(
-    replaceTokenSymbols(farm?.asset.symbol ?? 'MGR-TUR LP')
+    IS_PRODUCTION
+      ? farm?.asset.symbol ?? 'MGX-TUR LP'
+      : replaceTokenSymbols(farm?.asset.symbol ?? 'MGR-TUR LP')
   );
 
   useEffect(() => {
@@ -274,7 +277,7 @@ const RemoveLiquidityModal: FC = () => {
               // resolve();
               createLiquidityEventHandler(
                 turingAddress as string,
-                'ROCOCO',
+                IS_PRODUCTION ? 'KUSAMA' : 'ROCOCO',
                 { symbol: token0, amount: firstTokenNumber },
                 { symbol: token1, amount: secondTokenNumber },
                 {

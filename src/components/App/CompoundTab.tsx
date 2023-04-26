@@ -31,6 +31,7 @@ import Tooltip from '@components/Library/Tooltip';
 import RadioButton from '@components/Library/RadioButton';
 import Button from '@components/Library/Button';
 import ToastWrapper from '@components/Library/ToastWrapper';
+import { IS_PRODUCTION } from '@utils/constants';
 
 const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
   const [, setOpen] = useAtom(mainModalOpenAtom);
@@ -91,7 +92,9 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
   }, []);
 
   const [token0, token1] = formatTokenSymbols(
-    replaceTokenSymbols(farm?.asset.symbol)
+    IS_PRODUCTION
+      ? farm?.asset.symbol!
+      : replaceTokenSymbols(farm?.asset.symbol!)
   );
 
   const APY = farm?.apr.base + farm?.apr.reward;
@@ -411,7 +414,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
             <RadioButton
               changed={setGasChoice}
               isSelected={gasChoice == 0}
-              label="Pay with MGR"
+              label={IS_PRODUCTION ? 'Pay with MGX' : 'Pay with MGR'}
               value={0}
               className={gasChoice == 0 ? '' : 'opacity-50'}
               disabled
@@ -428,7 +431,9 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
           <div className="inline-flex gap-x-2 rounded-lg bg-[#232323] py-4 px-6 select-none">
             <span className="text-primaryGreen">Balance:</span>
             {gasChoice == 0 ? (
-              <span>{mgxBalance ?? 'loading...'} MGR</span>
+              <span>
+                {mgxBalance ?? 'loading...'} {IS_PRODUCTION ? 'MGX' : 'MGR'}
+              </span>
             ) : (
               <p>
                 {turBalance ?? 'loading...'} TUR

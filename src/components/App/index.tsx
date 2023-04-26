@@ -21,6 +21,7 @@ import {
   viewPositionsAtom,
   lpUpdatedAtom,
 } from '@store/commonAtoms';
+import { IS_PRODUCTION } from '@utils/constants';
 
 const App = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -48,7 +49,7 @@ const App = () => {
     query: XcmpTasksQuery,
     variables: {
       userAddress: turingAddress,
-      chain: 'ROCOCO',
+      chain: IS_PRODUCTION ? 'KUSAMA' : 'ROCOCO',
     },
     pause: turingAddress == null && !isInitialised,
   });
@@ -64,7 +65,7 @@ const App = () => {
       query: autocompoundEventsQuery,
       variables: {
         userAddress: turingAddress,
-        chain: 'ROCOCO',
+        chain: IS_PRODUCTION ? 'KUSAMA' : 'ROCOCO',
       },
       pause: turingAddress == null && !isInitialised,
     }

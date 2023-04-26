@@ -11,6 +11,7 @@ import {
 import { formatTokenSymbols, replaceTokenSymbols } from '@utils/farmMethods';
 import { TabProps } from '@utils/types';
 import { accountAtom } from '@store/accountAtoms';
+import { IS_PRODUCTION } from '@utils/constants';
 
 const RemoveLiquidityTab = ({ farm, pool }: TabProps) => {
   const [account] = useAtom(accountAtom);
@@ -25,7 +26,9 @@ const RemoveLiquidityTab = ({ farm, pool }: TabProps) => {
   const [methodId, setMethodId] = useState<number>(0);
 
   const [token0, token1] = formatTokenSymbols(
-    replaceTokenSymbols(farm?.asset.symbol)
+    IS_PRODUCTION
+      ? farm?.asset.symbol!
+      : replaceTokenSymbols(farm?.asset.symbol!)
   );
 
   const handlePercChange = (event: any) => {

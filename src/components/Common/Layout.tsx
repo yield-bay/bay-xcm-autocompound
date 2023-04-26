@@ -26,7 +26,13 @@ import {
   allLpBalancesAtom,
   userHasProxyAtom,
 } from '@store/commonAtoms';
-import { MangataRococo, TuringStaging } from '@utils/xcm/config';
+import {
+  MangataRococo,
+  TuringStaging,
+  Mangata,
+  Turing,
+} from '@utils/xcm/config';
+import { IS_PRODUCTION } from '@utils/constants';
 import TuringHelper from '@utils/xcm/common/turingHelper';
 import MangataHelper from '@utils/xcm/common/mangataHelper';
 import Account from '@utils/xcm/common/account';
@@ -75,11 +81,17 @@ const Layout: FC<Props> = ({ children }) => {
       console.log('Initializing APIs of both chains ...');
 
       // Helper setup for Mangata and Turing on Rococo Testnet
-      const turingHelper = new TuringHelper(TuringStaging);
+      let turingConfig = TuringStaging;
+      let mangataConfig = MangataRococo;
+      if (IS_PRODUCTION) {
+        turingConfig = Turing;
+        mangataConfig = Mangata;
+      }
+      const turingHelper = new TuringHelper(turingConfig);
       await turingHelper.initialize();
       setTuringHelper(turingHelper);
 
-      const mangataHelper = new MangataHelper(MangataRococo);
+      const mangataHelper = new MangataHelper(mangataConfig);
       await mangataHelper.initialize();
       setMangataHelper(mangataHelper);
 

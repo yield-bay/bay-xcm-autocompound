@@ -14,6 +14,7 @@ import {
 import { formatTokenSymbols, replaceTokenSymbols } from '@utils/farmMethods';
 import { TabProps } from '@utils/types';
 import ToastWrapper from '@components/Library/ToastWrapper';
+import { IS_PRODUCTION } from '@utils/constants';
 
 const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
   const [mangataHelper] = useAtom(mangataHelperAtom);
@@ -55,7 +56,9 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
   const toast = useToast();
 
   const [token0, token1] = formatTokenSymbols(
-    replaceTokenSymbols(farm?.asset.symbol)
+    IS_PRODUCTION
+      ? farm?.asset.symbol!
+      : replaceTokenSymbols(farm?.asset.symbol!)
   );
 
   // Estimate of fees; no need to be accurate
@@ -260,7 +263,7 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
       });
       return;
     }
-    if (token0 == 'MGR') {
+    if (token0 == 'MGR' || token0 == 'MGX') {
       setFirstTokenAmount(
         firstTokenBalance
           ? (firstTokenBalance - (fees ?? 0) - 20).toString()
@@ -290,7 +293,7 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
       });
       return;
     }
-    if (token1 == 'MGR') {
+    if (token1 == 'MGR' || token1 == 'MGX') {
       setSecondTokenAmount(
         secondTokenBalance
           ? (secondTokenBalance - (fees ?? 0) - 20).toString()
@@ -485,7 +488,9 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
         {fees !== null ? (
           <div className="flex flex-row justify-between">
             <p className="inline-flex items-center">Fee</p>
-            <p>{fees.toFixed(3)} MGR</p>
+            <p>
+              {fees.toFixed(3)} {IS_PRODUCTION ? 'MGX' : 'MGR'}
+            </p>
           </div>
         ) : firstTokenAmount.length > 0 && secondTokenAmount.length > 0 ? (
           <div className="text-center font-medium tracking-wide">

@@ -24,6 +24,7 @@ import {
 } from '@store/commonAtoms';
 import Tooltip from '@components/Library/Tooltip';
 import _ from 'lodash';
+import { IS_PRODUCTION } from '@utils/constants';
 
 interface Props {
   farm: FarmType;
@@ -55,7 +56,9 @@ const FarmCard: FC<Props> = ({
   const [insufficientBal, setInsufficientBal] = useState(false);
 
   const tokenNames = formatTokenSymbols(
-    replaceTokenSymbols(farm?.asset.symbol)
+    IS_PRODUCTION
+      ? farm?.asset.symbol!
+      : replaceTokenSymbols(farm?.asset.symbol!)
   );
   const [token0, token1] = tokenNames;
 

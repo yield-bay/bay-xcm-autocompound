@@ -21,6 +21,7 @@ import { TokenType } from '@utils/types';
 import ToastWrapper from '@components/Library/ToastWrapper';
 import Stepper from '@components/Library/Stepper';
 import Link from 'next/link';
+import { IS_PRODUCTION } from '@utils/constants';
 
 const StopCompoundingModal: FC = () => {
   const [account] = useAtom(accountAtom); // selected account
@@ -68,7 +69,7 @@ const StopCompoundingModal: FC = () => {
       // Update Autocompounding Event in Tracking
       updateAutocompoundingHandler(
         turingAddress as string,
-        'ROCOCO',
+        IS_PRODUCTION ? 'KUSAMA' : 'ROCOCO',
         currentTask?.taskId as string,
         {
           symbol: currentTask?.lpName as string,

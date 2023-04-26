@@ -24,6 +24,7 @@ import { TokenType } from '@utils/types';
 import { createLiquidityEventMutation } from '@utils/api';
 import { useMutation } from 'urql';
 import getTimestamp from '@utils/getTimestamp';
+import { IS_PRODUCTION } from '@utils/constants';
 
 const AddLiquidityModal: FC = () => {
   const [, setOpenMainModal] = useAtom(mainModalOpenAtom);
@@ -45,7 +46,9 @@ const AddLiquidityModal: FC = () => {
   const [isSuccess, setIsSuccess] = useState(false);
 
   const [token0, token1] = formatTokenSymbols(
-    replaceTokenSymbols(farm?.asset.symbol ?? 'MGR-TUR LP')
+    IS_PRODUCTION
+      ? farm?.asset.symbol ?? 'MGX-TUR LP'
+      : replaceTokenSymbols(farm?.asset.symbol ?? 'MGR-TUR LP')
   );
 
   // Mutation to add config as a createLiquidityEvent
@@ -139,7 +142,7 @@ const AddLiquidityModal: FC = () => {
               // Calling the ADD_LIQUIDITY tracker in isFinalised status
               createLiquidityEventHandler(
                 turingAddress as string,
-                'ROCOCO',
+                IS_PRODUCTION ? 'KUSAMA' : 'ROCOCO',
                 { symbol: token0, amount: config.firstTokenAmount },
                 { symbol: token1, amount: config.secondTokenAmount },
                 { symbol: `${token0}-${token1}`, amount: 0 },

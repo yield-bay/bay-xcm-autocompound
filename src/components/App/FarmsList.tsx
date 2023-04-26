@@ -5,6 +5,7 @@ import Loader from '@components/Library/Loader';
 import FarmCard from './FarmCard';
 import { formatTokenSymbols, replaceTokenSymbols } from '@utils/farmMethods';
 import { mgxBalanceAtom, userHasProxyAtom } from '@store/commonAtoms';
+import { IS_PRODUCTION } from '@utils/constants';
 
 interface Props {
   farms: FarmType[];
@@ -37,7 +38,9 @@ const FarmsList: FC<Props> = ({
       ) : !noFarms ? (
         farms.map((farm, index) => {
           const [token0, token1] = formatTokenSymbols(
-            replaceTokenSymbols(farm?.asset.symbol)
+            IS_PRODUCTION
+              ? farm?.asset.symbol!
+              : replaceTokenSymbols(farm?.asset.symbol!)
           );
           const xcmpTask = xcmpTasks.find(
             (task) => task.lpName == `${token0}-${token1}`

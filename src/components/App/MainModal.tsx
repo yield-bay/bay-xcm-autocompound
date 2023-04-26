@@ -33,6 +33,7 @@ import AddLiquidityTab from './AddLiquidityTab';
 import RemoveLiquidityTab from './RemoveLiquidityTab';
 import ToastWrapper from '@components/Library/ToastWrapper';
 import Tooltip from '@components/Library/Tooltip';
+import { IS_PRODUCTION } from '@utils/constants';
 
 const tabs = [
   { name: 'Compound', id: 0 },
@@ -76,7 +77,9 @@ const MainModal: FC = () => {
   const initialiseHelperSetup = async () => {
     if (pools == null) return;
     const [token0, token1] = formatTokenSymbols(
-      replaceTokenSymbols(selectedFarm?.asset.symbol as string)
+      IS_PRODUCTION
+        ? selectedFarm?.asset.symbol!
+        : replaceTokenSymbols(selectedFarm?.asset.symbol!)
     );
 
     const poolName = `${token0}-${token1}`;
@@ -186,7 +189,9 @@ const MainModal: FC = () => {
                   mgxBalance < 5000 &&
                   !isAutocompounding &&
                   !userHasProxy
-                    ? 'Need a minimum of 5000 MGR as free balance to autocompound.'
+                    ? IS_PRODUCTION
+                      ? 'Need a minimum of 5000 MGX as free balance to autocompound.'
+                      : 'Need a minimum of 5000 MGR as free balance to autocompound.'
                     : tab.id == 1 && isAutocompounding
                     ? 'Stop current autocompounding task to add liquidity'
                     : tab.id == 2 && isAutocompounding

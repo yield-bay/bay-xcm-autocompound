@@ -1,3 +1,4 @@
+import { IS_PRODUCTION } from '@utils/constants';
 import { formatTokenSymbols, replaceTokenSymbols } from '@utils/farmMethods';
 import { FarmType } from '@utils/types';
 
@@ -17,7 +18,9 @@ export default function useFilteredFarms(
   const filtered = farms.filter((farm: any) => {
     let matchTerm = '';
     const tokenNames = formatTokenSymbols(
-      replaceTokenSymbols(farm?.asset.symbol)
+      IS_PRODUCTION
+        ? farm?.asset.symbol!
+        : replaceTokenSymbols(farm?.asset.symbol!)
     );
 
     tokenNames.forEach((tokenName) => {

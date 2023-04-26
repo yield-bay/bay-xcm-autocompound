@@ -1,5 +1,5 @@
 // STATE
-export const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+export const IS_PRODUCTION = process.env.NEXT_PUBLIC_NODE_ENV === 'production';
 
 // API URLS
 export const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
@@ -21,9 +21,9 @@ export const YIELDBAY_DISCORD = 'https://discord.gg/AKHuvbz7q4';
 export const YIELDBAY_DOCS = 'https://docs.yieldbay.io/';
 export const YIELDBAY_GITHUB = 'https://github.com/yield-bay/';
 
-// MANGATA
+// RPCs
 export const MAINNET = [
   'wss://mangata-x.api.onfinality.io/public-ws',
   'wss://prod-kusama-collator-01.mangatafinance.cloud',
 ];
-export const TESTNET = 'wss://roccoco-testnet-collator-01.mangatafinance.cloud';
+export const TESTNET = 'wss://collator-01-ws-rococo.mangata.online';
