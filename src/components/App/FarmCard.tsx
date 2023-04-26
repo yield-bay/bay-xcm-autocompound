@@ -1,14 +1,12 @@
 import { FC, useEffect, useState } from 'react';
-import { useToast } from '@chakra-ui/react';
 import Image from 'next/image';
 import clsx from 'clsx';
 import { useAtom } from 'jotai';
 import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
-// import { motion } from 'framer-motion';
-import ToastWrapper from '@components/Library/ToastWrapper';
 import FarmAssets from '@components/Library/FarmAssets';
-import toDollarUnits, {
-  formatFarmType,
+import {
+  toDollarUnits,
+  toNumberUnits,
   formatTokenSymbols,
   replaceTokenSymbols,
 } from '@utils/farmMethods';
@@ -52,26 +50,25 @@ const FarmCard: FC<Props> = ({
   const [mangataHelper] = useAtom(mangataHelperAtom);
   const [pools] = useAtom(poolsAtom);
 
-  const [lpBalanceNum, setLpBalanceNum] = useState(0.0);
+  const [lpBalanceNum, setLpBalanceNum] = useState(0);
   const [isAutocompounding, setIsAutocompounding] = useState(false);
+  const [insufficientBal, setInsufficientBal] = useState(false);
 
   const tokenNames = formatTokenSymbols(
     replaceTokenSymbols(farm?.asset.symbol)
   );
   const [token0, token1] = tokenNames;
 
-  const toast = useToast();
-
   useEffect(() => {
-    console.log(`xcmptask in farmcard ${token0}-${token1}`, xcmpTask);
+    console.log(`${token0}-${token1} xcmptask`, xcmpTask);
     setIsAutocompounding(xcmpTask?.status == 'RUNNING' ? true : false);
-  }, []);
+  }, [xcmpTask]);
 
   // Calculate LP balance
   useEffect(() => {
     (async () => {
       if (pools == null) return;
-      if (token0 == 'ZLK') return;
+      if (token0 == 'ZLK' || token1 == 'RMRK') return;
       if (account == null) return;
 
       // Make a state for this
@@ -90,8 +87,13 @@ const FarmCard: FC<Props> = ({
         parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** decimal +
         parseFloat(BigInt(lpBalance.reserved).toString(10)) / 10 ** decimal;
       setLpBalanceNum(tokenAmount);
+      setInsufficientBal(tokenAmount < 0.01);
     })();
   }, [pools]);
+
+  // Conditions for disabling Autocompounding button
+  const disabledCompoundingBtn =
+    (mgxBalance < 5000 && !isAutocompounding && !hasProxy) || account == null;
 
   return (
     <div
@@ -99,10 +101,6 @@ const FarmCard: FC<Props> = ({
         viewPositions ? (lpBalanceNum > 0.0 ? 'flex' : 'hidden') : 'flex',
         'flex-row w-full bg-baseGrayDark hover:ring-[1px] transition duration-20 ring-primaryGreen rounded-lg'
       )}
-      // initial={{ opacity: '0' }}
-      // animate={{ opacity: '100%', y: '0' }}
-      // whileInView={{ opacity: '100%' }}
-      // transition={{ duration: 0.2, type: 'spring' }}
     >
       {/* LEFT */}
       <div className="flex flex-row items-center justify-between px-6 py-14 w-full max-w-[400px] rounded-l-lg bg-card-gradient">
@@ -110,9 +108,6 @@ const FarmCard: FC<Props> = ({
         <div className="flex flex-col gap-y-[10px]">
           <div className="flex flex-row gap-x-3">
             <FarmAssets logos={farm?.asset.logos} />
-            <div className="py-[9px] select-none px-4 bg-white text-xs text-black rounded-full">
-              {formatFarmType(farm?.farmType)}
-            </div>
           </div>
           <p className="text-2xl text-offWhite">
             {tokenNames.map((tokenName, index) => (
@@ -133,9 +128,7 @@ const FarmCard: FC<Props> = ({
           />
         </button> */}
       </div>
-      {/* RIGHT SIDE */}
       <div className="flex flex-row pl-8 pr-7 py-6 justify-between w-full rounded-r-lg">
-        {/* Right Left */}
         <div className="flex flex-col justify-between">
           <div className="flex flex-col">
             <p className="font-medium text-base leading-5 opacity-50">TVL</p>
@@ -166,123 +159,99 @@ const FarmCard: FC<Props> = ({
             </div>
           </div>
         </div>
-        {/* Right Right */}
-        <div className="relative flex flex-col justify-between">
-          {isAutocompounding && (
-            <div className="hidden lg:inline-flex select-none drop-shadow-xl gap-x-2 absolute right-[186px] font-medium text-[#868686] text-base leading-[21.6px]">
+        {/* RIGHT */}
+        <div className="relative inline-flex gap-x-4">
+          {account && isAutocompounding && (
+            <div className="hidden absolute -left-[190px] lg:inline-flex select-none drop-shadow-xl gap-x-2 font-medium text-[#868686] text-base leading-[21.6px]">
               <Image
                 src="/icons/ThunderIcon.svg"
                 alt="active autocompounding"
                 width={16}
                 height={16}
+                className="w-auto h-auto"
               />
               <span>Autocompounding</span>
             </div>
           )}
-          {lpBalanceNum == 0 ? (
+          {lpBalanceNum !== 0 && (
+            <div className="flex flex-col gap-y-[6px] h-full items-center justify-center bg-[#151414] py-2 px-[23px] ring-1 ring-primaryGreen rounded-lg transition duration-200">
+              <p className="text-[#868686] font-medium text-base leading-[#21.6px]">
+                You Deposited
+              </p>
+              <p className="text-2xl leading-8 text-white">
+                {insufficientBal
+                  ? '<0.01 LP'
+                  : `${toNumberUnits(lpBalanceNum)} LP`}
+              </p>
+            </div>
+          )}
+          {/* Right Right */}
+          <div className="flex flex-col justify-between">
             <Tooltip
               label={
-                isAutocompounding
-                  ? 'Stop autocompounding if you wish to Add/Remove liquidity.'
+                account == null
+                  ? 'Please connect wallet to add Liquidity.'
+                  : isAutocompounding
+                  ? 'stop current task to add OR remove liquidity.'
                   : ''
               }
               placement="left"
             >
               <button
                 className={clsx(
-                  'bg-baseGray py-4 px-5 text-white text-base leading-5 hover:ring-1 ring-baseGrayLow rounded-lg transition duration-200',
-                  isAutocompounding
+                  'bg-baseGray py-4 px-5 h-full mb-4 text-white text-base leading-5 hover:ring-1 ring-baseGrayLow rounded-lg transition duration-200',
+                  isAutocompounding || account == null
                     ? 'cursor-default hover:ring-0 opacity-50'
                     : ''
                 )}
                 onClick={() => {
-                  if (account == null) {
-                    toast({
-                      position: 'top',
-                      duration: 3000,
-                      render: () => (
-                        <ToastWrapper
-                          title="Please Connect Wallet"
-                          status="error"
-                        />
-                      ),
-                    });
-                  } else {
-                    setOpen(true);
-                    setSelectedTab(1);
-                    setSelectedFarm(farm);
-                    setSelectedTask(xcmpTask);
-                    setSelectedEvent(autocompoundEvent);
-                  }
+                  setOpen(true);
+                  setSelectedTab(1);
+                  setSelectedFarm(farm);
+                  setSelectedTask(xcmpTask);
+                  setSelectedEvent(autocompoundEvent);
                 }}
-                disabled={isAutocompounding}
+                disabled={isAutocompounding || account == null}
               >
-                <p>Add/Remove</p>
-                <p>Liquidity</p>
+                {lpBalanceNum !== 0 && !insufficientBal ? (
+                  <>
+                    <p>Add/Remove</p>
+                    <p>Liquidity</p>
+                  </>
+                ) : (
+                  <p>Add Liquidity</p>
+                )}
               </button>
             </Tooltip>
-          ) : (
-            <button
-              className="flex flex-col items-center bg-[#151414] py-2 px-5 ring-1 ring-primaryGreen rounded-lg transition duration-200"
-              onClick={() => {
-                setOpen(true);
-                setSelectedTab(1);
-                setSelectedFarm(farm);
-                setSelectedTask(xcmpTask);
-                setSelectedEvent(autocompoundEvent);
-              }}
-              disabled={isAutocompounding}
+            <Tooltip
+              label={
+                account == null
+                  ? 'Please connect wallet to manage Autocompounding.'
+                  : mgxBalance < 5000 && !isAutocompounding && !hasProxy
+                  ? 'Need a minimum of 5000 MGX as free balance to autocompound.'
+                  : ''
+              }
+              placement="left"
             >
-              <p className="text-[#868686] font-medium text-base leading-[#21.6px]">
-                You Deposited
-              </p>
-              <p className="text-2xl leading-8 text-white">
-                {lpBalanceNum.toFixed(2)} LP
-              </p>
-            </button>
-          )}
-          <Tooltip
-            label={
-              // MGX Balance is less than 500 & no autocompounding
-              mgxBalance < 5000 && !isAutocompounding && !hasProxy
-                ? 'Need a minimum of 5000 MGX as free balance to autocompound.'
-                : ''
-            }
-            placement="left"
-          >
-            <button
-              className={clsx(
-                'px-4 py-3 rounded-lg bg-white hover:bg-offWhite hover:ring-1 ring-offWhite active:ring-0 text-black transition duration-200',
-                mgxBalance < 5000 &&
-                  !isAutocompounding &&
-                  !hasProxy &&
-                  'hover:ring-0 hover:bg-white opacity-50 cursor-default'
-              )}
-              onClick={() => {
-                if (account == null) {
-                  toast({
-                    position: 'top',
-                    duration: 3000,
-                    render: () => (
-                      <ToastWrapper
-                        title="Please Connect Wallet"
-                        status="error"
-                      />
-                    ),
-                  });
-                } else {
+              <button
+                className={clsx(
+                  'px-4 py-3 rounded-lg bg-white hover:bg-offWhite hover:ring-1 ring-offWhite active:ring-0 text-black transition duration-200',
+                  disabledCompoundingBtn &&
+                    'hover:ring-0 hover:bg-white opacity-50 cursor-default'
+                )}
+                onClick={() => {
                   setSelectedTab(0);
                   setOpen(true);
                   setSelectedFarm(farm);
                   setSelectedTask(xcmpTask);
                   setSelectedEvent(autocompoundEvent);
-                }
-              }}
-              disabled={mgxBalance < 5000 && !isAutocompounding && !hasProxy}
-            >
-              {!isAutocompounding ? 'Autocompound' : 'Manage'}
-            </button>
-          </Tooltip>
+                }}
+                disabled={disabledCompoundingBtn}
+              >
+                {!isAutocompounding ? 'Autocompound' : 'Manage'}
+              </button>
+            </Tooltip>
+          </div>
         </div>
       </div>
     </div>

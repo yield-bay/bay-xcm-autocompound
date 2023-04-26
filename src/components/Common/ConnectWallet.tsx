@@ -9,6 +9,7 @@ import { walletAtom } from '@store/walletAtoms';
 import { CheckCircleIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import ModalWrapper from '@components/Library/ModalWrapper';
 import Button from '@components/Library/Button';
+import useDetectOutsideClick from '@hooks/useDetectOutsideClick';
 
 interface SelectAccountMenuProps {
   children: React.ReactNode;
@@ -20,6 +21,40 @@ interface DisconnectModalProps {
 }
 
 const SelectAccountMenu: FC<SelectAccountMenuProps> = ({ children }) => {
+  const dropdownRef = useRef(null);
+  // NOTE: useDetectOutsideClick is not necessary with hover, useState(false) would do here
+  const [openDropdown, setOpenDropdown] = useDetectOutsideClick(
+    dropdownRef, // Element to detect
+    false // Initial state
+  );
+  const [mouseOverButton, setMouseOverButton] = useState(false);
+  const [mouseOverMenu, setMouseOverMenu] = useState(false);
+  const timeoutDuration = 200;
+  let timeoutButton: NodeJS.Timeout;
+  let timeoutMenu: NodeJS.Timeout;
+
+  const onMouseEnterButton = () => {
+    clearTimeout(timeoutButton);
+    setOpenDropdown(true);
+    setMouseOverButton(true);
+  };
+  const onMouseLeaveButton = () => {
+    timeoutButton = setTimeout(
+      () => setMouseOverButton(false),
+      timeoutDuration
+    );
+  };
+
+  const onMouseEnterMenu = () => {
+    clearTimeout(timeoutMenu);
+    setMouseOverMenu(true);
+  };
+  const onMouseLeaveMenu = () => {
+    timeoutMenu = setTimeout(() => setMouseOverMenu(false), timeoutDuration);
+  };
+
+  const show = openDropdown && (mouseOverMenu || mouseOverButton);
+
   const [walletAccounts] = useAtom(walletAccountsAtom); // connected accounts in selected wallet
   const [account, setAccount] = useAtom(accountAtom); // selected account
 
@@ -34,10 +69,18 @@ const SelectAccountMenu: FC<SelectAccountMenuProps> = ({ children }) => {
   }, []);
 
   return (
-    <Menu as="div" className="relative inline-block text-left">
+    <Menu
+      as="div"
+      className="relative inline-block text-left"
+      onMouseEnter={onMouseEnterButton}
+      onMouseLeave={onMouseLeaveButton}
+      role="button"
+      tabIndex={0}
+    >
       <Menu.Button>{children}</Menu.Button>
       <Transition
         as={Fragment}
+        show={show}
         enter="transition ease-out duration-100"
         enterFrom="transform opacity-0 scale-95"
         enterTo="transform opacity-100 scale-100"
@@ -45,7 +88,13 @@ const SelectAccountMenu: FC<SelectAccountMenuProps> = ({ children }) => {
         leaveFrom="transform opacity-100 scale-100"
         leaveTo="transform opacity-0 scale-95"
       >
-        <Menu.Items className="absolute w-[250px] right-0 top-14 origin-top-right px-4 rounded-b-xl pt-5 pb-2 bg-white text-[#030303] focus:outline-none">
+        <Menu.Items
+          className="absolute w-[250px] right-0 top-14 origin-top-right px-4 rounded-b-xl pt-5 pb-2 bg-white text-[#030303] focus:outline-none"
+          ref={dropdownRef}
+          onMouseEnter={onMouseEnterMenu}
+          onMouseLeave={onMouseLeaveMenu}
+          static
+        >
           {walletAccounts?.map((walletAccount, index) => {
             const active = walletAccount.address === account?.address;
             return (

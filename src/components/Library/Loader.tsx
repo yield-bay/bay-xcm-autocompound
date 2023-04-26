@@ -10,7 +10,7 @@ const Loader = ({ size = 'md' }: Props) => {
       aria-hidden="true"
       size={size}
       color="white"
-      thickness="2px"
+      thickness="3px"
       emptyColor="#242424"
       speed="0.65s"
     />

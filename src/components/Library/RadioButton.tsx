@@ -34,7 +34,11 @@ const RadioButton: FC<Props> = ({
   return (
     <Tooltip
       label={
-        disabled && value !== 0 ? 'Stop current task to make changes' : tooltip
+        tooltip !== ''
+          ? tooltip
+          : disabled && value !== 0
+          ? 'Stop current task to make changes'
+          : tooltip
       }
       placement="top"
     >

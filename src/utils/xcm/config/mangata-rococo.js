@@ -246,7 +246,7 @@ const pools = [];
 const Config = {
   name: 'Mangata Rococo',
   key: 'mangata-rococo',
-  endpoint: 'wss://roccoco-testnet-collator-01.mangatafinance.cloud',
+  endpoint: 'wss://collator-01-ws-rococo.mangata.online',
   relayChain: 'rococo',
   paraId: 2110,
   ss58: 42,

@@ -5,10 +5,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Layout from './Layout';
 import { walletAccountsAtom } from '@store/accountAtoms';
 import { walletsAtom, walletAtom } from '@store/walletAtoms';
-import { getWallets } from '@talismn/connect-wallets';
-import { pullWalletAccounts } from '@utils/polkadotMethods';
+import { getWallets, WalletAccount } from '@talismn/connect-wallets';
 import { createClient, defaultExchanges, Provider as UrqlProvider } from 'urql';
-import { API_URL } from '@utils/constants';
+import { API_URL, APP_NAME } from '@utils/constants';
 
 interface Props {
   children: ReactNode;
@@ -43,7 +42,19 @@ const Providers: FC<Props> = ({ children }) => {
 
   useEffect(() => {
     if (wallet !== null) {
-      pullWalletAccounts(wallet, setWalletAccounts);
+      (async () => {
+        try {
+          await wallet.enable(APP_NAME);
+          await wallet.subscribeAccounts(
+            (accounts: WalletAccount[] | undefined) => {
+              // jotai:: setting accounts in selected wallet
+              setWalletAccounts(accounts as WalletAccount[]);
+            }
+          );
+        } catch (err) {
+          console.log('Error in subscribing accounts: ', err);
+        }
+      })();
     }
   }, [wallet]);
 

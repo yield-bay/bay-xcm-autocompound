@@ -16,8 +16,10 @@ import useFilteredFarms from '@hooks/useFilteredFarms';
 import { accountAtom } from '@store/accountAtoms';
 import {
   account1Atom,
+  isInitialisedAtom,
   turingAddressAtom,
   viewPositionsAtom,
+  lpUpdatedAtom,
 } from '@store/commonAtoms';
 
 const App = () => {
@@ -26,6 +28,8 @@ const App = () => {
   const [turingAddress] = useAtom(turingAddressAtom);
   const [viewPositions] = useAtom(viewPositionsAtom);
   const [account1] = useAtom(account1Atom);
+  const [isInitialised] = useAtom(isInitialisedAtom);
+  const [lpUpdated] = useAtom(lpUpdatedAtom);
 
   const [farmsResult, reexecuteQuery] = useQuery({
     query: FarmsQuery,
@@ -36,13 +40,17 @@ const App = () => {
   });
   const { data: farmsData, fetching: farmsFetching, error } = farmsResult;
 
+  useEffect(() => {
+    reexecuteQuery({ requestPolicy: 'network-only' });
+  }, [lpUpdated]);
+
   const [xcmpTasksResult, reexecuteXcmpTasksQuery] = useQuery({
     query: XcmpTasksQuery,
     variables: {
       userAddress: turingAddress,
       chain: 'ROCOCO',
     },
-    pause: account == null,
+    pause: turingAddress == null && !isInitialised,
   });
   const { data: xcmpTasksData, fetching: xcmpTasksFetching } = xcmpTasksResult;
 
@@ -58,7 +66,7 @@ const App = () => {
         userAddress: turingAddress,
         chain: 'ROCOCO',
       },
-      pause: account == null,
+      pause: turingAddress == null && !isInitialised,
     }
   );
   const { data: autocompoundEventsData, fetching: autocompoundEventsFetching } =
