@@ -69,8 +69,7 @@ const MainModal: FC = () => {
   const [pool, setPool] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // const [lpBalance, setLpBalance] = useState<any>(0);
-  const lpBalance = 7e-17;
+  const [lpBalance, setLpBalance] = useState<any>(0);
 
   const toast = useToast();
 
@@ -84,7 +83,7 @@ const MainModal: FC = () => {
     console.log('poolname', poolName);
 
     console.log('balance in componding tab', allLpBalances[poolName]);
-    // setLpBalance(allLpBalances[poolName]);
+    setLpBalance(allLpBalances[poolName]);
     // Make a state for this
     const pool = _.find(pools, {
       firstTokenId: mangataHelper.getTokenIdBySymbol(token0),
