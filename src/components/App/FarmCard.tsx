@@ -231,7 +231,7 @@ const FarmCard: FC<Props> = ({
                 account == null
                   ? 'Please connect wallet to manage Autocompounding.'
                   : mgxBalance < 5000 && !isAutocompounding && !hasProxy
-                  ? 'Need a minimum of 5000 MGX as free balance to autocompound.'
+                  ? 'You need a minimum of 5000 MGX as free balance to setup proxy & autocompound.'
                   : ''
               }
               placement="left"
