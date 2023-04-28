@@ -1,10 +1,15 @@
-import { FC } from 'react';
+import { FC, useEffect } from 'react';
 import { useAtom } from 'jotai';
 import { AutocompoundEventType, FarmType, XcmpTaskType } from '@utils/types';
 import Loader from '@components/Library/Loader';
 import FarmCard from './FarmCard';
 import { formatTokenSymbols, replaceTokenSymbols } from '@utils/farmMethods';
-import { mgxBalanceAtom, userHasProxyAtom } from '@store/commonAtoms';
+import {
+  mgxBalanceAtom,
+  userHasProxyAtom,
+  mangataHelperAtom,
+  account1Atom,
+} from '@store/commonAtoms';
 import { IS_PRODUCTION } from '@utils/constants';
 
 interface Props {
@@ -22,8 +27,29 @@ const FarmsList: FC<Props> = ({
   xcmpTasks,
   autocompoundEvents,
 }) => {
-  const [mgxBalance] = useAtom(mgxBalanceAtom);
+  // Fetching MGX balance in Farmlist as it needs to be updated everytime farms are rendered
+  const [mgxBalance, setMgxBalance] = useAtom(mgxBalanceAtom);
   const [userHasProxy] = useAtom(userHasProxyAtom);
+  const [mangataHelper] = useAtom(mangataHelperAtom);
+  const [account1] = useAtom(account1Atom);
+
+  // Fetching MGX balance
+  useEffect(() => {
+    (async () => {
+      if (mangataHelper == null) return;
+      try {
+        const bal = await mangataHelper.mangata?.getTokenBalance(
+          0,
+          account1?.address
+        );
+        const balFree = parseFloat(BigInt(bal.free).toString(10)) / 10 ** 18; // MGX decimals == 18
+        console.log('fetched mgxbalance', balFree);
+        setMgxBalance(balFree);
+      } catch (error) {
+        console.log('error fetching mgx balance', error);
+      }
+    })();
+  }, [mangataHelper, account1]);
 
   // const noXcmpTasks =
   //   xcmpTasks !== undefined ? (xcmpTasks.length == 0 ? true : false) : true;
