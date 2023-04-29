@@ -20,6 +20,7 @@ import {
   turingAddressAtom,
   viewPositionsAtom,
   lpUpdatedAtom,
+  taskUpdatedAtom,
 } from '@store/commonAtoms';
 import { IS_PRODUCTION } from '@utils/constants';
 
@@ -31,6 +32,7 @@ const App = () => {
   const [account1] = useAtom(account1Atom);
   const [isInitialised] = useAtom(isInitialisedAtom);
   const [lpUpdated] = useAtom(lpUpdatedAtom);
+  const [taskUpdated] = useAtom(taskUpdatedAtom);
 
   const [farmsResult, reexecuteQuery] = useQuery({
     query: FarmsQuery,
@@ -42,6 +44,7 @@ const App = () => {
   const { data: farmsData, fetching: farmsFetching, error } = farmsResult;
 
   useEffect(() => {
+    // Re-fetching farms when LP Balance is updated
     reexecuteQuery({ requestPolicy: 'network-only' });
   }, [lpUpdated]);
 
@@ -58,7 +61,7 @@ const App = () => {
   useEffect(() => {
     console.log('xcmpTasksData', xcmpTasksData?.xcmpTasks);
     reexecuteXcmpTasksQuery({ requestPolicy: 'network-only' });
-  }, [account, account1]);
+  }, [account, account1, taskUpdated]);
 
   const [autocompoundEventsResult, reexecuteAutocompoundEventsQuery] = useQuery(
     {
@@ -73,9 +76,11 @@ const App = () => {
   const { data: autocompoundEventsData, fetching: autocompoundEventsFetching } =
     autocompoundEventsResult;
 
+  // Re-execute AutocompoundEventsQuery when any task is added or removed
   useEffect(() => {
     console.log('autocompoundEventsData', autocompoundEventsData);
-  }, [autocompoundEventsData]);
+    reexecuteAutocompoundEventsQuery({ requestPolicy: 'network-only' });
+  }, [account1, taskUpdated]);
 
   const [filteredFarms, noFilteredFarms] = useFilteredFarms(
     filterMGXFarms(farmsData?.farms),
