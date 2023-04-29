@@ -34,7 +34,7 @@ import ToastWrapper from '@components/Library/ToastWrapper';
 import { IS_PRODUCTION } from '@utils/constants';
 
 const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
-  const [, setOpen] = useAtom(mainModalOpenAtom);
+  const [open, setOpen] = useAtom(mainModalOpenAtom);
   const [account] = useAtom(accountAtom);
   const [account1] = useAtom(account1Atom);
   const [mangataHelper] = useAtom(mangataHelperAtom);
@@ -105,56 +105,62 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
 
   // Do this if task is already running (user is shown "Stop Autocompounding")
   useEffect(() => {
+    console.log('hasEvent', hasEvent, 'open', open);
     (async () => {
-      if (hasEvent) {
-        console.log('turingAddress', turingAddress);
-
-        const accTasks =
-          await turingHelper.api.query.automationTime.accountTasks(
-            turingAddress,
-            selectedEvent?.taskId as string // got taskId from graphql autocompoundEvents query: https://github.com/yield-bay/bay-api/blob/c9b35801543bcc6d325920ab3158e20a6f91c153/src/schema.graphql#L110
+      if (hasEvent && open) {
+        try {
+          console.log('Fetching task data from chain...');
+          const accTasks =
+            await turingHelper.api.query.automationTime.accountTasks(
+              turingAddress,
+              selectedEvent?.taskId as string // got taskId from graphql autocompoundEvents query: https://github.com/yield-bay/bay-api/blob/c9b35801543bcc6d325920ab3158e20a6f91c153/src/schema.graphql#L110
+            );
+          const task: any = accTasks.toHuman();
+          console.log('accTasks', task, accTasks);
+          const etslen = task?.schedule?.Fixed?.executionTimes?.length;
+          const lastEstimatedExecTime =
+            parseInt(
+              task?.schedule?.Fixed?.executionTimes[etslen - 1].replaceAll(
+                ',',
+                ''
+              ),
+              10
+            ) * 1000;
+          console.log('lastEstimatedExecTime', lastEstimatedExecTime);
+          const executionsLeft = parseInt(
+            task?.schedule?.Fixed?.executionsLeft
           );
-        const task: any = accTasks.toHuman();
-        console.log('accTasks', task, accTasks);
-        const etslen = task?.schedule?.Fixed?.executionTimes?.length;
-        const lastEstimatedExecTime =
-          parseInt(
-            task?.schedule?.Fixed?.executionTimes[etslen - 1].replaceAll(
-              ',',
-              ''
-            ),
-            10
-          ) * 1000;
-        console.log('lastEstimatedExecTime', lastEstimatedExecTime);
-        const executionsLeft = parseInt(task?.schedule?.Fixed?.executionsLeft);
-        const lastHarvestTime =
-          parseInt(
-            task?.schedule?.Fixed?.executionTimes[
-              etslen - executionsLeft - 1
-            ].replaceAll(',', ''),
-            10
-          ) * 1000;
-        const executionsTillNow = etslen - executionsLeft;
+          const lastHarvestTime =
+            parseInt(
+              task?.schedule?.Fixed?.executionTimes[
+                etslen - executionsLeft - 1
+              ].replaceAll(',', ''),
+              10
+            ) * 1000;
+          const executionsTillNow = etslen - executionsLeft;
 
-        setLastHarvested(new Date(lastHarvestTime));
-        setLastEstimatedExecTime(new Date(lastEstimatedExecTime));
-        setExecutionsTillNow(executionsTillNow);
+          setLastHarvested(new Date(lastHarvestTime));
+          setLastEstimatedExecTime(new Date(lastEstimatedExecTime));
+          setExecutionsTillNow(executionsTillNow);
 
-        console.log(
-          'lastHarvestTime',
-          lastHarvestTime,
-          new Date(lastHarvestTime),
-          'lastEstimatedExecTime',
-          lastEstimatedExecTime,
-          new Date(lastEstimatedExecTime),
-          'executionsLeft',
-          executionsLeft,
-          'executionsTillNow',
-          executionsTillNow
-        );
+          console.log(
+            'lastHarvestTime',
+            lastHarvestTime,
+            new Date(lastHarvestTime),
+            'lastEstimatedExecTime',
+            lastEstimatedExecTime,
+            new Date(lastEstimatedExecTime),
+            'executionsLeft',
+            executionsLeft,
+            'executionsTillNow',
+            executionsTillNow
+          );
+        } catch (error) {
+          console.log('error in fetching task stats', error);
+        }
       }
     })();
-  }, [account1, turingAddress]);
+  }, [open, hasEvent]); // Need to reload this whenever modal is opened
 
   // Fetching MGX and TUR balance of connect account on Mangata Chain
   useEffect(() => {
@@ -255,15 +261,17 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
           <div className="flex flex-row px-14 py-4 items-center w-full justify-between">
             <div>
               <p className="text-[#969595]">Last Harvested</p>
-              <p className="text-2xl leading-8">{lastHarvested}</p>
+              <p className="text-2xl leading-8">{lastHarvested ?? 'NA'}</p>
             </div>
             <div>
               <p className="text-[#969595]">Last estimated execution</p>
-              <p className="text-2xl leading-8">{lastEstimatedExecTime}</p>
+              <p className="text-2xl leading-8">
+                {lastEstimatedExecTime ?? 'NA'}
+              </p>
             </div>
             <div>
               <p className="text-[#969595]">Executions till now</p>
-              <p className="text-2xl leading-8">{executionsTillNow}</p>
+              <p className="text-2xl leading-8">{executionsTillNow ?? '0'}</p>
             </div>
           </div>
         </div>
