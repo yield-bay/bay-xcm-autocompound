@@ -77,3 +77,4 @@ export const mgxBalanceAtom = atom<number>(0);
 export const userHasProxyAtom = atom<boolean>(false);
 
 export const lpUpdatedAtom = atom<number>(0);
+export const taskUpdatedAtom = atom<number>(0);

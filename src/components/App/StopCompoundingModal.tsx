@@ -9,6 +9,7 @@ import {
   turingAddressAtom,
   turingHelperAtom,
   stopCompModalOpenAtom,
+  taskUpdatedAtom,
 } from '@store/commonAtoms';
 import { useMutation } from 'urql';
 import {
@@ -30,6 +31,7 @@ const StopCompoundingModal: FC = () => {
   const [isModalOpen, setIsModalOpen] = useAtom(stopCompModalOpenAtom);
   const [, setOpenMainModal] = useAtom(mainModalOpenAtom);
   const [turingAddress] = useAtom(turingAddressAtom);
+  const [taskUpdated, setTaskUpdated] = useAtom(taskUpdatedAtom);
 
   // Process States
   const [isInProcess, setIsInProcess] = useState(false);
@@ -78,6 +80,9 @@ const StopCompoundingModal: FC = () => {
         'CANCELLED'
       );
       console.log('XcmpTask and UpdateAutocompounding updated successfully');
+
+      // Updating compounding counter
+      setTaskUpdated(taskUpdated + 1);
     }
   }, [isSuccess]);
 

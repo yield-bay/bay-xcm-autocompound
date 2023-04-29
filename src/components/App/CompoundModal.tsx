@@ -17,6 +17,7 @@ import {
   compoundConfigAtom,
   turingHelperAtom,
   isInitialisedAtom,
+  taskUpdatedAtom,
 } from '@store/commonAtoms';
 import { formatTokenSymbols, replaceTokenSymbols } from '@utils/farmMethods';
 import moment from 'moment';
@@ -46,19 +47,17 @@ const CompoundModal: FC = () => {
   const [config] = useAtom(compoundConfigAtom);
   const [turingHelper] = useAtom(turingHelperAtom);
   const [isInitialised] = useAtom(isInitialisedAtom);
+  const [taskUpdated, setTaskUpdated] = useAtom(taskUpdatedAtom);
 
   const [pool, setPool] = useState<any>(null);
   const [taskId, setTaskId] = useState<any>('');
   const [executionFee, setExecutionFee] = useState<number>(0);
   const [xcmpFee, setXcmpFee] = useState<number>(0);
-  const [totalFees, setTotalFees] = useState<number>(0);
   const [mangataProxyCallFees, setMangataProxyCallFees] = useState<any>(null);
   const [encodedMangataProxyCall, setEncodedMangataProxyCall] =
     useState<any>(null);
   const [executionTimes, setExecutionTimes] = useState<any>(null);
   const [providedId, setProvidedId] = useState<string>();
-  const [mgxBalance, setMgxBalance] = useState<number>(0);
-  const [turBalance, setTurBalance] = useState<number>(0);
 
   const toast = useToast();
 
@@ -187,6 +186,9 @@ const CompoundModal: FC = () => {
         'Calling addXcmpTaskHandler and createAutocompoundingHandler...'
       );
 
+      // Updating compounding counter
+      setTaskUpdated(taskUpdated + 1);
+
       // Adding Xcmp Task of the completed compounding
       addXcmpTaskHandler(
         taskId,
@@ -216,7 +218,7 @@ const CompoundModal: FC = () => {
     }
   }, [isSuccess]);
 
-  // Function which performs Autocompounding
+  // Step 1: Step-up Proxy, Activate liquidity => Transfer TUR
   const handleCompounding = async () => {
     console.log('frequency', frequency);
     console.log('duration', duration);
@@ -532,6 +534,7 @@ const CompoundModal: FC = () => {
     }
   };
 
+  // Step 2: Schedule XCMP Task
   const handleXcmpScheduling = async () => {
     setIsInProcess(true);
     const signer = account?.wallet?.signer;
@@ -701,6 +704,7 @@ const CompoundModal: FC = () => {
             className="w-full py-[13px] mt-16 text-base leading-[21.6px] rounded-lg border border-[#7D7D7D] hover:border-[#9d9d9d] transition duration-200"
             onClick={() => {
               setIsModalOpen(false);
+              setTaskUpdated(taskUpdated + 1); // Refresh the task list on closing modal
             }}
           >
             Go Home
