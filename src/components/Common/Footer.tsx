@@ -50,8 +50,8 @@ const Footer: FC = () => {
   ];
 
   return (
-    <footer className="text-white" aria-labelledby="footer-heading">
-      <div className="max-w-7xl px-auto p-9 sm:py-12 sm:px-6 md:px-20 lg:py-14 lg:px-[121px]">
+    <footer aria-labelledby="footer-heading">
+      <div className="max-w-[1138px] mx-auto p-9 sm:py-12 sm:px-6 md:px-10 lg:py-14 lg:px-0">
         <div className="lg:grid lg:grid-cols-2 lg:gap-16">
           {/* LEFT SIDE */}
           <div className="sm:p-[10px] sm:pl-0">
