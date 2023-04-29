@@ -390,6 +390,7 @@ const RemoveLiquidityModal: FC = () => {
             className="w-full py-[13px] text-base leading-[21.6px] rounded-lg border border-[#7D7D7D]"
             onClick={() => {
               setIsModalOpen(false);
+              setLpUpdated(lpUpdated + 1);
             }}
           >
             Go Home
