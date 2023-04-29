@@ -97,7 +97,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       : replaceTokenSymbols(farm?.asset.symbol!)
   );
 
-  const APY = farm?.apr.base + farm?.apr.reward;
+  const APY = ((farm?.apr.base + farm?.apr.reward) * percentage) / 100;
   const period = duration / frequency;
   const effectiveAPY = (((1 + APY / 100 / period) ** period - 1) * 100).toFixed(
     2
