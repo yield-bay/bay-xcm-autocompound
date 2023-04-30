@@ -294,28 +294,36 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
         <div className="flex flex-row gap-x-8">
           <RadioButton
             changed={setFrequency}
-            isSelected={frequency === 1}
+            isSelected={
+              hasEvent ? selectedEvent?.frequency === 1 : frequency === 1
+            }
             label="Daily"
             value={1}
             disabled={hasEvent && selectedEvent?.frequency !== 1}
           />
           <RadioButton
             changed={setFrequency}
-            isSelected={frequency === 7}
+            isSelected={
+              hasEvent ? selectedEvent?.frequency === 7 : frequency === 7
+            }
             label="Weekly"
             value={7}
             disabled={hasEvent && selectedEvent?.frequency !== 7}
           />
           <RadioButton
             changed={setFrequency}
-            isSelected={frequency === 30}
+            isSelected={
+              hasEvent ? selectedEvent?.frequency === 30 : frequency === 30
+            }
             label="Monthly"
             value={30}
             disabled={
-              (hasEvent && selectedEvent?.frequency !== 30) || 30 > duration
+              hasEvent ? selectedEvent?.frequency !== 30 : 30 > duration
             }
             tooltip={
-              30 > duration ? 'Frequency can not be more than duration!' : ''
+              30 > duration && !hasEvent
+                ? 'Frequency can not be more than duration!'
+                : ''
             }
           />
         </div>
@@ -330,26 +338,32 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
         <div className="flex flex-row gap-x-8">
           <RadioButton
             changed={setDuration}
-            isSelected={duration === 7}
+            isSelected={
+              hasEvent ? selectedEvent?.duration === 7 : duration === 7
+            }
             label="1 Week"
             value={7}
-            disabled={
-              (hasEvent && selectedEvent?.duration !== 7) || 7 < frequency
-            }
+            disabled={hasEvent ? selectedEvent?.duration !== 7 : 7 < frequency}
             tooltip={
-              7 < frequency ? 'Frequency can not be more than duration!' : ''
+              7 < frequency && !hasEvent
+                ? 'Frequency can not be more than duration!'
+                : ''
             }
           />
           <RadioButton
             changed={setDuration}
-            isSelected={duration === 30}
+            isSelected={
+              hasEvent ? selectedEvent?.duration === 30 : duration === 30
+            }
             label="1 Month"
             value={30}
             disabled={hasEvent && selectedEvent?.duration !== 30}
           />
           <RadioButton
             changed={setDuration}
-            isSelected={duration === 182}
+            isSelected={
+              hasEvent ? selectedEvent?.duration === 182 : duration === 182
+            }
             label="6 Months"
             value={182}
             disabled={hasEvent && selectedEvent?.duration !== 182}
@@ -364,21 +378,27 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
         <div className="flex flex-row gap-x-8">
           <RadioButton
             changed={setPercentage}
-            isSelected={percentage === 25}
+            isSelected={
+              hasEvent ? selectedEvent?.percentage === 25 : percentage === 25
+            }
             label="25%"
             value={25}
             disabled={hasEvent && selectedEvent?.percentage !== 25}
           />
           <RadioButton
             changed={setPercentage}
-            isSelected={percentage === 50}
+            isSelected={
+              hasEvent ? selectedEvent?.percentage === 50 : percentage === 50
+            }
             label="50%"
             value={50}
             disabled={hasEvent && selectedEvent?.percentage !== 50}
           />
           <RadioButton
             changed={setPercentage}
-            isSelected={percentage === 100}
+            isSelected={
+              hasEvent ? selectedEvent?.percentage === 100 : percentage === 100
+            }
             label="100%"
             value={100}
             disabled={hasEvent && selectedEvent?.percentage !== 100}
