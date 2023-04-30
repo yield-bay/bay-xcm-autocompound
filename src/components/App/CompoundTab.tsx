@@ -5,7 +5,7 @@ import { useAtom } from 'jotai';
 import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
 import _ from 'lodash';
 import moment from 'moment';
-import CountUp from 'react-countup';
+// import CountUp from 'react-countup';
 import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@chakra-ui/react';
 
@@ -397,7 +397,8 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
           <div className="flex flex-col items-center gap-y-3">
             <p className="text-xl font-medium opacity-60">Effective APR</p>
             <p className="text-2xl">
-              <CountUp
+              {parseFloat(effectiveAPY)}%
+              {/* <CountUp
                 start={0}
                 end={parseFloat(effectiveAPY)}
                 decimals={2}
@@ -405,7 +406,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
                 suffix="%"
                 duration={0.75}
                 delay={0}
-              />
+              /> */}
             </p>
           </div>
         </Tooltip>
