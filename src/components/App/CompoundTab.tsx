@@ -134,18 +134,23 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
           const executionsLeft = parseInt(
             task?.schedule?.Fixed?.executionsLeft
           );
-          const lastHarvestTime =
-            parseInt(
-              task?.schedule?.Fixed?.executionTimes[
-                etslen - executionsLeft - 1
-              ].replaceAll(',', ''),
-              10
-            ) * 1000;
+          if (etslen - executionsLeft - 1 == -1) {
+            setLastHarvested('NA');
+          } else {
+            const lastHarvestTime =
+              parseInt(
+                task?.schedule?.Fixed?.executionTimes[
+                  etslen - executionsLeft - 1
+                ].replaceAll(',', ''),
+                10
+              ) * 1000;
+            setLastHarvested(
+              moment(new Date(lastHarvestTime)).format('DD-MM-YY')
+            );
+          }
+
           const executionsTillNow = etslen - executionsLeft;
 
-          setLastHarvested(
-            moment(new Date(lastHarvestTime)).format('DD-MM-YY')
-          );
           setLastEstimatedExecTime(
             moment(new Date(lastEstimatedExecTime)).format('DD-MM-YY')
           );
