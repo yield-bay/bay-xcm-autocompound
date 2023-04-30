@@ -136,7 +136,7 @@ export const autocompoundEventsQuery = gql`
     autocompoundEvents(userAddress: $userAddress, chain: $chain) {
       userAddress
       chain
-      # taskId
+      taskId
       lp {
         symbol
         amount
@@ -184,7 +184,7 @@ export const createAutocompoundEventMutation = gql`
     ) {
       userAddress
       chain
-      # taskId
+      taskId
       lp {
         symbol
         amount

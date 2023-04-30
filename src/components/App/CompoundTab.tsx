@@ -109,7 +109,11 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
     (async () => {
       if (hasEvent && open) {
         try {
-          console.log('Fetching task data from chain...');
+          console.log(
+            'Fetching task data from chain...',
+            selectedEvent,
+            selectedEvent?.taskId as string
+          );
           const accTasks =
             await turingHelper.api.query.automationTime.accountTasks(
               turingAddress,
@@ -139,8 +143,12 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
             ) * 1000;
           const executionsTillNow = etslen - executionsLeft;
 
-          setLastHarvested(new Date(lastHarvestTime));
-          setLastEstimatedExecTime(new Date(lastEstimatedExecTime));
+          setLastHarvested(
+            moment(new Date(lastHarvestTime)).format('DD-MM-YY')
+          );
+          setLastEstimatedExecTime(
+            moment(new Date(lastEstimatedExecTime)).format('DD-MM-YY')
+          );
           setExecutionsTillNow(executionsTillNow);
 
           console.log(
