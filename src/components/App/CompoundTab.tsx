@@ -145,21 +145,21 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
                 10
               ) * 1000;
             setLastHarvested(
-              moment(new Date(lastHarvestTime)).format('DD-MM-YY')
+              moment(new Date(lastHarvestTime)).format('DD/MM/YY')
             );
           }
 
           const executionsTillNow = etslen - executionsLeft;
 
           setLastEstimatedExecTime(
-            moment(new Date(lastEstimatedExecTime)).format('DD-MM-YY')
+            moment(new Date(lastEstimatedExecTime)).format('DD/MM/YY')
           );
           setExecutionsTillNow(executionsTillNow);
 
           console.log(
             'lastHarvestTime',
-            lastHarvestTime,
-            new Date(lastHarvestTime),
+            lastHarvested,
+            new Date(lastHarvested),
             'lastEstimatedExecTime',
             lastEstimatedExecTime,
             new Date(lastEstimatedExecTime),
@@ -271,7 +271,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
             Autocompounding {selectedEvent?.lp.amount.toFixed(2)}{' '}
             {selectedEvent?.lp.symbol} LP tokens{' '}
           </div>
-          <div className="flex flex-row px-14 py-4 items-center w-full justify-between">
+          <div className="flex flex-row px-10 py-4 items-center w-full justify-between">
             <div>
               <p className="text-[#969595]">Last Harvested</p>
               <p className="text-2xl leading-8">{lastHarvested ?? 'NA'}</p>
@@ -283,7 +283,10 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
               </p>
             </div>
             <div>
-              <p className="text-[#969595]">Executions till now</p>
+              <div className="text-[#969595]">
+                <p>Executions</p>
+                <p>till now</p>
+              </div>
               <p className="text-2xl leading-8">{executionsTillNow ?? '0'}</p>
             </div>
           </div>
