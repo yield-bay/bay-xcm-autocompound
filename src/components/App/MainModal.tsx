@@ -48,6 +48,20 @@ interface TabContentProps {
   pool: any;
 }
 
+// TabContent component manages the tab selection in Main Modal
+const TabContent = ({ selectedTab, farm, account, pool }: TabContentProps) => {
+  switch (selectedTab) {
+    case 0:
+      return <CompoundTab farm={farm} account={account} pool={pool} />;
+    case 1:
+      return <AddLiquidityTab farm={farm} account={account} pool={pool} />;
+    case 2:
+      return <RemoveLiquidityTab farm={farm} account={account} pool={pool} />;
+    default:
+      return <CompoundTab farm={farm} account={account} pool={pool} />;
+  }
+};
+
 const MainModal: FC = () => {
   const [open, setOpen] = useAtom(mainModalOpenAtom);
   const [selectedTab, setSelectedTab] = useAtom(selectedTabModalAtom);
@@ -62,10 +76,6 @@ const MainModal: FC = () => {
   const [isAutocompounding, setIsAutocompounding] = useState(false);
   const [allLpBalances, setAllLpBalances] = useAtom(lpBalancesAtom);
   const [userHasProxy] = useAtom(userHasProxyAtom);
-
-  useEffect(() => {
-    setIsAutocompounding(selectedTask?.status == 'RUNNING' ? true : false);
-  }, [selectedTask]);
 
   const [pool, setPool] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -83,10 +93,9 @@ const MainModal: FC = () => {
     );
 
     const poolName = `${token0}-${token1}`;
-    console.log('poolname', poolName);
-
+    console.log('selected poolname', poolName);
     console.log('balance in componding tab', allLpBalances[poolName]);
-    setLpBalance(allLpBalances[poolName]);
+
     // Make a state for this
     const pool = _.find(pools, {
       firstTokenId: mangataHelper.getTokenIdBySymbol(token0),
@@ -154,27 +163,31 @@ const MainModal: FC = () => {
 
     console.log('num reserved', numReserved);
 
+    // setting selected pool's LP token balance
+    const lpBalance = await mangataHelper.mangata.getTokenBalance(
+      pool.liquidityTokenId,
+      account?.address
+    );
+    const decimal = mangataHelper.getDecimalsBySymbol(`${token0}-${token1}`);
+    const lpBalanceNum =
+      parseFloat(BigInt(lpBalance.reserved).toString(10)) / 10 ** decimal +
+      parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** decimal;
+    console.log('LP Balance lpBalanceNum: ', lpBalanceNum);
+    setLpBalance(lpBalanceNum);
+
+    // Required setup finished
     setIsLoading(false);
   };
+
+  useEffect(() => {
+    setIsAutocompounding(selectedTask?.status == 'RUNNING' ? true : false);
+  }, [selectedTask]);
 
   useEffect(() => {
     if (isInitialised && selectedFarm != null) {
       initialiseHelperSetup();
     }
   }, [selectedFarm?.id, isInitialised]);
-
-  const TabContent = ({ selectedTab, farm, account }: TabContentProps) => {
-    switch (selectedTab) {
-      case 0:
-        return <CompoundTab farm={farm} account={account} pool={pool} />;
-      case 1:
-        return <AddLiquidityTab farm={farm} account={account} pool={pool} />;
-      case 2:
-        return <RemoveLiquidityTab farm={farm} account={account} pool={pool} />;
-      default:
-        return <CompoundTab farm={farm} account={account} pool={pool} />;
-    }
-  };
 
   return (
     <ModalWrapper open={open} setOpen={setOpen}>
