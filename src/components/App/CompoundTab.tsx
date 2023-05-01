@@ -242,11 +242,10 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
         turingHelper,
         account,
         duration,
-        // frequency,
         freq,
         percentage
       );
-      setTotalFees(feesInTUR as number);
+      setTotalFees(feesInTUR ?? 0); // If fetched fees is null, set it to 0
     } catch (error) {
       console.log('error: Fetching fees', error);
       toast({
@@ -481,6 +480,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
               </span>
             ) : (
               <p>
+                {/* turBalance is in Mangata */}
                 {turBalance ?? 'loading...'} TUR
                 {!isNaN(turprice) && (
                   <span className="text-[#8A8A8A] ml-2">
@@ -515,10 +515,14 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
         <div className="flex flex-col gap-y-2">
           <Button
             text={
-              lpBalanceNum < 0.01 ? 'Insufficient LP Token balance' : 'Confirm'
+              lpBalanceNum < 0.01
+                ? 'Insufficient LP Token balance'
+                : totalFees >= turBalance
+                ? 'Insufficient TUR balance'
+                : 'Confirm'
             }
             type="primary"
-            disabled={lpBalanceNum < 0.01}
+            disabled={lpBalanceNum < 0.01 || totalFees >= turBalance}
             onClick={() => {
               setOpen(false);
               setIsOpenModal(true);
