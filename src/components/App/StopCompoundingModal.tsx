@@ -53,6 +53,9 @@ const StopCompoundingModal: FC = () => {
         'Calling addXcmpTaskHandler and createAutocompoundingHandler...'
       );
 
+      // Updating compounding counter
+      setTaskUpdated(taskUpdated + 1);
+
       console.log('variables to stop compounding', {
         taskId: currentTask?.taskId,
         userAddress: turingAddress,
@@ -80,9 +83,6 @@ const StopCompoundingModal: FC = () => {
         'CANCELLED'
       );
       console.log('XcmpTask and UpdateAutocompounding updated successfully');
-
-      // Updating compounding counter
-      setTaskUpdated(taskUpdated + 1);
     }
   }, [isSuccess]);
 
@@ -223,19 +223,32 @@ const StopCompoundingModal: FC = () => {
           </div>
         )}
         {isSuccess && (
-          <div className="flex flex-col gap-2 px-4 items-center justify-center text-base leading-[21.6px] bg-baseGray rounded-lg py-10 text-center">
-            <p>Successful stopped Autocompounding!</p>
-            <p>Close modal & Refresh to update.</p>
-          </div>
+          <>
+            <div className="flex flex-col gap-2 px-4 items-center justify-center text-base leading-[21.6px] bg-baseGray rounded-lg py-10 text-center">
+              <p>Successful stopped Autocompounding!</p>
+              <p>Close modal & Refresh to update.</p>
+            </div>
+            <button
+              className="w-full py-[13px] mt-8 text-base leading-[21.6px] rounded-lg border border-[#7D7D7D] hover:border-[#9d9d9d] transition duration-200"
+              onClick={() => {
+                setIsModalOpen(false);
+                setTaskUpdated(taskUpdated + 1); // Refresh the task list on closing modal
+              }}
+            >
+              Go to Home
+            </button>
+          </>
         )}
-        <Stepper
-          activeStep={isSuccess ? 2 : isSigning ? 1 : 0}
-          steps={[
-            { label: 'Confirm' },
-            { label: 'Sign' },
-            { label: 'Complete' },
-          ]}
-        />
+        {!isSuccess && (
+          <Stepper
+            activeStep={isSuccess ? 2 : isSigning ? 1 : 0}
+            steps={[
+              { label: 'Confirm' },
+              { label: 'Sign' },
+              { label: 'Complete' },
+            ]}
+          />
+        )}
       </div>
     </ModalWrapper>
   );
