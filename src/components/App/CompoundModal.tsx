@@ -848,7 +848,7 @@ const CompoundModal: FC = () => {
               setTaskUpdated(taskUpdated + 1); // Refresh the task list on closing modal
             }}
           >
-            Go Home
+            Go to Home
           </button>
         </div>
       )}
