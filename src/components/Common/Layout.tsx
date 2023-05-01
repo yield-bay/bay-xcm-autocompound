@@ -23,7 +23,6 @@ import {
   turingAddressAtom,
   poolsAtom,
   isInitialisedAtom,
-  allLpBalancesAtom,
   userHasProxyAtom,
 } from '@store/commonAtoms';
 import {
@@ -55,7 +54,6 @@ const Layout: FC<Props> = ({ children }) => {
   const [, setTuringAddress] = useAtom(turingAddressAtom);
   const [, setPools] = useAtom(poolsAtom);
   const [, setIsInitialised] = useAtom(isInitialisedAtom);
-  const [, setAllLpBalances] = useAtom(allLpBalancesAtom);
   const [, setUserHasProxy] = useAtom(userHasProxyAtom);
 
   // Initial turing and mangata Helper setup.
@@ -166,15 +164,6 @@ const Layout: FC<Props> = ({ children }) => {
             }
           });
         }
-
-        const tokenAmount =
-          parseFloat(BigInt(lpBalance.free).toString(10)) / 10 ** decimal +
-          parseFloat(BigInt(lpBalance.reserved).toString(10)) / 10 ** decimal;
-
-        console.log(`${token0}-${token1}`, tokenAmount);
-
-        // Setting LP Symbol with it's balance in a global context object')
-        setAllLpBalances(`${token0}-${token1}`, tokenAmount);
       });
       setIsInitialised(true);
     })(accountInit);
