@@ -471,6 +471,10 @@ const CompoundModal: FC = () => {
         'mangataTransactions',
         mangataTransactions
       );
+      console.log(
+        'mangataHelper.api.events.system.ExtrinsicFailed',
+        mangataHelper.api.events.system.ExtrinsicFailed
+      );
       // return;
       // BUG: NEED TO REMOVE await
       // const mangataBatchTx = await mangataHelper.api.tx.utility.batchAll(
@@ -482,18 +486,155 @@ const CompoundModal: FC = () => {
       await mangataBatchTx
         .signAndSend(
           account1?.address,
+          // { signer: signer, nonce: -1 },
           { signer: signer },
-          async ({ status }: any) => {
+          // (resp: any) => {
+          //   console.log(`resp:: ${JSON.stringify(resp)}`);
+          //   const { dispatchError } = resp;
+          //   if (dispatchError) {
+          //     if (dispatchError.isModule) {
+          //       // for module errors, we have the section indexed, lookup
+          //       const decoded = mangataHelper.api.registry.findMetaError(
+          //         dispatchError.asModule
+          //       );
+          //       const { docs, name, section } = decoded;
+
+          //       console.log(`${section}.${name}: ${docs.join(' ')}`);
+          //     } else {
+          //       // Other, CannotLookup, BadOrigin, no extra info
+          //       console.log(dispatchError.toString());
+          //     }
+          //   }
+          // }
+          ({ status, events, dispatchError }: any) => {
+            console.log('events', JSON.stringify(events));
+            console.log('status', JSON.stringify(status));
+            console.log('dispatchError', JSON.stringify(dispatchError));
+
+            // if (dispatchError) {
+            //   if (dispatchError.isModule) {
+            //     // for module errors, we have the section indexed, lookup
+            //     const decoded = mangataHelper.api.registry.findMetaError(
+            //       dispatchError.asModule
+            //     );
+            //     const { docs, name, section } = decoded;
+
+            //     console.log(`${section}.${name}: ${docs.join(' ')}`);
+            //   } else {
+            //     // Other, CannotLookup, BadOrigin, no extra info
+            //     console.log(dispatchError.toString());
+            //   }
+            // }
+            console.log(
+              'mangataHelper.api.events.system.ExtrinsicFailed',
+              mangataHelper.api.events.system.ExtrinsicFailed
+            );
+            events.forEach((e: any) => {
+              console.log(
+                'ISSmangataHelper.api.events.system.ExtrinsicFailed',
+                mangataHelper.api.events.system.ExtrinsicFailed.is(e)
+              );
+              const {
+                phase,
+                event: { data, method, section },
+              } = e;
+              console.info('method');
+              console.info(method);
+              if (
+                method === 'BatchInterrupted' ||
+                method === 'ExtrinsicFailed'
+              ) {
+                console.log('failed is true');
+                // failed = true;
+              }
+            });
             if (status.isInBlock) {
               console.log(
                 `Batch Tx is in block with hash ${status.asInBlock.toHex()}`
               );
             } else if (status.isFinalized) {
-              console.log(
-                `Batch Tx finalized with hash ${status.asFinalized.toHex()}`
-              );
-              setIsInProcess(false); // Process will be done when ScheduleXCMP Txn is done
-              setBatchTxDone(true);
+              // if (status.isInBlock || status.isFinalized) {
+              // const { bh } = status;
+              (async () => {
+                const tranHash = status.asFinalized.toString();
+                console.log(
+                  `Batch Tx finalized with hash ${tranHash}\n\nbefore delay\n`
+                );
+                await delay(20000);
+                console.log('after delay');
+                // console.log('events', events);
+                // events.forEach((d: any) => {
+                //   const {
+                //     phase,
+                //     event: { data, method, section },
+                //   } = d;
+                //   console.info('method');
+                //   console.info(method);
+                //   if (
+                //     method === 'BatchInterrupted' ||
+                //     method === 'ExtrinsicFailed'
+                //   ) {
+                //     console.log('failed is true');
+                //     // failed = true;
+                //   }
+                // });
+                // console.log('status.finalized', status.finalized);
+
+                const block = await mangataHelper.api.rpc.chain.getBlock(
+                  tranHash
+                );
+                console.log('block', block);
+                console.log('block', JSON.stringify(block));
+                const bhn = parseInt(block.block.header.number) + 1;
+                console.log('num', bhn);
+                const blockHash =
+                  await mangataHelper.api.rpc.chain.getBlockHash(bhn);
+                console.log(`blockHash ${blockHash}`);
+                console.log('bhjs', JSON.stringify(blockHash) ?? 'nothing');
+                // const blockEvents =
+                //   await mangataHelper.api.query.system.events.at(tranHash);
+                const at = await mangataHelper.api.at(blockHash);
+                const blockEvents = await at.query.system.events();
+                console.log('blockEvents', blockEvents);
+                let allSuccess = true;
+                blockEvents.forEach((d: any) => {
+                  const {
+                    phase,
+                    event: { data, method, section },
+                  } = d;
+                  console.info('method');
+                  console.info(method);
+                  if (
+                    method === 'BatchInterrupted' ||
+                    method === 'ExtrinsicFailed'
+                  ) {
+                    console.log('failed is true');
+                    // failed = true;
+                    console.log('Error in Batch Tx:');
+                    allSuccess = false;
+                    setIsSuccess(false);
+                    setIsSigning(false);
+                    setIsInProcess(false);
+                    toast({
+                      position: 'top',
+                      duration: 3000,
+                      render: () => (
+                        <ToastWrapper
+                          title="Error in Batch Tx"
+                          status="error"
+                        />
+                      ),
+                    });
+                  }
+                });
+                if (allSuccess) {
+                  console.log('allSuccess', allSuccess);
+                  setIsInProcess(false); // Process will be done when ScheduleXCMP Txn is done
+                  setBatchTxDone(true);
+                }
+              })();
+              // setIsInProcess(false); // Process will be done when ScheduleXCMP Txn is done
+              // setBatchTxDone(true);
             } else {
               setIsSigning(false); // Reaching here means the trxn is signed
               console.log(`Status of Batch Tx: ${status.type}`);
