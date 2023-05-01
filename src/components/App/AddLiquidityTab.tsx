@@ -185,8 +185,7 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
     setEstimateLpMinted(lpAmount);
 
     // Calculate second token amount
-    const expectedSecondTokenAmount =
-      (firstTokenAmount / poolRatio) * (1 + MAX_SLIPPAGE);
+    const expectedSecondTokenAmount = firstTokenAmount / poolRatio; // * (1 + MAX_SLIPPAGE);
     console.log('Second Token Amount:', expectedSecondTokenAmount);
     const secondTokenAmount = isNaN(expectedSecondTokenAmount)
       ? '0'
@@ -199,7 +198,7 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
   // Method to update first token amount based on second token amount
   const updateFirstTokenAmount = (secondTokenAmount: number): string => {
     const poolRatio = pool.firstTokenAmountFloat / pool.secondTokenAmountFloat;
-    console.log('poolRatio', poolRatio);
+    console.log('poolRatio', poolRatio, secondTokenAmount);
 
     const lpAmount =
       (secondTokenAmount * lpTotalBalance) /
@@ -208,10 +207,8 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
     setEstimateLpMinted(lpAmount);
 
     // Calculate first token amount
-    const expectedFirstTokenAmount =
-      (secondTokenAmount / (1 + MAX_SLIPPAGE)) * poolRatio;
-
-    console.log('Second Token Amount:', expectedFirstTokenAmount);
+    const expectedFirstTokenAmount = poolRatio * secondTokenAmount; // * (1 + MAX_SLIPPAGE);
+    console.log('First Token Amount:', expectedFirstTokenAmount);
     const firstTokenAmount = isNaN(expectedFirstTokenAmount)
       ? '0'
       : expectedFirstTokenAmount.toFixed(5);
