@@ -4,6 +4,7 @@ import Button from '@components/Library/Button';
 import Loader from '@components/Library/Loader';
 import ModalWrapper from '@components/Library/ModalWrapper';
 import Stepper from '@components/Library/Stepper';
+import { delay } from '@utils/xcm/common/utils';
 import {
   mainModalOpenAtom,
   addLiqModalOpenAtom,
@@ -123,33 +124,118 @@ const AddLiquidityModal: FC = () => {
               );
               // unsub();
             } else if (status.isFinalized) {
-              setIsSuccess(true);
-              setIsInProcess(false);
-              setIsSigning(false);
-              setLpUpdated(lpUpdated + 1);
-              console.log('Mint liquidity trxn finalised.');
-              toast({
-                position: 'top',
-                duration: 3000,
-                render: () => (
-                  <ToastWrapper
-                    title={`Liquidity successfully added in ${token0}-${token1} pool.`}
-                    status="info"
-                  />
-                ),
-              });
-              // unsub();
-              // Calling the ADD_LIQUIDITY tracker in isFinalised status
-              createLiquidityEventHandler(
-                turingAddress as string,
-                IS_PRODUCTION ? 'KUSAMA' : 'ROCOCO',
-                { symbol: token0, amount: config.firstTokenAmount },
-                { symbol: token1, amount: config.secondTokenAmount },
-                { symbol: `${token0}-${token1}`, amount: 0 },
-                getTimestamp(),
-                config.fees,
-                'ADD_LIQUIDITY'
-              );
+              (async () => {
+                const tranHash = status.asFinalized.toString();
+                console.log(
+                  `Batch Tx finalized with hash ${tranHash}\n\nbefore delay\n`
+                );
+                await delay(20000);
+                console.log('after delay');
+                const block = await mangataHelper.api.rpc.chain.getBlock(
+                  tranHash
+                );
+                console.log('block', block);
+                console.log('block', JSON.stringify(block));
+                const bhn = parseInt(block.block.header.number) + 1;
+                console.log('num', bhn);
+                const blockHash =
+                  await mangataHelper.api.rpc.chain.getBlockHash(bhn);
+                console.log(`blockHash ${blockHash}`);
+                console.log('bhjs', JSON.stringify(blockHash) ?? 'nothing');
+                // const blockEvents =
+                //   await mangataHelper.api.query.system.events.at(tranHash);
+                const at = await mangataHelper.api.at(blockHash);
+                const blockEvents = await at.query.system.events();
+                console.log('blockEvents', blockEvents);
+                let allSuccess = true;
+                blockEvents.forEach((d: any) => {
+                  const {
+                    phase,
+                    event: { data, method, section },
+                  } = d;
+                  console.info('method');
+                  console.info(method);
+                  if (
+                    method === 'BatchInterrupted' ||
+                    method === 'ExtrinsicFailed'
+                  ) {
+                    console.log('failed is true');
+                    // failed = true;
+                    console.log('Error in addliq Tx:');
+                    allSuccess = false;
+                    setIsSuccess(false);
+                    setIsSigning(false);
+                    setIsInProcess(false);
+                    toast({
+                      position: 'top',
+                      duration: 3000,
+                      render: () => (
+                        <ToastWrapper
+                          title="Error while minting Liquidity!"
+                          status="error"
+                        />
+                      ),
+                    });
+                  }
+                });
+                if (allSuccess) {
+                  console.log('allSuccess', allSuccess);
+                  setIsSuccess(true);
+                  setIsInProcess(false);
+                  setIsSigning(false);
+                  setLpUpdated(lpUpdated + 1);
+                  console.log('Mint liquidity trxn finalised.');
+                  toast({
+                    position: 'top',
+                    duration: 3000,
+                    render: () => (
+                      <ToastWrapper
+                        title={`Liquidity successfully added in ${token0}-${token1} pool.`}
+                        status="info"
+                      />
+                    ),
+                  });
+                  // unsub();
+                  // Calling the ADD_LIQUIDITY tracker in isFinalised status
+                  createLiquidityEventHandler(
+                    turingAddress as string,
+                    IS_PRODUCTION ? 'KUSAMA' : 'ROCOCO',
+                    { symbol: token0, amount: config.firstTokenAmount },
+                    { symbol: token1, amount: config.secondTokenAmount },
+                    { symbol: `${token0}-${token1}`, amount: 0 },
+                    getTimestamp(),
+                    config.fees,
+                    'ADD_LIQUIDITY'
+                  );
+                }
+              })();
+              // setIsSuccess(true);
+              // setIsInProcess(false);
+              // setIsSigning(false);
+              // setLpUpdated(lpUpdated + 1);
+              // console.log('Mint liquidity trxn finalised.');
+              // toast({
+              //   position: 'top',
+              //   duration: 3000,
+              //   render: () => (
+              //     <ToastWrapper
+              //       title={`Liquidity successfully added in ${token0}-${token1} pool.`}
+              //       status="info"
+              //     />
+              //   ),
+              // });
+              // // unsub();
+              // // Calling the ADD_LIQUIDITY tracker in isFinalised status
+              // createLiquidityEventHandler(
+              //   turingAddress as string,
+              //   IS_PRODUCTION ? 'KUSAMA' : 'ROCOCO',
+              //   { symbol: token0, amount: config.firstTokenAmount },
+              //   { symbol: token1, amount: config.secondTokenAmount },
+              //   { symbol: `${token0}-${token1}`, amount: 0 },
+              //   getTimestamp(),
+              //   config.fees,
+              //   'ADD_LIQUIDITY'
+              // );
             } else {
               console.log('Status:', status.type);
               setIsSigning(false);
