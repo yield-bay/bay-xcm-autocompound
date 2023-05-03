@@ -51,7 +51,7 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
     undefined
   );
 
-  const MAX_SLIPPAGE = 0.0; // 8% slippage; can’t be too large
+  const MAX_SLIPPAGE = 0.04; // 8% slippage; can’t be too large
   const [fees, setFees] = useState<number | null>(null);
   const toast = useToast();
 
@@ -203,13 +203,13 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
 
     const lpAmount =
       (secondTokenAmount * lpTotalBalance) /
-      parseFloat(pool.secondTokenAmountFloat.toString());
+      (parseFloat(pool.secondTokenAmountFloat.toString()) * (1 + MAX_SLIPPAGE));
     console.log('lpAmount via secondToken', lpAmount);
     setEstimateLpMinted(lpAmount);
 
     // Calculate first token amount
     const expectedFirstTokenAmount =
-      poolRatio * secondTokenAmount * (1 + MAX_SLIPPAGE);
+      (poolRatio * secondTokenAmount) / (1 + MAX_SLIPPAGE);
     console.log('First Token Amount:', expectedFirstTokenAmount);
     const firstTokenAmount = isNaN(expectedFirstTokenAmount)
       ? '0'
