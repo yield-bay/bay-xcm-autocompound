@@ -142,6 +142,20 @@ const StopCompoundingModal: FC = () => {
       const cancelTx = await turingHelper.api.tx.automationTime.cancelTask(
         currentTask?.taskId
       );
+      const pinfo = await turingHelper.api.tx.automationTime
+        .cancelTask(currentTask?.taskId)
+        .paymentInfo(turingAddress);
+      const cancelTaskFees =
+        parseFloat(JSON.stringify(pinfo.partialFee)) / 10 ** 10;
+      console.log('paymentInfo', cancelTaskFees);
+      const turBalance = await turingHelper.getBalance(turingAddress);
+      const turFreeBalance = BigInt(turBalance.free).toString(10) / 10 ** 10;
+      console.log('turBalance', turFreeBalance);
+
+      // TODO: handle condition
+      if (turFreeBalance < cancelTaskFees) {
+        console.log('Tell user');
+      }
 
       await turingHelper.sendXcmExtrinsic(
         cancelTx,
