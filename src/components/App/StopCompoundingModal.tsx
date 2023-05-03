@@ -255,7 +255,12 @@ const StopCompoundingModal: FC = () => {
                   ? 'Stopping the process...'
                   : 'Stop Autocompounding'
               }
-              disabled={isInProcess || isSuccess || turFreeBalance < cancelFees}
+              disabled={
+                isInProcess ||
+                isSuccess ||
+                turFreeBalance < cancelFees ||
+                cancelFees == 0
+              }
               className="w-3/5"
               onClick={() => {
                 handleStopCompounding();
