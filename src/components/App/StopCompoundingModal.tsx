@@ -23,6 +23,8 @@ import ToastWrapper from '@components/Library/ToastWrapper';
 import Stepper from '@components/Library/Stepper';
 import Link from 'next/link';
 import { IS_PRODUCTION } from '@utils/constants';
+import { useQuery } from '@tanstack/react-query';
+import { fetchTokenPrices } from '@utils/fetch-prices';
 
 const StopCompoundingModal: FC = () => {
   const [account] = useAtom(accountAtom); // selected account
@@ -38,6 +40,10 @@ const StopCompoundingModal: FC = () => {
   const [isSigning, setIsSigning] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [isFailed, setIsFailed] = useState(false);
+  const [cancelFees, setCancelFees] = useState<number>(0);
+  const [turFreeBalance, setTurFreeBalance] = useState<number>(0);
+
+  const toast = useToast();
 
   useEffect(() => {
     // Resetting all states to default on open/close
@@ -45,6 +51,55 @@ const StopCompoundingModal: FC = () => {
     setIsSigning(false);
     setIsSuccess(false);
     setIsFailed(false);
+  }, [isModalOpen]);
+
+  // Fetching TUR price in Dollar using react-query
+  const { isLoading: isTurpriceLoading, data: turprice } = useQuery({
+    queryKey: ['turprice'],
+    queryFn: async () => {
+      try {
+        const tokenPrices = await fetchTokenPrices();
+        console.log(`TUR price ${tokenPrices[2].price}`);
+        return tokenPrices[2].price; // TUR price in Dollar
+      } catch (error) {
+        console.log('error: fetching turprice', error);
+        toast({
+          position: 'top',
+          duration: 3000,
+          render: () => (
+            <ToastWrapper title="Unable to fetch TUR price." status="error" />
+          ),
+        });
+      }
+    },
+  });
+
+  // fees for canceling the task
+  const fetchTurFees = async () => {
+    if (turingHelper == null) return;
+    const pinfo = await turingHelper.api.tx.automationTime
+      .cancelTask(currentTask?.taskId)
+      .paymentInfo(turingAddress);
+
+    const cancelTaskFees =
+      parseFloat(JSON.stringify(pinfo.partialFee)) / 10 ** 10;
+    setCancelFees(cancelTaskFees);
+    console.log('paymentInfo', cancelTaskFees);
+
+    const turBalance = await turingHelper.getBalance(turingAddress);
+    const turFreeBalance = BigInt(turBalance.free).toString(10) / 10 ** 10;
+    setTurFreeBalance(turFreeBalance);
+
+    console.log('turBalance', turFreeBalance);
+    if (turFreeBalance < cancelTaskFees) {
+      console.log('Insufficient balance to cancel the task!');
+    }
+  };
+
+  useEffect(() => {
+    if (isModalOpen) {
+      fetchTurFees();
+    }
   }, [isModalOpen]);
 
   useEffect(() => {
@@ -85,8 +140,6 @@ const StopCompoundingModal: FC = () => {
       console.log('XcmpTask and UpdateAutocompounding updated successfully');
     }
   }, [isSuccess]);
-
-  const toast = useToast();
 
   // UPDATE TASK
   const [updateXcmpTaskResult, updateXcmpTask] = useMutation(
@@ -142,20 +195,6 @@ const StopCompoundingModal: FC = () => {
       const cancelTx = await turingHelper.api.tx.automationTime.cancelTask(
         currentTask?.taskId
       );
-      const pinfo = await turingHelper.api.tx.automationTime
-        .cancelTask(currentTask?.taskId)
-        .paymentInfo(turingAddress);
-      const cancelTaskFees =
-        parseFloat(JSON.stringify(pinfo.partialFee)) / 10 ** 10;
-      console.log('paymentInfo', cancelTaskFees);
-      const turBalance = await turingHelper.getBalance(turingAddress);
-      const turFreeBalance = BigInt(turBalance.free).toString(10) / 10 ** 10;
-      console.log('turBalance', turFreeBalance);
-
-      // TODO: handle condition
-      if (turFreeBalance < cancelTaskFees) {
-        console.log('Tell user');
-      }
 
       await turingHelper.sendXcmExtrinsic(
         cancelTx,
@@ -186,32 +225,54 @@ const StopCompoundingModal: FC = () => {
   return (
     <ModalWrapper open={isModalOpen || isInProcess} setOpen={setIsModalOpen}>
       <div className="w-full flex flex-col gap-y-12">
-        <p className="text-base leading-[21.6px] text-[#B9B9B9] text-center w-full">
+        <p className="text-lg leading-[21.6px] text-[#B9B9B9] text-center w-full">
           Are you sure you want to stop Autocompounding?
         </p>
-        <div className="inline-flex gap-x-2 w-full">
-          <Button
-            type="warning"
-            text={
-              isInProcess ? 'Stopping the process...' : 'Stop Autocompounding'
-            }
-            disabled={isInProcess || isSuccess}
-            className="w-3/5"
-            onClick={() => {
-              handleStopCompounding();
-              console.log('xcmp task to stop', currentTask);
-            }}
-          />
-          <Button
-            type="secondary"
-            text="Go Back"
-            className="w-2/5"
-            disabled={isInProcess || isSuccess}
-            onClick={() => {
-              setOpenMainModal(true);
-              setIsModalOpen(false);
-            }}
-          />
+        <div className="flex flex-col gap-y-5">
+          {isTurpriceLoading || cancelFees == 0 ? (
+            <p className="text-[#B9B9B9] text-base text-center leading-[21.6px]">
+              Calculating fees...
+            </p>
+          ) : (
+            <p className="text-[#B9B9B9] text-base text-center leading-[21.6px]">
+              Costs{' '}
+              {!isNaN(turprice) && (
+                <span className="text-white">
+                  ${(cancelFees * turprice).toFixed(2)}
+                </span>
+              )}{' '}
+              <span className="text-white">({cancelFees?.toFixed(2)} TUR)</span>{' '}
+              including Gas Fees
+            </p>
+          )}
+          <div className="inline-flex gap-x-2 w-full">
+            <Button
+              type={'warning'}
+              text={
+                turFreeBalance < cancelFees
+                  ? 'Insufficient TUR balance'
+                  : isInProcess
+                  ? 'Stopping the process...'
+                  : 'Stop Autocompounding'
+              }
+              disabled={isInProcess || isSuccess || turFreeBalance < cancelFees}
+              className="w-3/5"
+              onClick={() => {
+                handleStopCompounding();
+                console.log('xcmp task to stop', currentTask);
+              }}
+            />
+            <Button
+              type="secondary"
+              text="Go Back"
+              className="w-2/5"
+              disabled={isInProcess || isSuccess}
+              onClick={() => {
+                setOpenMainModal(true);
+                setIsModalOpen(false);
+              }}
+            />
+          </div>
         </div>
         {isFailed && (
           <div className="flex flex-col items-center text-sm leading-[21.6px]">
@@ -253,7 +314,7 @@ const StopCompoundingModal: FC = () => {
             </button>
           </>
         )}
-        {!isSuccess && (
+        {!isSuccess && turFreeBalance >= cancelFees && (
           <Stepper
             activeStep={isSuccess ? 2 : isSigning ? 1 : 0}
             steps={[
