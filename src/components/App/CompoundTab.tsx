@@ -293,6 +293,48 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       )}
       <div>
         <p className="inline-flex items-center mb-8">
+          Duration
+          <Tooltip label="Time period for which the task will run">
+            <QuestionMarkCircleIcon className="h-5 w-5 opacity-50 ml-3" />
+          </Tooltip>
+        </p>
+        <div className="flex flex-row gap-x-8">
+          <RadioButton
+            changed={setDuration}
+            isSelected={
+              hasEvent ? selectedEvent?.duration === 7 : duration === 7
+            }
+            label="1 Week"
+            value={7}
+            disabled={hasEvent ? selectedEvent?.duration !== 7 : 7 < frequency}
+            tooltip={
+              7 < frequency && !hasEvent
+                ? 'Frequency can not be more than duration!'
+                : ''
+            }
+          />
+          <RadioButton
+            changed={setDuration}
+            isSelected={
+              hasEvent ? selectedEvent?.duration === 30 : duration === 30
+            }
+            label="1 Month"
+            value={30}
+            disabled={hasEvent && selectedEvent?.duration !== 30}
+          />
+          <RadioButton
+            changed={setDuration}
+            isSelected={
+              hasEvent ? selectedEvent?.duration === 182 : duration === 182
+            }
+            label="6 Months"
+            value={182}
+            disabled={hasEvent && selectedEvent?.duration !== 182}
+          />
+        </div>
+      </div>
+      <div>
+        <p className="inline-flex items-center mb-8">
           Frequency
           <Tooltip label="Frequency of auto-compounding">
             <QuestionMarkCircleIcon className="h-5 w-5 opacity-50 ml-3" />
@@ -332,48 +374,6 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
                 ? 'Frequency can not be more than duration!'
                 : ''
             }
-          />
-        </div>
-      </div>
-      <div>
-        <p className="inline-flex items-center mb-8">
-          Duration
-          <Tooltip label="Time period for which the task will run">
-            <QuestionMarkCircleIcon className="h-5 w-5 opacity-50 ml-3" />
-          </Tooltip>
-        </p>
-        <div className="flex flex-row gap-x-8">
-          <RadioButton
-            changed={setDuration}
-            isSelected={
-              hasEvent ? selectedEvent?.duration === 7 : duration === 7
-            }
-            label="1 Week"
-            value={7}
-            disabled={hasEvent ? selectedEvent?.duration !== 7 : 7 < frequency}
-            tooltip={
-              7 < frequency && !hasEvent
-                ? 'Frequency can not be more than duration!'
-                : ''
-            }
-          />
-          <RadioButton
-            changed={setDuration}
-            isSelected={
-              hasEvent ? selectedEvent?.duration === 30 : duration === 30
-            }
-            label="1 Month"
-            value={30}
-            disabled={hasEvent && selectedEvent?.duration !== 30}
-          />
-          <RadioButton
-            changed={setDuration}
-            isSelected={
-              hasEvent ? selectedEvent?.duration === 182 : duration === 182
-            }
-            label="6 Months"
-            value={182}
-            disabled={hasEvent && selectedEvent?.duration !== 182}
           />
         </div>
       </div>
