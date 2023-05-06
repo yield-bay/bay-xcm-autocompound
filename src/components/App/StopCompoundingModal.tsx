@@ -233,7 +233,7 @@ const StopCompoundingModal: FC = () => {
             <p className="text-lg leading-[21.6px] text-[#B9B9B9] text-center w-full">
               Are you sure you want to stop Autocompounding?
             </p>
-            <div className="flex flex-col gap-y-5">
+            <div className="flex flex-col items-center gap-y-5">
               {isTurpriceLoading || cancelFees == 0 ? (
                 <p className="text-[#B9B9B9] text-base text-center leading-[21.6px]">
                   Calculating fees...
@@ -243,15 +243,27 @@ const StopCompoundingModal: FC = () => {
                   Costs{' '}
                   {!isNaN(turprice) && (
                     <span className="text-white">
-                      ${(cancelFees * turprice).toFixed(2)}
+                      {cancelFees?.toFixed(2)} TUR
                     </span>
                   )}{' '}
                   <span className="text-white">
-                    ({cancelFees?.toFixed(2)} TUR)
+                    (${(cancelFees * turprice).toFixed(2)})
                   </span>{' '}
                   including Gas Fees
                 </p>
               )}
+              <div className=" w-fit inline-flex gap-x-2 text-center text-base leading-[21.6px] rounded-lg bg-[#232323] py-4 px-6 select-none">
+                <span className="text-primaryGreen">Balance:</span>
+                <p>
+                  {/* turFreeBalance is TUR balance on Turing Network */}
+                  {turFreeBalance.toFixed(3) ?? 'loading...'} TUR
+                  {!isNaN(turprice) && (
+                    <span className="text-[#8A8A8A] ml-2">
+                      ${(turFreeBalance * turprice).toFixed(3)}
+                    </span>
+                  )}
+                </p>
+              </div>
               <div className="inline-flex gap-x-2 w-full">
                 <Button
                   type={'warning'}

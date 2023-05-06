@@ -67,7 +67,8 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
   const toast = useToast();
 
   useEffect(() => {
-    setIsAutocompounding(selectedTask?.status == 'RUNNING' ? true : false);
+    // setIsAutocompounding(selectedTask?.status == 'RUNNING' ? true : false);
+    setIsAutocompounding(true);
   }, [selectedTask]);
 
   useEffect(() => {
