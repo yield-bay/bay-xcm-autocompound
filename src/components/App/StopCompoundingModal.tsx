@@ -223,93 +223,107 @@ const StopCompoundingModal: FC = () => {
   };
 
   return (
-    <ModalWrapper open={isModalOpen || isInProcess} setOpen={setIsModalOpen}>
+    <ModalWrapper
+      open={isModalOpen || isInProcess}
+      setOpen={isInProcess ? () => {} : setIsModalOpen}
+    >
       <div className="w-full flex flex-col gap-y-12">
-        <p className="text-lg leading-[21.6px] text-[#B9B9B9] text-center w-full">
-          Are you sure you want to stop Autocompounding?
-        </p>
-        <div className="flex flex-col gap-y-5">
-          {isTurpriceLoading || cancelFees == 0 ? (
-            <p className="text-[#B9B9B9] text-base text-center leading-[21.6px]">
-              Calculating fees...
+        {!isInProcess && !isSuccess && (
+          <div className="w-full flex flex-col gap-y-12">
+            <p className="text-lg leading-[21.6px] text-[#B9B9B9] text-center w-full">
+              Are you sure you want to stop Autocompounding?
             </p>
-          ) : (
-            <p className="text-[#B9B9B9] text-base text-center leading-[21.6px]">
-              Costs{' '}
-              {!isNaN(turprice) && (
-                <span className="text-white">
-                  ${(cancelFees * turprice).toFixed(2)}
-                </span>
-              )}{' '}
-              <span className="text-white">({cancelFees?.toFixed(2)} TUR)</span>{' '}
-              including Gas Fees
-            </p>
-          )}
-          <div className="inline-flex gap-x-2 w-full">
-            <Button
-              type={'warning'}
-              text={
-                turFreeBalance < cancelFees
-                  ? 'Insufficient TUR balance'
-                  : isInProcess
-                  ? 'Stopping the process...'
-                  : 'Stop Autocompounding'
-              }
-              disabled={
-                isInProcess ||
-                isSuccess ||
-                turFreeBalance < cancelFees ||
-                cancelFees == 0
-              }
-              className="w-3/5"
-              onClick={() => {
-                handleStopCompounding();
-                console.log('xcmp task to stop', currentTask);
-              }}
-            />
-            <Button
-              type="secondary"
-              text="Go Back"
-              className="w-2/5"
-              disabled={isInProcess || isSuccess}
-              onClick={() => {
-                setOpenMainModal(true);
-                setIsModalOpen(false);
-              }}
-            />
-          </div>
-        </div>
-        {isFailed && (
-          <div className="flex flex-col items-center text-sm leading-[21.6px]">
-            <p>Maybe you don&apos;t have enough TUR to pay gas.</p>
-            <Link
-              href="https://mangata-finance.notion.site/How-to-get-TUR-bdb76dac848f4d15bf06bec7ded223ad"
-              target="_blank"
-              rel="noreferrer"
-              className="hover:text-primaryGreen text-center text-sm underline underline-offset-2"
-            >
-              How to get TUR?
-            </Link>
+            <div className="flex flex-col gap-y-5">
+              {isTurpriceLoading || cancelFees == 0 ? (
+                <p className="text-[#B9B9B9] text-base text-center leading-[21.6px]">
+                  Calculating fees...
+                </p>
+              ) : (
+                <p className="text-[#B9B9B9] text-base text-center leading-[21.6px]">
+                  Costs{' '}
+                  {!isNaN(turprice) && (
+                    <span className="text-white">
+                      ${(cancelFees * turprice).toFixed(2)}
+                    </span>
+                  )}{' '}
+                  <span className="text-white">
+                    ({cancelFees?.toFixed(2)} TUR)
+                  </span>{' '}
+                  including Gas Fees
+                </p>
+              )}
+              <div className="inline-flex gap-x-2 w-full">
+                <Button
+                  type={'warning'}
+                  text={
+                    turFreeBalance < cancelFees
+                      ? 'Insufficient TUR balance'
+                      : isInProcess
+                      ? 'Stopping the process...'
+                      : 'Stop Autocompounding'
+                  }
+                  disabled={
+                    isInProcess ||
+                    isSuccess ||
+                    turFreeBalance < cancelFees ||
+                    cancelFees == 0
+                  }
+                  className="w-3/5"
+                  onClick={() => {
+                    handleStopCompounding();
+                    console.log('xcmp task to stop', currentTask);
+                  }}
+                />
+                <Button
+                  type="secondary"
+                  text="Go Back"
+                  className="w-2/5"
+                  disabled={isInProcess || isSuccess}
+                  onClick={() => {
+                    setOpenMainModal(true);
+                    setIsModalOpen(false);
+                  }}
+                />
+              </div>
+            </div>
+            {isFailed && (
+              <div className="flex flex-col items-center text-sm leading-[21.6px]">
+                <p>Maybe you don&apos;t have enough TUR to pay gas.</p>
+                <Link
+                  href="https://mangata-finance.notion.site/How-to-get-TUR-bdb76dac848f4d15bf06bec7ded223ad"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="hover:text-primaryGreen text-center text-sm underline underline-offset-2"
+                >
+                  How to get TUR?
+                </Link>
+              </div>
+            )}
           </div>
         )}
         {isInProcess && (
-          <div className="flex flex-row px-4 items-center justify-center text-base leading-[21.6px] bg-baseGray rounded-lg py-10 text-center">
+          <div className="flex flex-row gap-x-6 py-14 items-center justify-center text-xl leading-[27px] bg-baseGray rounded-lg select-none">
             {!isSuccess && <Loader size="md" />}
-            {isSigning && (
-              <span className="ml-6">
-                Please sign the transaction in your wallet.
+            {isSigning ? (
+              <span className="text-center max-w-[272px]">
+                Please Sign the Transaction in your wallet.
               </span>
+            ) : (
+              <div className="text-left max-w-[280px]">
+                <p>Completing Transaction..</p>
+                <p>This may take a few seconds</p>
+              </div>
             )}
           </div>
         )}
         {isSuccess && (
-          <>
-            <div className="flex flex-col gap-2 px-4 items-center justify-center text-base leading-[21.6px] bg-baseGray rounded-lg py-10 text-center">
+          <div className="flex flex-col gap-y-12">
+            <div className="py-14 text-center text-xl leading-[27px] bg-baseGray ro`unded-lg">
               <p>Successful stopped Autocompounding!</p>
               <p>Close modal & Refresh to update.</p>
             </div>
             <button
-              className="w-full py-[13px] mt-8 text-base leading-[21.6px] rounded-lg border border-[#7D7D7D] hover:border-[#9d9d9d] transition duration-200"
+              className="w-full py-[13px] text-base leading-[21.6px] rounded-lg border border-[#7D7D7D]"
               onClick={() => {
                 setIsModalOpen(false);
                 setTaskUpdated(taskUpdated + 1); // Refresh the task list on closing modal
@@ -317,7 +331,7 @@ const StopCompoundingModal: FC = () => {
             >
               Go to Home
             </button>
-          </>
+          </div>
         )}
         {!isSuccess && turFreeBalance >= cancelFees && (
           <Stepper
