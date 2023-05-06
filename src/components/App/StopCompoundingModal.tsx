@@ -253,7 +253,7 @@ const StopCompoundingModal: FC = () => {
                 </p>
               )}
               <div className=" w-fit inline-flex gap-x-2 text-center text-base leading-[21.6px] rounded-lg bg-[#232323] py-4 px-6 select-none">
-                <span className="text-primaryGreen">Balance:</span>
+                <span className="text-primaryGreen">Balance on Turing:</span>
                 <p>
                   {/* turFreeBalance is TUR balance on Turing Network */}
                   {turFreeBalance.toFixed(3) ?? 'loading...'} TUR

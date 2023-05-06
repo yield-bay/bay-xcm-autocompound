@@ -179,23 +179,21 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
   useEffect(() => {
     (async () => {
       if (account1) {
-        const mgrBalance = await mangataHelper.mangata?.getTokenBalance(
-          '0', // MGR TokenId
-          account1.address
-        );
-
+        // const mgrBalance = await mangataHelper.mangata?.getTokenBalance(
+        //   '0', // MGR TokenId
+        //   account1.address
+        // );
         const turBalance = await mangataHelper.mangata?.getTokenBalance(
           '7', // TUR TokenId
           account1.address
         );
 
-        const mgrBalanceFree = mgrBalance.free
-          .div(getDecimalBN(18)) // MGR decimals = 18
-          .toNumber();
-        setMgxBalance(mgrBalanceFree);
-        const turBalanceFree = turBalance.free
-          .div(getDecimalBN(10)) // TUR decimals = 10
-          .toNumber();
+        // const mgrBalanceFree =
+        //   parseFloat(BigInt(mgrBalance.free).toString(10)) / 10 ** 18;
+        // setMgxBalance(mgrBalanceFree);
+
+        const turBalanceFree =
+          parseFloat(BigInt(turBalance.free).toString(10)) / 10 ** 10;
         setTurBalance(turBalanceFree);
       }
     })();
@@ -446,11 +444,11 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
             <p className="text-[#B9B9B9]">
               Costs{' '}
               {!isNaN(turprice) && (
-                <span className="text-white">
-                  ${(totalFees * turprice).toFixed(2)}
-                </span>
+                <span className="text-white">{totalFees?.toFixed(2)} TUR</span>
               )}{' '}
-              <span className="text-white">({totalFees?.toFixed(2)} TUR)</span>{' '}
+              <span className="text-white">
+                (${(totalFees * turprice).toFixed(2)})
+              </span>{' '}
               including Gas Fees
             </p>
           )}
@@ -473,7 +471,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
             />
           </div>
           <div className="inline-flex gap-x-2 rounded-lg bg-[#232323] py-4 px-6 select-none">
-            <span className="text-primaryGreen">Balance:</span>
+            <span className="text-primaryGreen">Balance on Mangata:</span>
             {gasChoice == 0 ? (
               <span>
                 {mgxBalance ?? 'loading...'} {IS_PRODUCTION ? 'MGX' : 'MGR'}
@@ -481,10 +479,10 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
             ) : (
               <p>
                 {/* turBalance is in Mangata */}
-                {turBalance ?? 'loading...'} TUR
+                {turBalance.toFixed(2) ?? 'loading...'} TUR
                 {!isNaN(turprice) && (
                   <span className="text-[#8A8A8A] ml-2">
-                    ${(turBalance * turprice).toFixed(3)}
+                    ${(turBalance * turprice).toFixed(2)}
                   </span>
                 )}
               </p>
