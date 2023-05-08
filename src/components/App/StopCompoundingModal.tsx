@@ -297,6 +297,10 @@ const StopCompoundingModal: FC = () => {
                   }}
                 />
               </div>
+              <p className="text-center text-sm font-semibold leading-[21.6px] opacity-70">
+                Disclaimer: Currently, the gas fee paid while setting up
+                auto-compounding will not be refunded.
+              </p>
             </div>
             {isFailed && (
               <div className="flex flex-col items-center text-sm leading-[21.6px]">
