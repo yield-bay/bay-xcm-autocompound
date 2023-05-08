@@ -1,11 +1,10 @@
 import { FC, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { TabProps, TokenType } from '@utils/types';
+import { TabProps } from '@utils/types';
 import { useAtom } from 'jotai';
 import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
 import _ from 'lodash';
 import moment from 'moment';
-// import CountUp from 'react-countup';
 import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@chakra-ui/react';
 
@@ -22,7 +21,6 @@ import {
   compoundConfigAtom,
   stopCompModalOpenAtom,
 } from '@store/commonAtoms';
-import { getDecimalBN } from '@utils/xcm/common/utils';
 import { accountAtom } from '@store/accountAtoms';
 import { formatTokenSymbols, replaceTokenSymbols } from '@utils/farmMethods';
 import { turTotalFees } from '@utils/turTotalFees';
@@ -60,7 +58,8 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
 
   const [lpBalanceNum, setLpBalanceNum] = useState<number>(0);
   const [mgxBalance, setMgxBalance] = useState<number>(0);
-  const [turBalance, setTurBalance] = useState<number>(0);
+  const [turBalance, setTurBalance] = useState<number>(0); // TUR balance on Mangata
+  const [turBalanceTuring, setTurBalanceTuring] = useState<number>(0); // TUR balance on Turing
   const [isAutocompounding, setIsAutocompounding] = useState<boolean>(false);
   const [hasEvent, setHasEvent] = useState<boolean>(false);
 
@@ -183,18 +182,25 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
         //   '0', // MGR TokenId
         //   account1.address
         // );
-        const turBalance = await mangataHelper.mangata?.getTokenBalance(
-          '7', // TUR TokenId
-          account1.address
-        );
-
         // const mgrBalanceFree =
         //   parseFloat(BigInt(mgrBalance.free).toString(10)) / 10 ** 18;
         // setMgxBalance(mgrBalanceFree);
 
+        // TUR Balance on Mangata Network
+        const turBalance = await mangataHelper.mangata?.getTokenBalance(
+          '7', // TUR TokenId
+          account1.address
+        );
         const turBalanceFree =
           parseFloat(BigInt(turBalance.free).toString(10)) / 10 ** 10;
         setTurBalance(turBalanceFree);
+
+        // TUR Balance on Turing Network
+        const turBalanceTuring = await turingHelper.getBalance(turingAddress);
+        const turFreeBalTuring =
+          BigInt(turBalanceTuring.free).toString(10) / 10 ** 10;
+        // const turFreeBalTuring = turBalanceTuring?.toHuman()?.free;
+        setTurBalanceTuring(turFreeBalTuring);
       }
     })();
   }, [account1]);
@@ -515,12 +521,14 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
             text={
               lpBalanceNum < 0.01
                 ? 'Insufficient LP Token balance'
-                : totalFees >= turBalance
+                : totalFees >= turBalance + turBalanceTuring
                 ? 'Insufficient TUR balance'
                 : 'Confirm'
             }
             type="primary"
-            disabled={lpBalanceNum < 0.01 || totalFees >= turBalance}
+            disabled={
+              lpBalanceNum < 0.01 || totalFees >= turBalance + turBalanceTuring
+            }
             onClick={() => {
               setOpen(false);
               setIsOpenModal(true);
