@@ -117,16 +117,8 @@ const AddLiquidityModal: FC = () => {
         config.firstTokenAmount,
         config.secondTokenAmount // expectedSecondTokenAmount
       );
-      const activateLiquidityTxn = await mangataHelper.activateLiquidityV2(
-        pool.liquidityTokenId,
-        config.lpAmount
-      );
-      const mangataTransactions = [mintLiquidityTxn, activateLiquidityTxn];
-      setIsSigning(true);
 
-      const mangataBatchTx =
-        mangataHelper.api.tx.utility.batchAll(mangataTransactions);
-      await mangataBatchTx
+      await mintLiquidityTxn
         .signAndSend(
           account1?.address,
           { signer: signer },
