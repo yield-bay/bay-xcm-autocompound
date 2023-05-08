@@ -456,7 +456,7 @@ const CompoundModal: FC = () => {
           console.log('Before TUR Transfer', totalFees);
           const transferTurTx = await mangataHelper.transferTur(
             // 1 * 10 ** 10,
-            totalFees + totalFees * 10,
+            totalFees + totalFees / 10,
             turingAddress
           );
           // await transferTurTx.signAndSend(account1.address, { signer: signer });
