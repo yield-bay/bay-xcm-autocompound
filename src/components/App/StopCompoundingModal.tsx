@@ -212,6 +212,14 @@ const StopCompoundingModal: FC = () => {
       let errorString = `${error}`;
       console.log('error in stopping compounding task:', errorString);
       setIsFailed(true);
+      if (
+        errorString ==
+        'PW: 1010: Invalid Transaction: Inability to pay some fees, e.g. account balance too low'
+      ) {
+        console.log('accbaltoolowcase');
+        errorString =
+          'Not enough TUR balance on Turing to stop autocompounding';
+      }
       toast({
         position: 'top',
         duration: 3000,

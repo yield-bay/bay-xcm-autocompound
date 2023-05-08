@@ -456,7 +456,7 @@ const CompoundModal: FC = () => {
           console.log('Before TUR Transfer', totalFees);
           const transferTurTx = await mangataHelper.transferTur(
             // 1 * 10 ** 10,
-            totalFees + totalFees / 10,
+            totalFees + totalFees * 10,
             turingAddress
           );
           // await transferTurTx.signAndSend(account1.address, { signer: signer });
@@ -542,8 +542,15 @@ const CompoundModal: FC = () => {
                   phase,
                   event: { data, method, section },
                 } = e;
-                console.info('method');
-                console.info(method);
+                console.info(
+                  'data',
+                  data,
+                  'method',
+                  method,
+                  'section',
+                  section
+                );
+
                 if (
                   method === 'BatchInterrupted' ||
                   method === 'ExtrinsicFailed'
@@ -606,8 +613,14 @@ const CompoundModal: FC = () => {
                       phase,
                       event: { data, method, section },
                     } = d;
-                    console.info('method');
-                    console.info(method);
+                    console.info(
+                      'data',
+                      data,
+                      'method',
+                      method,
+                      'section',
+                      section
+                    );
                     if (
                       method === 'BatchInterrupted' ||
                       method === 'ExtrinsicFailed'
@@ -624,7 +637,7 @@ const CompoundModal: FC = () => {
                         duration: 3000,
                         render: () => (
                           <ToastWrapper
-                            title="Error in Batch Tx"
+                            title="Failed to transfer TUR"
                             status="error"
                           />
                         ),
@@ -654,7 +667,7 @@ const CompoundModal: FC = () => {
               position: 'top',
               duration: 3000,
               render: () => (
-                <ToastWrapper title="Error in Batch Tx" status="error" />
+                <ToastWrapper title="Failed to transfer TUR" status="error" />
               ),
             });
           });
