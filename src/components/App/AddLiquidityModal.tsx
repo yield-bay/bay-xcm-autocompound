@@ -340,9 +340,18 @@ const AddLiquidityModal: FC = () => {
       )}
       {isSuccess && (
         <div className="flex flex-col gap-y-12">
-          <div className="py-14 text-center text-xl leading-[27px] bg-baseGray ro`unded-lg">
-            Liquidity Added: {config.firstTokenAmount} {token0} with{' '}
-            {config.secondTokenAmount} {token1}.
+          <div className="py-14 text-center text-xl leading-[27px] bg-baseGray rounded-lg">
+            <p className="mx-auto max-w-[333px]">
+              Liquidity Added:{' '}
+              <span className="inline-flex">
+                {config.firstTokenAmount} {token0}
+              </span>{' '}
+              with{' '}
+              <span className="inline-flex">
+                {config.secondTokenAmount} {token1}
+              </span>
+              .
+            </p>
           </div>
           <button
             className="w-full py-[13px] text-base leading-[21.6px] rounded-lg border border-[#7D7D7D]"
