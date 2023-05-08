@@ -199,12 +199,12 @@ const MainModal: FC = () => {
               <Tooltip
                 label={
                   tab.id == 0 &&
-                  mgxBalance < 5000 &&
+                  mgxBalance < 5030 &&
                   !isAutocompounding &&
                   !userHasProxy
                     ? IS_PRODUCTION
-                      ? 'Need a minimum of 5000 MGX as free balance to autocompound.'
-                      : 'Need a minimum of 5000 MGR as free balance to autocompound.'
+                      ? 'Need a minimum of 5030 MGX as free balance to autocompound.'
+                      : 'Need a minimum of 5030 MGR as free balance to autocompound.'
                     : tab.id == 1 && isAutocompounding
                     ? 'Stop current autocompounding task to add liquidity'
                     : tab.id == 2 && isAutocompounding
@@ -220,7 +220,7 @@ const MainModal: FC = () => {
                   onClick={() => setSelectedTab(tab.id)}
                   disabled={
                     (tab.id == 0 &&
-                      mgxBalance < 5000 &&
+                      mgxBalance < 5030 &&
                       !isAutocompounding &&
                       !userHasProxy) ||
                     ((tab.id == 1 || tab.id == 2) && isAutocompounding) ||

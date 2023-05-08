@@ -96,7 +96,7 @@ const FarmCard: FC<Props> = ({
 
   // Conditions for disabling Autocompounding button
   const disabledCompoundingBtn =
-    (mgxBalance < 5000 && !isAutocompounding && !hasProxy) || account == null;
+    (mgxBalance < 5030 && !isAutocompounding && !hasProxy) || account == null;
 
   return (
     <div
@@ -230,8 +230,8 @@ const FarmCard: FC<Props> = ({
               label={
                 account == null
                   ? 'Please connect wallet to manage Autocompounding.'
-                  : mgxBalance < 5000 && !isAutocompounding && !hasProxy
-                  ? 'You need a minimum of 5000 MGX as free balance to setup proxy & autocompound.'
+                  : mgxBalance < 5030 && !isAutocompounding && !hasProxy
+                  ? 'You need a minimum of 5030 MGX as free balance to setup proxy & autocompound.'
                   : ''
               }
               placement="left"
