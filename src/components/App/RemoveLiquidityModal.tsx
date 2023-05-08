@@ -413,7 +413,7 @@ const RemoveLiquidityModal: FC = () => {
             />
             <Button
               type="warning"
-              text="Cancel"
+              text="Back"
               className="w-1/2"
               onClick={() => {
                 setOpenMainModal(true);

@@ -794,7 +794,7 @@ const CompoundModal: FC = () => {
             )}
             <Button
               type="warning"
-              text="Cancel"
+              text="Back"
               className="w-1/2"
               disabled={batchTxDone} // Modal should be unclosable after batchTxn is done
               onClick={() => {
