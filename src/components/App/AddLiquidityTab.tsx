@@ -249,7 +249,10 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
 
   // Method to handle max button for first token
   const handleMaxFirstToken = () => {
-    if ((firstTokenBalance as number) < 20) {
+    if (
+      (firstTokenBalance as number) < 20 &&
+      (token0 == 'MGR' || token0 == 'MGX')
+    ) {
       toast({
         position: 'top',
         duration: 3000,
@@ -260,9 +263,7 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
           />
         ),
       });
-      return;
-    }
-    if (token0 == 'MGR' || token0 == 'MGX') {
+    } else if (token0 == 'MGR' || token0 == 'MGX') {
       setFirstTokenAmount(
         firstTokenBalance
           ? (firstTokenBalance - (fees ?? 0) - 20).toString()
@@ -279,7 +280,10 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
   // Method to handle max button for second token
   const handleMaxSecondToken = () => {
     // Checking if user has enough balance to pay gas fees
-    if ((secondTokenBalance as number) < 20) {
+    if (
+      (secondTokenBalance as number) < 20 &&
+      (token1 == 'MGR' || token1 == 'MGX')
+    ) {
       toast({
         position: 'top',
         duration: 3000,
@@ -290,9 +294,7 @@ const AddLiquidityTab = ({ farm, account, pool }: TabProps) => {
           />
         ),
       });
-      return;
-    }
-    if (token1 == 'MGR' || token1 == 'MGX') {
+    } else if (token1 == 'MGR' || token1 == 'MGX') {
       setSecondTokenAmount(
         secondTokenBalance
           ? (secondTokenBalance - (fees ?? 0) - 20).toString()
