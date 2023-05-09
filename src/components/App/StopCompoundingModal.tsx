@@ -45,7 +45,7 @@ const StopCompoundingModal: FC = () => {
   // Process States
   const [isInProcess, setIsInProcess] = useState(false);
   const [isSigning, setIsSigning] = useState(false);
-  const [transferTurDone, setTransferTurDone] = useState(true);
+  const [transferTurDone, setTransferTurDone] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [isFailed, setIsFailed] = useState(false);
 
@@ -414,7 +414,6 @@ const StopCompoundingModal: FC = () => {
                 <div className="w-fit inline-flex gap-x-2 text-center text-base leading-[21.6px] rounded-lg bg-[#232323] py-4 px-6">
                   <span className="text-primaryGreen">Balance on Turing:</span>
                   <p>
-                    {/* turFreeBalance is TUR balance on Turing Network */}
                     {turBalanceTuring.toFixed(3) ?? 'loading...'} TUR
                     {!isNaN(turprice) && (
                       <span className="text-[#8A8A8A] ml-2">
