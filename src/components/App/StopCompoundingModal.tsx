@@ -213,9 +213,12 @@ const StopCompoundingModal: FC = () => {
     setIsInProcess(true);
     setIsSigning(true);
 
+    console.log('cancelFees', cancelFees, cancelFees * 10 ** 10);
     try {
       const transferTurTx = await mangataHelper.transferTur(
-        cancelFees, // Amount to transfer on Turing from Mangata
+        parseInt(
+          (cancelFees * 10 ** 10 + (cancelFees / 10) * 10 ** 10).toString()
+        ), // Amount to transfer on Turing from Mangata
         turingAddress
       );
       await transferTurTx
