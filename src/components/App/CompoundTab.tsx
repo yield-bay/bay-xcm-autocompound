@@ -476,7 +476,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
               className={gasChoice == 1 ? '' : 'opacity-50'}
             />
           </div>
-          <div className="inline-flex gap-x-2 rounded-lg bg-[#232323] py-4 px-6 select-none">
+          <div className="inline-flex gap-x-2 rounded-lg bg-[#232323] py-4 px-6">
             <span className="text-primaryGreen">Balance on Mangata:</span>
             {gasChoice == 0 ? (
               <span>
