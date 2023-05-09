@@ -10,8 +10,11 @@ import {
   turingHelperAtom,
   stopCompModalOpenAtom,
   taskUpdatedAtom,
+  mangataHelperAtom,
+  account1Atom,
 } from '@store/commonAtoms';
 import { useMutation } from 'urql';
+import { delay } from '@utils/xcm/common/utils';
 import {
   updateAutocompoundEventStatusMutation,
   UpdateXcmpTaskMutation,
@@ -25,23 +28,31 @@ import Link from 'next/link';
 import { IS_PRODUCTION } from '@utils/constants';
 import { useQuery } from '@tanstack/react-query';
 import { fetchTokenPrices } from '@utils/fetch-prices';
+import Image from 'next/image';
+import Tooltip from '@components/Library/Tooltip';
 
 const StopCompoundingModal: FC = () => {
   const [account] = useAtom(accountAtom); // selected account
+  const [mangataHelper] = useAtom(mangataHelperAtom);
   const [turingHelper] = useAtom(turingHelperAtom);
   const [currentTask] = useAtom(selectedTaskAtom);
   const [isModalOpen, setIsModalOpen] = useAtom(stopCompModalOpenAtom);
   const [, setOpenMainModal] = useAtom(mainModalOpenAtom);
   const [turingAddress] = useAtom(turingAddressAtom);
   const [taskUpdated, setTaskUpdated] = useAtom(taskUpdatedAtom);
+  const [account1] = useAtom(account1Atom);
 
   // Process States
   const [isInProcess, setIsInProcess] = useState(false);
   const [isSigning, setIsSigning] = useState(false);
+  const [transferTurDone, setTransferTurDone] = useState(true);
   const [isSuccess, setIsSuccess] = useState(false);
   const [isFailed, setIsFailed] = useState(false);
+
+  // Fees and Balances
   const [cancelFees, setCancelFees] = useState<number>(0);
-  const [turFreeBalance, setTurFreeBalance] = useState<number>(0);
+  const [turBalance, setTurBalance] = useState<number>(0); // TUR balance on Mangata
+  const [turBalanceTuring, setTurBalanceTuring] = useState<number>(0); // TUR
 
   const toast = useToast();
 
@@ -86,12 +97,27 @@ const StopCompoundingModal: FC = () => {
     setCancelFees(cancelTaskFees);
     console.log('paymentInfo', cancelTaskFees);
 
-    const turBalance = await turingHelper.getBalance(turingAddress);
-    const turFreeBalance = BigInt(turBalance.free).toString(10) / 10 ** 10;
-    setTurFreeBalance(turFreeBalance);
+    // Fetching TUR Balances on both chains
 
-    console.log('turBalance', turFreeBalance);
-    if (turFreeBalance < cancelTaskFees) {
+    // TUR Balance on Mangata Network
+    const turBalance = await mangataHelper.mangata?.getTokenBalance(
+      '7', // TUR TokenId
+      account?.address
+    );
+    const turBalanceFree =
+      parseFloat(BigInt(turBalance.free).toString(10)) / 10 ** 10;
+    console.log('turFreeBal on Mangata', turBalanceFree);
+    setTurBalance(turBalanceFree);
+
+    // TUR Balance on Turing Network
+    const turBalanceTuring = await turingHelper.getBalance(turingAddress);
+    const turFreeBalTuring =
+      BigInt(turBalanceTuring.free).toString(10) / 10 ** 10;
+    // const turFreeBalTuring = turBalanceTuring?.toHuman()?.free;
+    console.log('turFreeBal on Turing', turFreeBalTuring);
+    setTurBalanceTuring(turFreeBalTuring);
+
+    if (turBalanceFree + turFreeBalTuring < cancelTaskFees) {
       console.log('Insufficient balance to cancel the task!');
     }
   };
@@ -182,6 +208,130 @@ const StopCompoundingModal: FC = () => {
     });
   };
 
+  const handleTransferTur = async () => {
+    const signer = account?.wallet?.signer;
+    setIsInProcess(true);
+    setIsSigning(true);
+
+    try {
+      const transferTurTx = await mangataHelper.transferTur(
+        cancelFees, // Amount to transfer on Turing from Mangata
+        turingAddress
+      );
+      await transferTurTx
+        .signAndSend(
+          account1?.address,
+          { signer: signer },
+          ({ status, events, dispatchError }: any) => {
+            if (status.isInBlock) {
+              console.log(
+                `transferTUR Tx is in block with hash ${status.asInBlock.toHex()}`
+              );
+            } else if (status.isFinalized) {
+              (async () => {
+                const tranHash = status.asFinalized.toString();
+                console.log(
+                  `transfertur Tx finalized with hash ${tranHash}\n\nbefore delay\n`
+                );
+                await delay(20000);
+                console.log('after delay');
+
+                const block = await mangataHelper.api.rpc.chain.getBlock(
+                  tranHash
+                );
+                console.log('block', block);
+                console.log('block', JSON.stringify(block));
+                const bhn = parseInt(block.block.header.number) + 1;
+                console.log('num', bhn);
+                const blockHash =
+                  await mangataHelper.api.rpc.chain.getBlockHash(bhn);
+                console.log(`blockHash ${blockHash}`);
+                console.log('bhjs', JSON.stringify(blockHash) ?? 'nothing');
+                const at = await mangataHelper.api.at(blockHash);
+                const blockEvents = await at.query.system.events();
+                console.log('blockEvents', blockEvents);
+                let allSuccess = true;
+                blockEvents.forEach((d: any) => {
+                  const {
+                    phase,
+                    event: { data, method, section },
+                  } = d;
+                  console.info(
+                    'data',
+                    data,
+                    'method',
+                    method,
+                    'section',
+                    section
+                  );
+                  if (
+                    method === 'BatchInterrupted' ||
+                    method === 'ExtrinsicFailed'
+                  ) {
+                    console.log('failed is true');
+                    // failed = true;
+                    console.log('Error in Batch Tx:');
+                    allSuccess = false;
+                    setIsSuccess(false);
+                    setIsSigning(false);
+                    setIsInProcess(false);
+                    toast({
+                      position: 'top',
+                      duration: 3000,
+                      render: () => (
+                        <ToastWrapper
+                          title="Failed to transfer TUR to Turing Network."
+                          status="error"
+                        />
+                      ),
+                    });
+                  }
+                });
+                if (allSuccess) {
+                  console.log('allSuccess', allSuccess);
+                  setIsInProcess(false); // Process for step 1 is done
+                  setTransferTurDone(true); // Transaction on Mangata is done
+                }
+              })();
+            } else {
+              setIsSigning(false); // Reaching here means the trxn is signed
+              console.log(`Status of Batch Tx: ${status.type}`);
+            }
+          }
+        )
+        .catch((error: any) => {
+          console.log('Error in Batch Tx:', error);
+          setIsSuccess(false);
+          setIsSigning(false);
+          setIsInProcess(false);
+          toast({
+            position: 'top',
+            duration: 3000,
+            render: () => (
+              <ToastWrapper
+                title="Failed to transfer TUR to Turing Network. Please try again later."
+                status="error"
+              />
+            ),
+          });
+        });
+    } catch (error) {
+      console.log('error', error);
+      setIsInProcess(false);
+      setIsSigning(false);
+      toast({
+        position: 'top',
+        duration: 3000,
+        render: () => (
+          <ToastWrapper
+            title="Failed to transfer TUR to Turing Network. Please try again later."
+            status="error"
+          />
+        ),
+      });
+    }
+  };
+
   const handleStopCompounding = async () => {
     const signer = account?.wallet?.signer;
     console.log('Canceling task with taskid', currentTask?.taskId);
@@ -241,96 +391,126 @@ const StopCompoundingModal: FC = () => {
             <p className="text-lg leading-[21.6px] text-[#B9B9B9] text-center w-full">
               Are you sure you want to stop Autocompounding?
             </p>
-            <div className="flex flex-col items-center gap-y-5">
-              {isTurpriceLoading || cancelFees == 0 ? (
-                <p className="text-[#B9B9B9] text-base text-center leading-[21.6px]">
-                  Calculating fees...
-                </p>
-              ) : (
-                <p className="text-[#B9B9B9] text-base text-center leading-[21.6px]">
-                  Costs{' '}
-                  {!isNaN(turprice) && (
+            {!transferTurDone && (
+              <div className="flex flex-col items-center gap-y-5">
+                {isTurpriceLoading || cancelFees == 0 ? (
+                  <p className="text-[#B9B9B9] text-base text-center leading-[21.6px]">
+                    Calculating fees...
+                  </p>
+                ) : (
+                  <p className="text-[#B9B9B9] text-base text-center leading-[21.6px]">
+                    Costs{' '}
+                    {!isNaN(turprice) && (
+                      <span className="text-white">
+                        {cancelFees?.toFixed(2)} TUR
+                      </span>
+                    )}{' '}
                     <span className="text-white">
-                      {cancelFees?.toFixed(2)} TUR
-                    </span>
-                  )}{' '}
-                  <span className="text-white">
-                    (${(cancelFees * turprice).toFixed(2)})
-                  </span>{' '}
-                  including Gas Fees
-                </p>
-              )}
-              <div className=" w-fit inline-flex gap-x-2 text-center text-base leading-[21.6px] rounded-lg bg-[#232323] py-4 px-6 select-none">
-                <span className="text-primaryGreen">Balance on Turing:</span>
-                <p>
-                  {/* turFreeBalance is TUR balance on Turing Network */}
-                  {turFreeBalance.toFixed(3) ?? 'loading...'} TUR
-                  {!isNaN(turprice) && (
-                    <span className="text-[#8A8A8A] ml-2">
-                      ${(turFreeBalance * turprice).toFixed(3)}
-                    </span>
+                      (${(cancelFees * turprice).toFixed(2)})
+                    </span>{' '}
+                    including Gas Fees
+                  </p>
+                )}
+                <div className="w-fit inline-flex gap-x-2 text-center text-base leading-[21.6px] rounded-lg bg-[#232323] py-4 px-6">
+                  <span className="text-primaryGreen">Balance on Turing:</span>
+                  <p>
+                    {/* turFreeBalance is TUR balance on Turing Network */}
+                    {turBalanceTuring.toFixed(3) ?? 'loading...'} TUR
+                    {!isNaN(turprice) && (
+                      <span className="text-[#8A8A8A] ml-2">
+                        ${(turBalanceTuring * turprice).toFixed(3)}
+                      </span>
+                    )}
+                  </p>
+                  {turBalanceTuring < cancelFees && ( // If balance is not enough on Turing Network
+                    <Tooltip
+                      label="Your TUR will be first transferred to Turing"
+                      placement="bottom"
+                    >
+                      <Image
+                        src="/icons/Warning.svg"
+                        alt="Insufficient Balance Warning!"
+                        width={24}
+                        height={24}
+                      />
+                    </Tooltip>
                   )}
-                </p>
+                </div>
               </div>
-              <div className="inline-flex gap-x-2 w-full">
+            )}
+            <div className="inline-flex gap-x-2 w-full">
+              {!transferTurDone ? (
                 <Button
-                  type={'warning'}
+                  type={
+                    turBalanceTuring < cancelFees && turBalance >= cancelFees
+                      ? 'primary'
+                      : 'warning'
+                  }
                   text={
-                    turFreeBalance < cancelFees
-                      ? 'Insufficient TUR balance'
-                      : isInProcess
-                      ? 'Stopping the process...'
-                      : 'Stop Autocompounding'
+                    turBalanceTuring >= cancelFees // Considering both Turing and Mangata balances
+                      ? 'Stop Autocompounding'
+                      : turBalance >= cancelFees
+                      ? 'Swap TUR from Mangata'
+                      : 'Insufficient TUR balance'
                   }
                   disabled={
-                    isInProcess ||
-                    isSuccess ||
-                    turFreeBalance < cancelFees ||
+                    turBalance + turBalanceTuring < cancelFees ||
                     cancelFees == 0
                   }
-                  className="w-3/5"
+                  className="w-1/2"
+                  onClick={() => {
+                    if (turBalanceTuring >= cancelFees) {
+                      handleStopCompounding();
+                      console.log('xcmp task to stop', currentTask);
+                    } else if (turBalance >= cancelFees) {
+                      handleTransferTur();
+                      console.log('handleTransferTur called.');
+                    } else {
+                      console.log('Button should be disabled!');
+                      toast({
+                        position: 'top',
+                        duration: 3000,
+                        render: () => (
+                          <ToastWrapper
+                            title="Insufficient TUR balance on even Mangata to swap"
+                            status="error"
+                          />
+                        ),
+                      });
+                    }
+                  }}
+                />
+              ) : (
+                <Button
+                  type="warning"
+                  text="Stop Autocompounding"
                   onClick={() => {
                     handleStopCompounding();
                     console.log('xcmp task to stop', currentTask);
                   }}
+                  className="w-1/2"
                 />
-                <Button
-                  type="secondary"
-                  text="Go Back"
-                  className="w-2/5"
-                  disabled={isInProcess || isSuccess}
-                  onClick={() => {
-                    setOpenMainModal(true);
-                    setIsModalOpen(false);
-                  }}
-                />
-              </div>
-              <p className="text-center text-sm font-semibold leading-[21.6px] opacity-70">
-                Disclaimer: Currently, the gas fee paid while setting up
-                auto-compounding will not be refunded.
-              </p>
+              )}
+              {/* Its allowed to go back as step 1 just swapping TUR and process isn't started yet */}
+              <Button
+                type="secondary"
+                text="Go Back"
+                className="w-1/2"
+                onClick={() => {
+                  setOpenMainModal(true);
+                  setIsModalOpen(false);
+                }}
+              />
             </div>
-            {isFailed && (
-              <div className="flex flex-col items-center text-sm leading-[21.6px]">
-                <p>Maybe you don&apos;t have enough TUR to pay gas.</p>
-                <Link
-                  href="https://mangata-finance.notion.site/How-to-get-TUR-bdb76dac848f4d15bf06bec7ded223ad"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="hover:text-primaryGreen text-center text-sm underline underline-offset-2"
-                >
-                  How to get TUR?
-                </Link>
-              </div>
-            )}
           </div>
         )}
-        {isInProcess && (
+        {/* When balance is enough on Turing Network */}
+        {/* {isInProcess && (
           <div className="flex flex-row gap-x-6 py-14 items-center justify-center text-xl leading-[27px] bg-baseGray rounded-lg select-none">
-            {!isSuccess && <Loader size="md" />}
+            <Loader size="md" />
             {isSigning ? (
               <span className="text-center max-w-[272px]">
-                Please Sign the Transaction in your wallet.
+                Please Sign the Transaction on Turing in your wallet.
               </span>
             ) : (
               <div className="text-left max-w-[280px]">
@@ -339,6 +519,48 @@ const StopCompoundingModal: FC = () => {
               </div>
             )}
           </div>
+        )} */}
+        {/*
+          If balance is not enough on Turing Network 
+          Transfer TUR from Mangata to Turing
+          Stop Auto-ompounding
+        */}
+        {isInProcess && turBalanceTuring < cancelFees ? (
+          <div className="flex flex-row gap-x-6 py-14 items-center justify-center text-xl leading-[27px] bg-baseGray rounded-lg">
+            {!isSuccess && <Loader size="md" />}
+            {isSigning ? (
+              !transferTurDone ? (
+                <span className="text-center max-w-[272px]">
+                  Please Sign the Transaction on Mangata in your wallet.
+                </span>
+              ) : (
+                <span className="text-center max-w-[272px]">
+                  Please Sign the Transaction on Turing your wallet.
+                </span>
+              )
+            ) : (
+              <div className="text-left max-w-[280px]">
+                <p>Completing Transaction..</p>
+                <p>This may take a few seconds</p>
+              </div>
+            )}
+          </div>
+        ) : (
+          isInProcess && (
+            <div className="flex flex-row gap-x-6 py-14 items-center justify-center text-xl leading-[27px] bg-baseGray rounded-lg select-none">
+              <Loader size="md" />
+              {isSigning ? (
+                <span className="text-center max-w-[272px]">
+                  Please Sign the Transaction on Turing in your wallet.
+                </span>
+              ) : (
+                <div className="text-left max-w-[280px]">
+                  <p>Completing Transaction..</p>
+                  <p>This may take a few seconds</p>
+                </div>
+              )}
+            </div>
+          )
         )}
         {isSuccess && (
           <div className="flex flex-col gap-y-12">
@@ -357,7 +579,7 @@ const StopCompoundingModal: FC = () => {
             </button>
           </div>
         )}
-        {!isSuccess && turFreeBalance >= cancelFees && (
+        {!isSuccess && turBalanceTuring >= cancelFees ? (
           <Stepper
             activeStep={isSuccess ? 2 : isSigning ? 1 : 0}
             steps={[
@@ -366,6 +588,24 @@ const StopCompoundingModal: FC = () => {
               { label: 'Complete' },
             ]}
           />
+        ) : !isSuccess && turBalance >= cancelFees ? (
+          <Stepper
+            activeStep={
+              isSuccess ? 3 : transferTurDone ? 2 : isInProcess ? 1 : 0
+            }
+            steps={[
+              { label: 'Confirm' },
+              { label: 'MGX' },
+              { label: 'TUR' },
+              { label: 'Complete' },
+            ]}
+          />
+        ) : null}
+        {!isInProcess && !isSuccess && (
+          <p className="text-center text-sm font-semibold leading-[21.6px] text-[#868686]">
+            Disclaimer: Currently, the gas fee paid while setting up
+            auto-compounding will not be refunded.
+          </p>
         )}
       </div>
     </ModalWrapper>

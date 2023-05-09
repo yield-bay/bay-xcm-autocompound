@@ -24,7 +24,7 @@ const Button: FC<ButtonProps> = ({
         type === 'primary' && 'bg-white hover:bg-offWhite text-black',
         type === 'secondary' &&
           'bg-[#1E1E1E] hover:bg-[#252525] active:bg-[#1E1E1E]',
-        type === 'warning' && 'bg-warningRed hover:bg-[#e53c3c]',
+        type === 'warning' && 'bg-warningRed hover:bg-[#E53C3C]',
         type === 'transparent' && '',
         disabled && 'opacity-50 pointer-events-none',
         className ?? ''
