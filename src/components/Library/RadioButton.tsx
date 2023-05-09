@@ -1,6 +1,7 @@
 import type { FC } from 'react';
 import clsx from 'clsx';
 import Tooltip from './Tooltip';
+import Image from 'next/image';
 
 interface Props {
   changed: (value: number) => void;
@@ -44,18 +45,26 @@ const RadioButton: FC<Props> = ({
     >
       <div
         className={clsx(
-          'flex flex-col gap-y-3 justify-start cursor-pointer',
+          'flex flex-col gap-y-2 justify-start cursor-pointer',
           className,
           disabled && 'cursor-auto select-none opacity-50'
         )}
         onClick={disabled ? () => {} : () => changed(value)}
       >
-        <span
-          className={clsx(
-            'h-4 w-4 rounded-full',
-            isSelected ? 'bg-primaryGreen' : 'bg-[#D9D9D9]'
-          )}
-        />
+        {isSelected ? (
+          <div className="-ml-1">
+            <Image
+              src="/icons/radio-selected.svg"
+              alt="radio-selected"
+              width={24}
+              height={24}
+            />
+          </div>
+        ) : (
+          <div className="py-1">
+            <Image src="/icons/radio.svg" alt="radio" width={16} height={16} />
+          </div>
+        )}
         <span className={clsx('text-base', isSelected && 'text-primaryGreen')}>
           {label}
         </span>
