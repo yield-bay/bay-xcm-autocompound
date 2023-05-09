@@ -795,24 +795,9 @@ const CompoundModal: FC = () => {
             </div>
           </div>
           <div className="inline-flex justify-between gap-x-2">
-            {!batchTxDone ? (
-              <Button
-                text="Confirm"
-                type="secondary"
-                className="w-1/2"
-                onClick={handleCompounding}
-              />
-            ) : (
-              <Button
-                text="Schedule Compounding"
-                type="secondary"
-                className="w-1/2"
-                onClick={handleXcmpScheduling}
-              />
-            )}
             <Button
-              type="warning"
-              text="Back"
+              type="secondary"
+              text="Go Back"
               className="w-1/2"
               disabled={batchTxDone} // Modal should be unclosable after batchTxn is done
               onClick={() => {
@@ -820,6 +805,21 @@ const CompoundModal: FC = () => {
                 setIsModalOpen(false);
               }}
             />
+            {!batchTxDone ? (
+              <Button
+                text="Proceed"
+                type="primary"
+                className="w-1/2 bg-primaryGreen"
+                onClick={handleCompounding}
+              />
+            ) : (
+              <Button
+                text="Setup Compounding"
+                type="primary"
+                className="w-1/2 bg-primaryGreen"
+                onClick={handleXcmpScheduling}
+              />
+            )}
           </div>
         </div>
       )}
