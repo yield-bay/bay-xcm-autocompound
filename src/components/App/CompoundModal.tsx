@@ -402,8 +402,10 @@ const CompoundModal: FC = () => {
         xcmpFee.toNumber()
       );
 
-      const totalFees = executionFee.toNumber() + xcmpFee.toNumber() + 10 ** 10;
-      console.log('totalFees', totalFees);
+      const totalFees = parseInt(
+        (executionFee.toNumber() + xcmpFee.toNumber()).toString()
+      );
+      console.log('totalFees cmod', totalFees);
       // TOTAL_FEES / 10^(DECIMAL OF TUR)
 
       console.log('automationFeeDetails: ', {
