@@ -271,16 +271,21 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       {hasEvent && (
         <div className="rounded-lg bg-[#0C0C0C] text-center text-lg leading-6">
           <div className="py-7 text-[#C5C5C5] border-b border-[#2E2E2E]">
-            Autocompounding {selectedEvent?.lp.amount.toFixed(2)}{' '}
-            {selectedEvent?.lp.symbol} LP tokens{' '}
+            Autocompounding {lpBalanceNum.toFixed(2)} {selectedEvent?.lp.symbol} LP tokens{' '}
           </div>
           <div className="flex flex-row px-10 py-4 items-center w-full justify-between">
             <div>
-              <p className="text-[#969595]">Last Harvested</p>
+              <div className="text-[#969595]">
+                <p>Last</p>
+                <p>Compounded</p>
+              </div>
               <p className="text-2xl leading-8">{lastHarvested ?? 'NA'}</p>
             </div>
             <div>
-              <p className="text-[#969595]">Last estimated execution</p>
+              <div className="text-[#969595]">
+                <p>Compounding</p>
+                <p>till</p>
+              </div>
               <p className="text-2xl leading-8">
                 {lastEstimatedExecTime ?? 'NA'}
               </p>
