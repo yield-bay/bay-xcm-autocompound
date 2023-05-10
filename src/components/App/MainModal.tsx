@@ -205,10 +205,6 @@ const MainModal: FC = () => {
                     ? IS_PRODUCTION
                       ? 'Need a minimum of 5030 MGX as free balance to autocompound.'
                       : 'Need a minimum of 5030 MGR as free balance to autocompound.'
-                    : tab.id == 1 && isAutocompounding
-                    ? 'Stop current autocompounding task to add liquidity'
-                    : tab.id == 2 && isAutocompounding
-                    ? 'Stop current autocompounding task to remove liquidity'
                     : tab.id == 2 && lpBalance < 0.01
                     ? 'Insufficient LP token balance. Add Liquidity first.'
                     : ''
@@ -223,7 +219,6 @@ const MainModal: FC = () => {
                       mgxBalance < 5030 &&
                       !isAutocompounding &&
                       !userHasProxy) ||
-                    ((tab.id == 1 || tab.id == 2) && isAutocompounding) ||
                     (tab.id == 2 && lpBalance <= 0.01)
                   }
                   className={clsx(

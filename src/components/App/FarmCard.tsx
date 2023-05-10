@@ -192,18 +192,14 @@ const FarmCard: FC<Props> = ({
           <div className="flex flex-col justify-between">
             <Tooltip
               label={
-                account == null
-                  ? 'Please connect wallet to add Liquidity.'
-                  : isAutocompounding
-                  ? 'stop current task to add OR remove liquidity.'
-                  : ''
+                account == null ? 'Please connect wallet to add Liquidity.' : ''
               }
               placement="left"
             >
               <button
                 className={clsx(
                   'bg-baseGray py-4 px-5 h-full mb-4 text-white text-base leading-5 hover:ring-1 ring-baseGrayLow rounded-lg transition duration-200',
-                  isAutocompounding || account == null
+                  account == null
                     ? 'cursor-default hover:ring-0 opacity-50'
                     : ''
                 )}
@@ -214,7 +210,7 @@ const FarmCard: FC<Props> = ({
                   setSelectedTask(xcmpTask);
                   setSelectedEvent(autocompoundEvent);
                 }}
-                disabled={isAutocompounding || account == null}
+                disabled={account == null}
               >
                 {lpBalanceNum !== 0 && !insufficientBal ? (
                   <>
