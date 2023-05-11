@@ -143,7 +143,7 @@ const Layout: FC<Props> = ({ children }) => {
       pools.forEach(async (pool: any) => {
         const token0 = mangataHelper.getTokenSymbolById(pool.firstTokenId);
         const token1 = mangataHelper.getTokenSymbolById(pool.secondTokenId);
-        if (token0 == 'ZLK') return;
+        if (!IS_PRODUCTION && token0 == 'ZLK') return;
 
         const lpBalance = await mangataHelper.mangata?.getTokenBalance(
           pool.liquidityTokenId,
