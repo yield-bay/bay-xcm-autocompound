@@ -271,7 +271,8 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       {hasEvent && (
         <div className="rounded-lg bg-[#0C0C0C] text-center text-lg leading-6">
           <div className="py-7 text-[#C5C5C5] border-b border-[#2E2E2E]">
-            Autocompounding {lpBalanceNum.toFixed(2)} {selectedEvent?.lp.symbol} LP tokens{' '}
+            Autocompounding {lpBalanceNum.toFixed(2)} {selectedEvent?.lp.symbol}{' '}
+            LP tokens{' '}
           </div>
           <div className="flex flex-row px-10 py-4 items-center w-full justify-between">
             <div>
