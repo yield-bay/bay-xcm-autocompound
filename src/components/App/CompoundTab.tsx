@@ -339,7 +339,14 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
             }
             label="6 Months"
             value={182}
-            disabled={hasEvent && selectedEvent?.duration !== 182}
+            disabled={
+              hasEvent ? selectedEvent?.duration !== 182 : frequency == 1
+            }
+            tooltip={
+              frequency == 1 && !hasEvent
+                ? 'This combination is not possible.'
+                : ''
+            }
           />
         </div>
       </div>
@@ -358,7 +365,14 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
             }
             label="Daily"
             value={1}
-            disabled={hasEvent && selectedEvent?.frequency !== 1}
+            disabled={
+              hasEvent ? selectedEvent?.frequency !== 1 : duration == 182
+            }
+            tooltip={
+              duration == 182 && !hasEvent
+                ? 'This combination is not possible.'
+                : ''
+            }
           />
           <RadioButton
             changed={setFrequency}
