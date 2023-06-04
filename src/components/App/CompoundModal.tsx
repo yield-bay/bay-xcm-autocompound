@@ -575,23 +575,6 @@ const CompoundModal: FC = () => {
                   );
                   await delay(20000);
                   console.log('after delay');
-                  // console.log('events', events);
-                  // events.forEach((d: any) => {
-                  //   const {
-                  //     phase,
-                  //     event: { data, method, section },
-                  //   } = d;
-                  //   console.info('method');
-                  //   console.info(method);
-                  //   if (
-                  //     method === 'BatchInterrupted' ||
-                  //     method === 'ExtrinsicFailed'
-                  //   ) {
-                  //     console.log('failed is true');
-                  //     // failed = true;
-                  //   }
-                  // });
-                  // console.log('status.finalized', status.finalized);
 
                   const block = await mangataHelper.api.rpc.chain.getBlock(
                     tranHash
@@ -740,8 +723,8 @@ const CompoundModal: FC = () => {
         toast
       );
 
-      console.log('\nWaiting 20 seconds before reading new chain states ...');
-      await delay(20000); // This is not how delay works
+      // console.log('\nWaiting 20 seconds before reading new chain states ...');
+      // await delay(20000); // This is not how delay works
 
       // Account’s reserved LP token after auto-compound
       const newLiquidityBalance = await mangataHelper.mangata.getTokenBalance(

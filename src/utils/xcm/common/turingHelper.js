@@ -4,6 +4,7 @@ import { ApiPromise, WsProvider } from '@polkadot/api';
 import Keyring from '@polkadot/keyring';
 import ToastWrapper from '@components/Library/ToastWrapper';
 import { getProxies, getProxyAccount } from './utils';
+import { delay } from '@utils/xcm/common/utils';
 
 class TuringHelper {
   constructor(config) {
@@ -101,9 +102,84 @@ class TuringHelper {
                 console.log(
                   `Finalized block hash ${status.asFinalized.toHex()}`
                 );
-                setIsInProcess(false);
-                setIsSigning(false);
-                setIsSuccess(true);
+                (async () => {
+                  const tranHash = status.asFinalized.toString();
+                  console.log(
+                    `Batch Tx finalized with hash ${tranHash}\n\nbefore delay\n`
+                  );
+                  await delay(20000);
+                  console.log('after delay');
+
+                  const block = await this.api.rpc.chain.getBlock(
+                    tranHash
+                  );
+                  console.log('block', block);
+                  console.log('block', JSON.stringify(block));
+                  const bhn = parseInt(block.block.header.number) + 1;
+                  console.log('num', bhn);
+                  const blockHash =
+                    await this.api.rpc.chain.getBlockHash(bhn);
+                  console.log(`blockHash ${blockHash}`);
+                  console.log('bhjs', JSON.stringify(blockHash) ?? 'nothing');
+                  const at = await this.api.at(blockHash);
+                  const blockEvents = await at.query.system.events();
+                  console.log('blockEvents', blockEvents);
+                  let allSuccess = true;
+                  blockEvents.forEach((d) => {
+                    const {
+                      phase,
+                      event: { data, method, section },
+                    } = d;
+                    console.info(
+                      'data',
+                      data,
+                      'method',
+                      method,
+                      'section',
+                      section
+                    );
+                    if (
+                      // method === 'BatchInterrupted' ||
+                      method === 'ExtrinsicFailed'
+                    ) {
+                      console.log('failed is true');
+                      // failed = true;
+                      console.log('Error in Tx:');
+                      allSuccess = false;
+
+                      setIsInProcess(false);
+                      setIsSigning(false);
+                      setIsSuccess(false);
+                      setIsFailed(true);
+                      toast({
+                        position: 'top',
+                        duration: 3000,
+                        render: () => <ToastWrapper title={"Extrinsic Failed"} status="error" />,
+                      });
+                      // toast({
+                      //   position: 'top',
+                      //   duration: 3000,
+                      //   render: () => (
+                      //     <ToastWrapper
+                      //       title="Failed to transfer TUR"
+                      //       status="error"
+                      //     />
+                      //   ),
+                      // });
+                    }
+                  });
+                  if (allSuccess) {
+                    console.log('allSuccess', allSuccess);
+                    // setIsInProcess(false); // Process will be done when ScheduleXCMP Txn is done
+                    // setBatchTxDone(true);
+                    setIsInProcess(false);
+                    setIsSigning(false);
+                    setIsSuccess(true);
+                  }
+                })();
+                // setIsInProcess(false);
+                // setIsSigning(false);
+                // setIsSuccess(true);
               } else {
                 setIsSigning(false); // Reaching here means the trxn is signed
                 console.log(`Status: ${status.type}`);
