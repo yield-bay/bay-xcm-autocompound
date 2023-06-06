@@ -49,7 +49,7 @@ const FarmsList: FC<Props> = ({
         console.log('error fetching mgx balance', error);
       }
     })();
-  }, [mangataHelper, account1]);
+  }, [account1]);
 
   // const noXcmpTasks =
   //   xcmpTasks !== undefined ? (xcmpTasks.length == 0 ? true : false) : true;

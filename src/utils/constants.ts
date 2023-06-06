@@ -22,8 +22,5 @@ export const YIELDBAY_DOCS = 'https://docs.yieldbay.io/';
 export const YIELDBAY_GITHUB = 'https://github.com/yield-bay/';
 
 // RPCs
-export const MAINNET = [
-  'wss://mangata-x.api.onfinality.io/public-ws',
-  'wss://prod-kusama-collator-01.mangatafinance.cloud',
-];
+export const MAINNET = ['wss://kusama-rpc.mangata.online'];
 export const TESTNET = 'wss://collator-01-ws-rococo.mangata.online';

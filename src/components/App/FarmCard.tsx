@@ -63,7 +63,6 @@ const FarmCard: FC<Props> = ({
   const [token0, token1] = tokenNames;
 
   useEffect(() => {
-    console.log(`${token0}-${token1} xcmptask`, xcmpTask);
     setIsAutocompounding(xcmpTask?.status == 'RUNNING' ? true : false);
   }, [xcmpTask]);
 
@@ -95,8 +94,9 @@ const FarmCard: FC<Props> = ({
   }, [pools]);
 
   // Conditions for disabling Autocompounding button
-  const disabledCompoundingBtn =
-    (mgxBalance < 5030 && !isAutocompounding && !hasProxy) || account == null;
+  // const disabledCompoundingBtn =
+  //   (mgxBalance < 5030 && !isAutocompounding && !hasProxy) || account == null;
+  const disabledCompoundingBtn = account == null;
 
   return (
     <div
