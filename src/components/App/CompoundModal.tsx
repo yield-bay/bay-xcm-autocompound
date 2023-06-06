@@ -29,6 +29,7 @@ import { TokenType } from '@utils/types';
 import {
   AddXcmpTaskMutation,
   createAutocompoundEventMutation,
+  createAutocompoundSetupEventMutation,
 } from '@utils/api';
 import { useMutation } from 'urql';
 import getTimestamp from '@utils/getTimestamp';
@@ -96,6 +97,29 @@ const CompoundModal: FC = () => {
       });
     } catch (error) {
       console.log('Error in addXcmpTask', error);
+    }
+  };
+
+  const [createAutocompoundSetupResult, createAutocompoundSetupEvent] =
+    useMutation(createAutocompoundSetupEventMutation);
+  const createAutocompoundSetupHandler = async (
+    userAddress: string,
+    chain: string,
+    lpName: string,
+    timestamp: string
+  ) => {
+    const variables = {
+      userAddress,
+      chain,
+      lpName,
+      timestamp,
+    };
+    try {
+      createAutocompoundSetupEvent(variables).then((result) => {
+        console.log('createAutocompoundSetupEvent Result', result);
+      });
+    } catch (error) {
+      console.log('Error while createAutocompoundSetupEvent call:', error);
     }
   };
 
@@ -179,7 +203,22 @@ const CompoundModal: FC = () => {
     asyncFn();
   }, [isModalOpen]);
 
-  // Run the API calls when the isSuccess is updated and is true
+  // Run the API calls when first step of batchTxn is done
+  useEffect(() => {
+    if (batchTxDone) {
+      console.log('batchTxDone', batchTxDone);
+      console.log('calling createAutocompundSetupHandler');
+
+      createAutocompoundSetupHandler(
+        turingAddress as string,
+        IS_PRODUCTION ? 'KUSAMA' : 'ROCOCO',
+        lpName,
+        getTimestamp()
+      );
+    }
+  }, [batchTxDone]);
+
+  // Run the API calls when the Autocompounding is setup successfully
   useEffect(() => {
     if (isSuccess) {
       console.log(
@@ -635,8 +674,6 @@ const CompoundModal: FC = () => {
                     setBatchTxDone(true);
                   }
                 })();
-                // setIsInProcess(false); // Process will be done when ScheduleXCMP Txn is done
-                // setBatchTxDone(true);
               } else {
                 setIsSigning(false); // Reaching here means the trxn is signed
                 console.log(`Status of Batch Tx: ${status.type}`);

@@ -153,6 +153,27 @@ export const autocompoundEventsQuery = gql`
   }
 `;
 
+export const createAutocompoundSetupEventMutation = gql`
+  mutation createAutocompoundSetup(
+    $userAddress: String!
+    $chain: XCMPTaskChain!
+    $lpName: String!
+    $timestamp: String!
+  ) {
+    createAutocompoundSetupEvent(
+      userAddress: $userAddress
+      chain: $chain
+      lpName: $lpName
+      timestamp: $timestamp
+    ) {
+      userAddress
+      chain
+      lpName
+      timestamp
+    }
+  }
+`;
+
 export const createAutocompoundEventMutation = gql`
   mutation createAutocompound(
     $userAddress: String!
