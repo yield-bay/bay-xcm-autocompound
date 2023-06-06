@@ -86,11 +86,15 @@ const Layout: FC<Props> = ({ children }) => {
         mangataConfig = Mangata;
       }
       const turingHelper = new TuringHelper(turingConfig);
+      console.log('initiliazing turing helper...');
       await turingHelper.initialize();
+      console.log('✅ turing helper initialized\n', turingHelper);
       setTuringHelper(turingHelper);
 
       const mangataHelper = new MangataHelper(mangataConfig);
+      console.log('initiliazing mangata helper...');
       await mangataHelper.initialize();
+      console.log('✅ mangata helper initialized\n', mangataHelper);
       setMangataHelper(mangataHelper);
 
       const turingChainName = turingHelper.config.key;
@@ -130,8 +134,6 @@ const Layout: FC<Props> = ({ children }) => {
 
       const mangataAddress = account1.getChainByName(mangataChainName)?.address;
       const turingAddress = account1.getChainByName(turingChainName)?.address;
-      // console.log('mangataAddress', mangataAddress);
-      // console.log('turingAddress', turingAddress);
       setMangataAddress(mangataAddress);
       setTuringAddress(turingAddress);
 
