@@ -71,8 +71,8 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
 
   useEffect(() => {
     setHasEvent(selectedEvent != undefined ? true : false);
-    console.log('hasEvent', hasEvent);
-    console.log(`selected event @${token0}-${token1}`, selectedEvent);
+    // console.log('hasEvent', hasEvent);
+    // console.log(`selected event @${token0}-${token1}`, selectedEvent);
   }, []);
 
   // Calculate LP balance
@@ -104,7 +104,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
 
   // Do this if task is already running (user is shown "Stop Autocompounding")
   useEffect(() => {
-    console.log('hasEvent', hasEvent, 'open', open);
+    // console.log('hasEvent', hasEvent, 'open', open);
     (async () => {
       if (hasEvent && open) {
         try {
@@ -233,11 +233,9 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
       let freq = frequency;
       let dur = duration;
       if (frequency == 7 && duration == 7) {
-        console.log('77 edge case');
         freq = 6;
       }
       if (frequency == 30 && duration == 30) {
-        console.log('3030 edge case');
         freq = 29;
       }
       const feesInTUR = await turTotalFees(

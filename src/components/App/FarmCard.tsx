@@ -94,9 +94,8 @@ const FarmCard: FC<Props> = ({
   }, [pools]);
 
   // Conditions for disabling Autocompounding button
-  // const disabledCompoundingBtn =
-  //   (mgxBalance < 5030 && !isAutocompounding && !hasProxy) || account == null;
-  const disabledCompoundingBtn = account == null;
+  const disabledCompoundingBtn =
+    (mgxBalance < 5030 && !isAutocompounding && !hasProxy) || account == null;
 
   return (
     <div
@@ -121,15 +120,6 @@ const FarmCard: FC<Props> = ({
             ))}
           </p>
         </div>
-        {/* -- Not required for now */}
-        {/* <button className="rounded-full scale-0 group-hover:scale-100 bg-white p-[10px] h-fit hover:bg-offWhite text-black transition-all duration-200">
-          <Image
-            height={28}
-            width={28}
-            src="/icons/ArrowRight.svg"
-            alt="Right Arrow"
-          />
-        </button> */}
       </div>
       <div className="flex flex-row pl-8 pr-7 py-6 justify-between w-full rounded-r-lg">
         <div className="flex flex-col justify-between">
