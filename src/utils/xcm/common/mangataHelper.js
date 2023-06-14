@@ -84,14 +84,14 @@ class MangataHelper {
     const currencyId = this.getTokenIdBySymbol('TUR');
 
     const dest = {
-      V1: {
+      V3: {
         parents: 1,
         interior: {
           X2: [
             { Parachain: 2114 },
             {
               AccountId32: {
-                network: 'Any',
+                // network: 'Any',
                 id: publicKeyHex,
               },
             },
@@ -173,7 +173,7 @@ class MangataHelper {
   };
 
   async updatePoolPromotion(tokenId, liquidityMiningIssuanceWeight, keyPair) {
-    const promotePoolExtrinsic = this.api.tx.xyk.updatePoolPromotion(
+    const promotePoolExtrinsic = this.api.tx.proofOfStake.updatePoolPromotion(
       tokenId,
       liquidityMiningIssuanceWeight
     );
@@ -193,7 +193,7 @@ class MangataHelper {
     const amountBN = new BN(amount, 10).mul(decimalBN);
     // console.log("albn", amountBN, amountBN.toNumber() ?? -1);
 
-    return this.api.tx.xyk.activateLiquidityV2(
+    return this.api.tx.proofOfStake.activateLiquidity(
       tokenId,
       new BN(BigInt(Math.round(amount * 10 ** 18)).toString(10), 10),
       undefined
@@ -206,7 +206,7 @@ class MangataHelper {
     const amountBN = new BN(amount, 10).mul(decimalBN);
     // console.log("albn", amountBN, amountBN.toNumber() ?? -1);
 
-    return this.api.tx.xyk.deactivateLiquidityV2(
+    return this.api.tx.proofOfStake.deactivateLiquidity(
       tokenId,
       new BN(amount.toString(10), 10)
     );

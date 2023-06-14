@@ -1786,21 +1786,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oak-network/api-augment@npm:^1.8.0-rc.4":
-  version: 1.8.0-rc.4
-  resolution: "@oak-network/api-augment@npm:1.8.0-rc.4"
+"@oak-network/api-augment@npm:^1.8.1":
+  version: 1.8.1
+  resolution: "@oak-network/api-augment@npm:1.8.1"
   dependencies:
     "@polkadot/types": ^9.9.4
-  checksum: 2c4c46f08912ad4a6e064f55d9624374247f0b4f26f9933cfda045563eecc839a134644e9a03a7323f426f58120373f834272be21a5f7384edb03787cf054a34
+  checksum: 6443edf74f8535da598e2dbf0727cbffd1673359c923daf33a2bc0c976096f0f9ef07602ee94f958b1d313c6196720f78292e45f11e7d970d5872d3f3dc2e040
   languageName: node
   linkType: hard
 
-"@oak-network/types@npm:^1.8.0-rc.4":
-  version: 1.8.0-rc.4
-  resolution: "@oak-network/types@npm:1.8.0-rc.4"
+"@oak-network/types@npm:^1.8.1":
+  version: 1.8.1
+  resolution: "@oak-network/types@npm:1.8.1"
   dependencies:
     "@open-web3/orml-type-definitions": ^2.0.1
-  checksum: bbc9d6e56c733bd4952225b97583fe5199263a1817c98e4ff701b93d550fe31a89d483abcd86f26bfc842b77dcad8cef30444cf930ecc9025f893957aeb4fdd9
+  checksum: 20963d93cfea67df29607b5070d459a4dd7229eb200301278f05247c1c726440858a1b58e84beff8c301bfe9b8b58de1529a3a934c176ced4e8cc2fb866e55ea
   languageName: node
   linkType: hard
 
@@ -8156,8 +8156,8 @@ next@latest:
     "@inquirer/confirm": ^0.0.19-alpha.0
     "@inquirer/select": ^0.0.18-alpha.0
     "@mangata-finance/sdk": ^1.20.1
-    "@oak-network/api-augment": ^1.8.0-rc.4
-    "@oak-network/types": ^1.8.0-rc.4
+    "@oak-network/api-augment": ^1.8.1
+    "@oak-network/types": ^1.8.1
     "@polkadot/api": ^9.3.3
     "@polkadot/keyring": ^10.4.2
     "@polkadot/util": ^10.1.7

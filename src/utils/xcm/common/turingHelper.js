@@ -125,6 +125,7 @@ class TuringHelper {
                   const blockEvents = await at.query.system.events();
                   console.log('blockEvents', blockEvents);
                   let allSuccess = true;
+                  console.log('allSuccess before', allSuccess);
                   blockEvents.forEach((d) => {
                     const {
                       phase,
@@ -168,6 +169,7 @@ class TuringHelper {
                       // });
                     }
                   });
+                  console.log('allSuccess after', allSuccess);
                   if (allSuccess) {
                     console.log('allSuccess', allSuccess);
                     // setIsInProcess(false); // Process will be done when ScheduleXCMP Txn is done
