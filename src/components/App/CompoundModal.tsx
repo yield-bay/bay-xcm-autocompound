@@ -420,9 +420,9 @@ const CompoundModal: FC = () => {
           mangataHelper.config.paraId,
           0,
           {
-            V2: {
-              parents: 1,
-              interior: { X1: { Parachain: mangataHelper.config.paraId } },
+            V3: {
+              parents: 0,
+              interior: 'Here',
             },
           },
           encodedMangataProxyCall,
@@ -735,9 +735,9 @@ const CompoundModal: FC = () => {
           mangataHelper.config.paraId,
           0,
           {
-            V2: {
-              parents: 1,
-              interior: { X1: { Parachain: mangataHelper.config.paraId } },
+            V3: {
+              parents: 0,
+              interior: 'Here',
             },
           },
           encodedMangataProxyCall,

@@ -132,7 +132,7 @@ const AddLiquidityModal: FC = () => {
               (async () => {
                 const tranHash = status.asFinalized.toString();
                 console.log(
-                  `Batch Tx finalized with hash ${tranHash}\n\nbefore delay\n`
+                  `mintLiquidityTx finalized with hash ${tranHash}\n\nbefore delay\n`
                 );
                 await delay(20000);
                 console.log('after delay');
