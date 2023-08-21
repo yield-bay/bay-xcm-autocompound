@@ -4,7 +4,11 @@ import Button from '@components/Library/Button';
 import Loader from '@components/Library/Loader';
 import ModalWrapper from '@components/Library/ModalWrapper';
 import Stepper from '@components/Library/Stepper';
-import { delay } from '@utils/xcm/common/utils';
+import {
+  delay,
+  findEvent,
+  getTaskIdInTaskScheduledEvent,
+} from '@utils/xcm/common/utils';
 import {
   mainModalOpenAtom,
   selectedFarmAtom,
@@ -58,7 +62,7 @@ const CompoundModal: FC = () => {
   const [encodedMangataProxyCall, setEncodedMangataProxyCall] =
     useState<any>(null);
   const [executionTimes, setExecutionTimes] = useState<any>(null);
-  const [providedId, setProvidedId] = useState<string>();
+  // const [providedId, setProvidedId] = useState<string>();
 
   const toast = useToast();
 
@@ -370,10 +374,10 @@ const CompoundModal: FC = () => {
       const et =
         (currentTimestamp - (currentTimestamp % millisecondsInHour)) / 1000;
       const executionTime = et + secondsInHour * 24;
-      const providedId = `xcmp_automation_test_${(Math.random() + 1)
-        .toString(36)
-        .substring(7)}`;
-      setProvidedId(providedId);
+      // const providedId = `xcmp_automation_test_${(Math.random() + 1)
+      //   .toString(36)
+      //   .substring(7)}`;
+      // setProvidedId(providedId);
 
       // frequency
       const executionTimes = [];
@@ -399,17 +403,20 @@ const CompoundModal: FC = () => {
       setEncodedMangataProxyCall(encodedMangataProxyCall);
       setMangataProxyCallFees(mangataProxyCallFees);
 
-      console.log('providedId', providedId);
+      // console.log('providedId', providedId);
       console.log('executionTimes', executionTimes);
       console.log('encodedMangataProxyCall', encodedMangataProxyCall);
       console.log(
         'parseInt(mangataProxyCallFees.weight.refTime, 10)',
         parseInt(mangataProxyCallFees.weight.refTime, 10)
       );
-
+      const overallWeight = mangataHelper.calculateXcmTransactOverallWeight(
+        mangataProxyCallFees.weight
+      );
+      const fee = mangataHelper.weightToFee(overallWeight, 'TUR');
       const xcmpCall =
         await turingHelper.api.tx.automationTime.scheduleXcmpTask(
-          providedId,
+          // providedId,
           // {
           //   Recurring: {
           //     frequency: secondsInHour * 24 * frequency,
@@ -417,39 +424,48 @@ const CompoundModal: FC = () => {
           //   },
           // },
           { Fixed: { executionTimes: executionTimes } },
-          mangataHelper.config.paraId,
-          0,
+          // mangataHelper.config.paraId,
+          // 0,
+          // {
+          //   V3: {
+          //     parents: 0,
+          //     interior: 'Here',
+          //   },
+          // },
+          // encodedMangataProxyCall,
+          // mangataProxyCallFees.weight
+          { V3: mangataHelper.getLocation() },
+          { V3: { parents: 0, interior: 'Here' } },
           {
-            V3: {
-              parents: 0,
-              interior: 'Here',
-            },
+            asset_location: { V3: { parents: 0, interior: 'Here' } },
+            amount: fee,
           },
           encodedMangataProxyCall,
-          mangataProxyCallFees.weight
+          mangataProxyCallFees.weight,
+          overallWeight
         );
       console.log('xcmpCall: ', xcmpCall);
 
       // Query automationTime fee IN TUR
       console.log('\nb) Query automationTime fee details ');
-      const { executionFee, xcmpFee } =
+      const { executionFee, scheduleFee } =
         await turingHelper.api.rpc.automationTime.queryFeeDetails(xcmpCall);
       console.log(
         'executionFee',
         executionFee.toNumber(),
-        'xcmpFee',
-        xcmpFee.toNumber()
+        'scheduleFee',
+        scheduleFee.toNumber()
       );
 
       const totalFees = parseInt(
-        (executionFee.toNumber() + xcmpFee.toNumber()).toString()
+        (executionFee.toNumber() + scheduleFee.toNumber()).toString()
       );
       console.log('totalFees cmod', totalFees);
       // TOTAL_FEES / 10^(DECIMAL OF TUR)
 
       console.log('automationFeeDetails: ', {
         executionFee: executionFee.toHuman(),
-        xcmpFee: xcmpFee.toHuman(),
+        xcmpFee: scheduleFee.toHuman(),
       });
 
       // Getting (free) TUR balance on Turing Network
@@ -457,18 +473,20 @@ const CompoundModal: FC = () => {
 
       const turbal = await turingHelper.getBalance(turingAddress);
       let turfreebal = turbal?.toHuman()?.free;
-      turfreebal = parseFloat(turfreebal);
+      turfreebal = parseFloat(turfreebal.replaceAll(',', ''));
       console.log(
         'turbal',
         turfreebal,
+        turbal,
+        turbal?.toHuman(),
         'exefee',
         executionFee.toNumber(),
         'xcmfee',
-        xcmpFee.toNumber()
+        scheduleFee.toNumber()
       );
 
       setExecutionFee(executionFee.toNumber());
-      setXcmpFee(xcmpFee.toNumber());
+      setXcmpFee(scheduleFee.toNumber());
 
       if (gasChoice === 0) {
         // pay with MGX // MGR on Rococo
@@ -696,12 +714,12 @@ const CompoundModal: FC = () => {
       }
 
       // Get a TaskId from Turing rpc
-      const taskId = await turingHelper.api.rpc.automationTime.generateTaskId(
-        turingAddress,
-        providedId
-      );
-      console.log('TaskId:', taskId);
-      setTaskId(taskId?.toHuman() ?? taskId);
+      // const taskId = await turingHelper.api.rpc.automationTime.generateTaskId(
+      //   turingAddress,
+      //   providedId
+      // );
+      // console.log('TaskId:', taskId);
+      // setTaskId(taskId?.toHuman() ?? taskId);
     } catch (error) {
       let errorString = `${error}`;
       console.log('error while create compounding task:', errorString);
@@ -722,9 +740,13 @@ const CompoundModal: FC = () => {
     const { liquidityTokenId } = pool;
 
     try {
+      const overallWeight = mangataHelper.calculateXcmTransactOverallWeight(
+        mangataProxyCallFees.weight
+      );
+      const fee = mangataHelper.weightToFee(overallWeight, 'TUR');
       const xcmpCall =
         await turingHelper.api.tx.automationTime.scheduleXcmpTask(
-          providedId,
+          // providedId,
           // {
           //   Recurring: {
           //     frequency: secondsInHour * 24 * frequency,
@@ -732,33 +754,56 @@ const CompoundModal: FC = () => {
           //   },
           // },
           { Fixed: { executionTimes: executionTimes } },
-          mangataHelper.config.paraId,
-          0,
+          // mangataHelper.config.paraId,
+          // 0,
+          // {
+          //   V3: {
+          //     parents: 0,
+          //     interior: 'Here',
+          //   },
+          // },
+          // encodedMangataProxyCall,
+          // mangataProxyCallFees.weight
+          { V3: mangataHelper.getLocation() },
+          { V3: { parents: 0, interior: 'Here' } },
           {
-            V3: {
-              parents: 0,
-              interior: 'Here',
-            },
+            asset_location: { V3: { parents: 0, interior: 'Here' } },
+            amount: fee,
           },
           encodedMangataProxyCall,
-          mangataProxyCallFees.weight
+          mangataProxyCallFees.weight,
+          overallWeight
         );
       console.log('xcmpCall: ', xcmpCall);
 
       // Send extrinsic
       setIsSigning(true);
       console.log('\nc) Sign and send scheduleXcmpTask call ...');
-      await turingHelper.sendXcmExtrinsic(
+      const { events } = await turingHelper.sendXcmExtrinsic(
         xcmpCall,
         account?.address,
         signer,
-        taskId,
+        // taskId,
         setIsSigning,
         setIsInProcess,
         setIsSuccess,
         setIsFailed,
         toast
       );
+
+      console.log('sendxcmextevents', events);
+
+      const taskScheduledEvent = findEvent(
+        events,
+        'automationTime',
+        'TaskScheduled'
+      );
+      const taskId = getTaskIdInTaskScheduledEvent(taskScheduledEvent);
+      console.log(
+        `Retrieved taskId ${taskId} from TaskScheduled among the finalized events.`
+      );
+
+      setTaskId(taskId);
 
       // console.log('\nWaiting 20 seconds before reading new chain states ...');
       // await delay(20000); // This is not how delay works

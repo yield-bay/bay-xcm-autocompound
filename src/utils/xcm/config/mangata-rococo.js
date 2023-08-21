@@ -1,11 +1,19 @@
+import BN from 'bn.js';
+
+const PARA_ID = 2110;
+const NATIVE_TOKEN = 'MGR';
+const WEIGHT_REF_TIME = new BN(150000000);
+const WEIGHT_PROOF_SIZE = new BN(0);
+
 const assets = [
   {
     id: '0',
     chainId: 0,
     decimals: 18,
     name: 'Mangata',
-    symbol: 'MGR',
+    symbol: NATIVE_TOKEN,
     address: '',
+    location: { parents: 1, interior: { X1: { Parachain: PARA_ID } } },
   },
   {
     id: '4',
@@ -30,6 +38,7 @@ const assets = [
     name: 'Turing native token',
     symbol: 'TUR',
     address: '',
+    feePerSecond: new BN('871400000000'),
   },
   {
     id: '8',
@@ -248,10 +257,12 @@ const Config = {
   key: 'mangata-rococo',
   endpoint: 'wss://collator-01-ws-rococo.mangata.online',
   relayChain: 'rococo',
-  paraId: 2110,
+  paraId: PARA_ID,
   ss58: 42,
   assets,
   pools,
+  instructionWeight: { refTime: WEIGHT_REF_TIME, proofSize: WEIGHT_PROOF_SIZE },
+  symbol: NATIVE_TOKEN,
 };
 
 export default Config;

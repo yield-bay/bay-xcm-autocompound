@@ -4,7 +4,7 @@ import _ from 'lodash';
 import { Mangata } from '@mangata-finance/sdk';
 import Keyring from '@polkadot/keyring';
 
-import { sendExtrinsic, getProxyAccount, getDecimalBN } from './utils';
+import { sendExtrinsic, getProxyAccount, getDecimalBN, calculateXcmOverallWeight, WEIGHT_REF_TIME_PER_SECOND, paraIdToLocation } from './utils';
 
 class MangataHelper {
   constructor(config) {
@@ -34,9 +34,11 @@ class MangataHelper {
 
   updateAssets = async () => {
     const assetsResp = await this.mangata.getAssetsInfo();
-    this.assets = _.values(
-      _.filter(assetsResp, (asset) => !_.isEmpty(asset.symbol))
-    );
+    const assets = _.values(_.filter(assetsResp, (asset) => !_.isEmpty(asset.symbol)));
+    this.assets = _.map(assets, (asset) => {
+        const localAsset = _.find(this.config.assets, { symbol: asset.symbol, id: asset.id });
+        return localAsset ? { ...asset, ...localAsset } : asset;
+    });
     console.log('Assets on Mangata chain: ', this.assets);
   };
 
@@ -648,6 +650,22 @@ class MangataHelper {
         return events;
       });
   };
+
+  calculateXcmTransactOverallWeight = (transactCallWeight) => calculateXcmOverallWeight(transactCallWeight, this.config.instructionWeight, 6);
+
+  weightToFee = (weight, symbol) => {
+      const { feePerSecond } = _.find(this.assets, { symbol });
+      return weight.refTime.mul(new BN(feePerSecond)).div(new BN(WEIGHT_REF_TIME_PER_SECOND));
+  };
+
+  getAssetLocation = (symbol) => {
+      const { location } = _.find(this.assets, { symbol });
+      return location;
+  };
+
+  getNativeAssetLocation = () => this.getAssetLocation(this.config.symbol);
+
+  getLocation = () => paraIdToLocation(this.config.paraId);
 }
 
 export default MangataHelper;

@@ -70,7 +70,7 @@ class TuringHelper {
     xcmpCall,
     keyPair,
     signer,
-    taskId,
+    // taskId,
     setIsSigning,
     setIsInProcess,
     setIsSuccess,
@@ -84,17 +84,17 @@ class TuringHelper {
           .signAndSend(
             keyPair,
             { signer: signer, nonce: -1 },
-            async ({ status }) => {
+            async ({ status, events }) => {
               if (status.isInBlock) {
                 console.log('Transaction is in Block now!');
                 console.log(`Successful with hash ${status.asInBlock.toHex()}`);
-                console.log('kpaddr', keyPair, 'task', taskId);
-                // Get Task
-                const task = await this.api.query.automationTime.accountTasks(
-                  keyPair,
-                  taskId
-                );
-                console.log('Task:', task);
+                // console.log('kpaddr', keyPair, 'task', taskId);
+                // // Get Task
+                // const task = await this.api.query.automationTime.accountTasks(
+                //   keyPair,
+                //   taskId
+                // );
+                // console.log('Task:', task);
                 // unsub();
                 // resolve();
               } else if (status.isFinalized) {
@@ -177,7 +177,9 @@ class TuringHelper {
                     setIsInProcess(false);
                     setIsSigning(false);
                     setIsSuccess(true);
+                    // resolve({ events, blockHash: status.asFinalized.toString() });
                   }
+                  resolve({ events, blockHash: status.asFinalized.toString() });
                 })();
                 // setIsInProcess(false);
                 // setIsSigning(false);
@@ -229,16 +231,23 @@ class TuringHelper {
     return token.decimals;
   }
 
-  getAssetIdByParaId = async (paraId) => {
+  getAssetIdByLocation = async (assetLocation) => {
     const assetId = (
-      await this.api.query.assetRegistry.locationToAssetId({
-        parents: 1,
-        interior: { X1: { Parachain: paraId } },
-      })
+      await this.api.query.assetRegistry.locationToAssetId(assetLocation)
     )
       .unwrapOrDefault()
       .toNumber();
     return assetId;
+  };
+
+  calculateXcmTransactOverallWeight = (transactCallWeight) => calculateXcmOverallWeight(transactCallWeight, this.config.instructionWeight, 6);
+
+  weightToFee = async (weight, assetLocation) => {
+      const assetId = await this.getAssetIdByLocation(assetLocation);
+      const feePerSecond = await this.getFeePerSecond(assetId);
+      console.log(`weight: (${weight.refTime.toString()}, ${weight.proofSize.toString()})`);
+      const result = weight.refTime.mul(new BN(feePerSecond)).div(new BN(WEIGHT_REF_TIME_PER_SECOND));
+      return result;
   };
 }
 

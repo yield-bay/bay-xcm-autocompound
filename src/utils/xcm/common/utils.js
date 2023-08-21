@@ -8,6 +8,14 @@ import moment from 'moment';
 
 const LISTEN_EVENT_DELAY = 3 * 60;
 
+export const WEIGHT_REF_TIME_PER_SECOND = 1000000000000;
+export const WEIGHT_PROOF_SIZE_PER_MB = 1024 * 1024;
+
+export const ScheduleActionType = {
+  executeImmediately: 'execute-immediately',
+  executeOnTheHour: 'execute-on-the-hour',
+};
+
 export const sendExtrinsic = async (api, extrinsic, keyPair, { isSudo = false } = {}) => new Promise((resolve) => {
   const newExtrinsic = isSudo ? api.tx.sudo.sudo(extrinsic) : extrinsic;
   newExtrinsic.signAndSend(keyPair, { nonce: -1 }, ({ status, events }) => {
@@ -32,7 +40,7 @@ export const sendExtrinsic = async (api, extrinsic, keyPair, { isSudo = false } 
         });
 
       if (status.isFinalized) {
-        resolve(status.asFinalized.toString());
+        resolve({ events, blockHash: status.asFinalized.toString() });
       }
     }
   });
@@ -175,43 +183,38 @@ export const listenEvents = async (api, section, method, timeout = undefined) =>
     if (timeout) {
       timeoutId = setTimeout(() => {
         unsub();
-        resolve(false);
+        resolve(null);
       }, timeout);
     }
 
     const listenSystemEvents = async () => {
       unsub = await api.query.system.events((events) => {
-        let foundEvent = false;
-        // Loop through the Vec<EventRecord>
-        events.forEach((record) => {
-          // Extract the phase, event and the event types
-          const { event, phase } = record;
-          const {
-            section: eventSection,
-            method: eventMethod,
-            typeDef: types,
-          } = event;
-
-          // console.log('section.method: ', `${section}.${method}`);
-          if (eventSection === section && eventMethod === method) {
-            foundEvent = true;
-            // Show what we are busy with
-            console.log(`\t${section}:${method}:: (phase=${phase.toString()})`);
-            // console.log(`\t\t${event.meta.documentation.toString()}`);
-
-            // Loop through each of the parameters, displaying the type and data
-            event.data.forEach((data, index) => {
-              console.log(`\t\t\t${types[index].type}: ${data.toString()}`);
-            });
-          }
+        const foundEvent = _.find(events, ({ event }) => {
+          const { section: eventSection, method: eventMethod } = event;
+          return eventSection === section && eventMethod === method;
         });
 
         if (foundEvent) {
+          const {
+            event: {
+              section: eventSection, method: eventMethod, typeDef: types, data: eventData,
+            }, phase,
+          } = foundEvent;
+
+          // Print out the name of the event found
+          console.log(`\t${eventSection}:${eventMethod}:: (phase=${phase.toString()})`);
+
+          // Loop through the conent of the event, displaying the type and data
+          eventData.forEach((data, index) => {
+            console.log(`\t\t\t${types[index].type}: ${data.toString()}`);
+          });
+
           unsub();
+
           if (timeoutId) {
             clearTimeout(timeoutId);
           }
-          resolve(true);
+          resolve(foundEvent);
         }
       });
     };
@@ -229,5 +232,54 @@ export const listenEvents = async (api, section, method, timeout = undefined) =>
 //     return JSON.parse(json);
 // };
 
-export const calculateTimeout = (executionTime) =>
-  (executionTime - moment().valueOf() / 1000 + LISTEN_EVENT_DELAY) * 1000;
+export const calculateTimeout = (executionTime) => (executionTime - moment().valueOf() / 1000 + LISTEN_EVENT_DELAY) * 1000;
+
+export const askScheduleAction = async () => {
+  const actions = [
+      {
+          name: 'Execute immediately',
+          value: ScheduleActionType.executeImmediately,
+          description: 'Execute task immediately.',
+      },
+      {
+          name: 'Execute on the hour',
+          value: ScheduleActionType.executeOnTheHour,
+          description: 'Execute task on the hour.',
+      },
+  ];
+  const actionSelected = await select({
+      message: 'Select an action to perform',
+      choices: actions,
+  });
+  return actionSelected;
+};
+
+/**
+* Convert a BN object to float such as 0.0135
+* @param {*} amountBN
+* @param {*} decimalBN
+* @param {*} digit the number of digits of the float; by default 4
+* @returns a float number
+*/
+export const bnToFloat = (amountBN, decimalBN, digit = 4) => {
+  const amplifier = 10 ** digit;
+  const digitBN = new BN(amplifier);
+
+  const resultBN = amountBN.mul(digitBN).div(decimalBN);
+
+  return _.floor(resultBN.toNumber() / amplifier, digit);
+};
+
+export const generateProvidedId = () => `xcmp_automation_test_${(Math.random() + 1).toString(36).substring(7)}`;
+
+export const getHourlyTimestamp = (hour) => (moment().add(hour, 'hour').startOf('hour')).valueOf();
+
+export const calculateXcmOverallWeight = (transactCallWeight, instructionWeight, instructionCount) => {
+  const totalInstructionWeight = { refTime: instructionWeight.refTime.mul(new BN(instructionCount)), proofSize: instructionWeight.proofSize.mul(new BN(instructionCount)) };
+  const totalWeight = { refTime: transactCallWeight.refTime.unwrap().add(totalInstructionWeight.refTime), proofSize: transactCallWeight.proofSize.unwrap().add(totalInstructionWeight.proofSize) };
+  return totalWeight;
+};
+
+export const findEvent = (events, section, method) => events.find((e) => e.event.section === section && e.event.method === method);
+export const getTaskIdInTaskScheduledEvent = (event) => Buffer.from(event.event.data.taskId).toString();
+export const paraIdToLocation = (paraId) => ({ parents: 1, interior: { X1: { Parachain: paraId } } });

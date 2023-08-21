@@ -349,17 +349,20 @@ const StopCompoundingModal: FC = () => {
         currentTask?.taskId
       );
 
-      await turingHelper.sendXcmExtrinsic(
+      const { events } = await turingHelper.sendXcmExtrinsic(
         cancelTx,
         account?.address,
         signer,
-        currentTask?.taskId,
+        // currentTask?.taskId,
         setIsSigning,
         setIsInProcess,
         setIsSuccess,
         setIsFailed,
         toast
       );
+
+      console.log('sendcancelxcmextevents', events);
+
       console.log(`Task cancelled withtaskId ${currentTask?.taskId}`);
     } catch (error) {
       let errorString = `${error}`;

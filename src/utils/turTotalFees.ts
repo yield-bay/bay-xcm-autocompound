@@ -43,9 +43,9 @@ export const turTotalFees = async (
   const et =
     (currentTimestamp - (currentTimestamp % millisecondsInHour)) / 1000;
 
-  const providedId = `xcmp_automation_test_${(Math.random() + 1)
-    .toString(36)
-    .substring(7)}`;
+  // const providedId = `xcmp_automation_test_${(Math.random() + 1)
+  //   .toString(36)
+  //   .substring(7)}`;
 
   // frequency
   const executionTimes = [];
@@ -55,26 +55,33 @@ export const turTotalFees = async (
 
   console.log('executionTimes', executionTimes);
   
-
+  const overallWeight = mangataHelper.calculateXcmTransactOverallWeight(mangataProxyCallFees.weight);
+  const fee = mangataHelper.weightToFee(overallWeight, 'TUR');
   const xcmpCall = await turingHelper?.api?.tx.automationTime.scheduleXcmpTask(
-    providedId,
+    // providedId,
     { Fixed: { executionTimes: executionTimes } },
-    mangataHelper.config.paraId,
-    0,
+    // mangataHelper.config.paraId,
+    // 0,
+    // { V3: { parents: 0, interior: 'Here' } },
+    // { V3: { parents: 1, interior: { X1: { Parachain: mangataHelper.config.paraId } } } },
+    { V3: mangataHelper.getLocation() },
     { V3: { parents: 0, interior: 'Here' } },
+    { asset_location: { V3: { parents: 0, interior: 'Here' } }, amount: fee },
     encodedMangataProxyCall,
-    mangataProxyCallFees.weight
+    mangataProxyCallFees.weight,
+    overallWeight,
   );
 
   // Query automationTime fee IN TUR
   console.log('\nb) Query automationTime fee details ');
   // console.log('qfds', await turingHelper?.api?.rpc?.automationTime.queryFeeDetails(xcmpCall));
-  const { executionFee, xcmpFee } =
+  const { executionFee, scheduleFee } =
     await turingHelper?.api?.rpc?.automationTime.queryFeeDetails(xcmpCall);
-  console.log('times', executionTimes.length, 'executionFee', executionFee.toNumber() / 10 ** 10, 'xcmpFee', xcmpFee.toNumber() / 10 ** 10);
+  console.log('times', executionTimes.length, 'executionFee', executionFee, 'scheduleFee', scheduleFee);
+  console.log('times', executionTimes.length, 'executionFee', executionFee.toNumber() / 10 ** 10, 'scheduleFee', scheduleFee.toNumber() / 10 ** 10);
 
   const totalFees =
-    executionFee.toNumber() + xcmpFee.toNumber();
+    executionFee.toNumber() + scheduleFee.toNumber();
   console.log('totalFees iss', totalFees / 10 ** 10);
   return totalFees / 10 ** 10;
 };
