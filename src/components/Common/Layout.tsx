@@ -61,7 +61,7 @@ const Layout: FC<Props> = ({ children }) => {
   useEffect(() => {
     (async (accountInit) => {
       if (account?.address == null) {
-        console.log('Connect wallet to use App!');
+        console.info('Account not connected!');
         return;
       }
 
@@ -126,8 +126,8 @@ const Layout: FC<Props> = ({ children }) => {
           name: account?.name,
         },
       });
+
       await account1.init([turingHelper, mangataHelper]);
-      console.log('account1', account1);
       // It is setting Account1 here, and this fn runs only once in starting
       // it should re-run when an account is updated.
       setAccountInit(account1);
