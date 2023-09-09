@@ -1,17 +1,11 @@
-
+import BN from 'bn.js';
 const PARA_ID = 2110;
 const NATIVE_TOKEN = 'MGR';
 
+const WEIGHT_REF_TIME = new BN(150000000);
+const WEIGHT_PROOF_SIZE = new BN(0);
+
 const assets = [
-  {
-    id: '0',
-    chainId: 0,
-    decimals: 18,
-    name: 'Mangata',
-    symbol: NATIVE_TOKEN,
-    address: '',
-    location: { parents: 1, interior: { X1: { Parachain: PARA_ID } } },
-  },
   {
     id: '4',
     chainId: 0,
@@ -200,6 +194,7 @@ const Config = {
   ss58: 42,
   assets,
   pools,
+  instructionWeight: { refTime: WEIGHT_REF_TIME, proofSize: WEIGHT_PROOF_SIZE },
   symbol: NATIVE_TOKEN,
 };
 
