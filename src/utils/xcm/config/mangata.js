@@ -4,6 +4,7 @@ const NATIVE_TOKEN = 'MGR';
 
 const WEIGHT_REF_TIME = new BN(150000000);
 const WEIGHT_PROOF_SIZE = new BN(0);
+const turFeesPerSec = new BN('537600000000');
 
 const assets = [
   {
@@ -29,6 +30,7 @@ const assets = [
     name: 'Turing native token',
     symbol: 'TUR',
     address: '',
+    feePerSecond: turFeesPerSec,
   },
   {
     id: '8',
