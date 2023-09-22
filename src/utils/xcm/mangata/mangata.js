@@ -117,7 +117,7 @@ async function main() {
   const proxyType = 'AutoCompound';
   const proxyExtrinsic = mangataHelper.api.tx.xyk.compoundRewards(
     liquidityTokenId,
-    1000000
+    10000
   );
   const mangataProxyCall = await mangataHelper.createProxyCall(
     mangataAddress,

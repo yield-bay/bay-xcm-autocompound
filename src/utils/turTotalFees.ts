@@ -18,7 +18,7 @@ export const turTotalFees = async (
 
   const proxyExtrinsic = mangataHelper?.api?.tx.xyk.compoundRewards(
     liquidityTokenId,
-    (1000000 * percentage) / 100
+    (10000 * percentage) / 100
   );
 
   const mangataProxyCall = await mangataHelper.createProxyCall(
