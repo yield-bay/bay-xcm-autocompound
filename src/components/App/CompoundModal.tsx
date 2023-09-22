@@ -349,7 +349,7 @@ const CompoundModal: FC = () => {
       console.log('\n4. Start to schedule an auto-compound call via XCM ...');
       const proxyExtrinsic = mangataHelper.api.tx.xyk.compoundRewards(
         liquidityTokenId,
-        (1000000 * percentage) / 100 // permille ie. 100% of rewards
+        (10000 * percentage) / 100 // permille ie. 100% of rewards
       );
       const mangataProxyCall = await mangataHelper.createProxyCall(
         account?.address,

@@ -242,7 +242,7 @@ class AutoCompound {
         console.log('\n4. Start to schedule an auto-compound call via XCM ...');
         const proxyExtrinsic = mangataHelper.api.tx.xyk.compoundRewards(
           liquidityTokenId,
-          1000000
+          10000
         );
         const mangataProxyCall = await mangataHelper.createProxyCall(
           mangataAddress,
