@@ -210,7 +210,7 @@ const CompoundTab: FC<TabProps> = ({ farm, pool }) => {
     queryKey: ['turprice'],
     queryFn: async () => {
       try {
-        const tokenPrices = await fetchTokenPrices();
+        // const tokenPrices = await fetchTokenPrices();
         // console.log(`TUR price ${tokenPrices[2].price}`);
         // return tokenPrices[2].price; // TUR price in Dollar
         return 0.007321;
